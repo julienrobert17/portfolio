@@ -204,7 +204,7 @@ export default function ResultScreen({
             Espérance {target.lifeExpectancy.toFixed(1)} ans
           </span>
           <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', borderRadius: '999px', padding: '4px 12px', fontSize: '13px' }}>
-            Pauvreté {target.poverty.toFixed(1)}%
+            Pauvreté {target.poverty != null ? target.poverty.toFixed(1) + '%' : '?'}
           </span>
         </div>
 
