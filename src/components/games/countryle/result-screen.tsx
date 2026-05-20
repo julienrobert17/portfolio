@@ -162,7 +162,7 @@ export default function ResultScreen({
             projectionConfig={{ center: [target.lng, target.lat], scale: 800 }}
           >
             <Geographies geography={GEO_URL}>
-              {({ geographies }) =>
+              {({ geographies }: { geographies: { rsmKey: string; properties: { name?: string }; [key: string]: unknown }[] }) =>
                 geographies.map((geo) => {
                   const name: string = geo.properties.name ?? ''
                   const nameLower = name.toLowerCase()
