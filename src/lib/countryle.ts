@@ -1,3 +1,4 @@
+import { getCountriesData } from './countries-data'
 import { getOwidData } from './owid-data'
 
 export type CountryData = {
@@ -16,26 +17,8 @@ export type CountryData = {
   fertilityRate: number
 }
 
-type RestCountry = {
-  code: string
-  name: string
-  flag: string
-  continent: string
-  population: number
-  area: number
-  lat: number
-  lng: number
-}
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-
 export async function getCountryleData(): Promise<CountryData[]> {
-  const countriesRes = await fetch(`${BASE_URL}/api/countries`, {
-    next: { revalidate: 86400 },
-  })
-  if (!countriesRes.ok) throw new Error('Failed to fetch /api/countries')
-  const restCountries: RestCountry[] = await countriesRes.json()
-
+  const restCountries = await getCountriesData()
   const names = restCountries.map((c) => c.name)
   const owidMap = await getOwidData(names)
 
