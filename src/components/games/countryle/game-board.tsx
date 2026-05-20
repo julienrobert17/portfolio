@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { CountryData } from '@/lib/countryle'
-import type { GameStatus } from '@/lib/countryle-game'
+import type { GuessResult, GameStatus } from '@/lib/countryle-game'
 import { evaluateGuess, isWin } from '@/lib/countryle-game'
 import GuessRow from '@/components/games/countryle/guess-row'
 import WorldMap from '@/components/games/countryle/world-map'
