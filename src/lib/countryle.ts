@@ -1,3 +1,5 @@
+import { getOwidData } from './owid-data'
+
 export type CountryData = {
   code: string
   name: string
@@ -25,19 +27,6 @@ type RestCountry = {
   lng: number
 }
 
-type OwidEntry = {
-  poverty: number | null
-  lifeExpectancy: number | null
-  meatSupply: number | null
-  co2PerCapita: number | null
-  fertilityRate: number | null
-}
-
-type OwidResponse = {
-  countries: Record<string, OwidEntry>
-  stats: unknown
-}
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
 export async function getCountryleData(): Promise<CountryData[]> {
@@ -48,12 +37,7 @@ export async function getCountryleData(): Promise<CountryData[]> {
   const restCountries: RestCountry[] = await countriesRes.json()
 
   const names = restCountries.map((c) => c.name)
-  const owidRes = await fetch(
-    `${BASE_URL}/api/owid?names=${encodeURIComponent(names.join(','))}`,
-    { next: { revalidate: 86400 } },
-  )
-  if (!owidRes.ok) throw new Error('Failed to fetch /api/owid')
-  const { countries: owidMap }: OwidResponse = await owidRes.json()
+  const owidMap = await getOwidData(names)
 
   const result: CountryData[] = []
 
@@ -70,7 +54,7 @@ export async function getCountryleData(): Promise<CountryData[]> {
       co2PerCapita === null ||
       fertilityRate === null
     ) continue
-    
+
     result.push({
       code: country.code,
       name: country.name,
@@ -87,6 +71,6 @@ export async function getCountryleData(): Promise<CountryData[]> {
       fertilityRate,
     })
   }
-  
+
   return result
 }
