@@ -48,7 +48,7 @@ export default function WorldMap({ guesses, target }: WorldMapProps) {
       projectionConfig={{ scale: 140 }}
     >
       <Geographies geography={GEO_URL}>
-        {({ geographies }) =>
+        {({ geographies }: { geographies: { rsmKey: string; properties: { name?: string }; [key: string]: unknown }[] }) =>
           geographies.map((geo) => {
             const name: string = geo.properties.name ?? ''
             const fill = getFill(name)
