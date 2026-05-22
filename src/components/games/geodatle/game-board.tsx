@@ -54,10 +54,14 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
   const displayName = (c: CountryData) => lang === 'fr' ? c.nameFr : c.name
   const guessedNames = new Set(guesses.map((g) => g.name))
 
+  function normalize(str: string) {
+    return str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  }
+
   const suggestions = input.trim().length > 0
     ? countries.filter(
         (c) =>
-          displayName(c).toLowerCase().includes(input.toLowerCase()) &&
+          normalize(displayName(c)).includes(normalize(input)) &&
           !guessedNames.has(c.name),
       )
     : []
