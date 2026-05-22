@@ -1,33 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLang } from '@/components/games/geodatle/lang-context'
 
 interface RulesModalProps {
   onClose: () => void
 }
 
-const RULES = [
-  'Un pays mystère est choisi chaque jour',
-  'Tu as 8 tentatives pour le trouver',
-  'Chaque guess révèle des indices sur 7 indicateurs',
-  'Les couleurs indiquent à quel point tu es proche',
-]
-
-const COLORS = [
-  { emoji: '🟢', label: 'Très proche',           detail: 'moins de 15%'            },
-  { emoji: '🟡', label: 'Dans la bonne direction', detail: 'moins de 25%'           },
-  { emoji: '🟠', label: 'Encore loin',             detail: 'plus de 25%'            },
-  { emoji: '🔴', label: '✗ Mauvais continent',     detail: ''                       },
-  { emoji: '⬜', label: 'Données non disponibles', detail: ''                       },
-]
-
 export default function RulesModal({ onClose }: RulesModalProps) {
+  const { t } = useLang()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 16)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setVisible(true), 16)
+    return () => clearTimeout(timer)
   }, [])
+
+  const COLORS = [
+    { emoji: '🟢', text: t.rules.colors.similar },
+    { emoji: '🟡', text: t.rules.colors.close },
+    { emoji: '🟠', text: t.rules.colors.far },
+    { emoji: '🔴', text: t.rules.colors.wrong },
+    { emoji: '⬜', text: t.rules.colors.na },
+  ]
 
   return (
     <div
@@ -61,26 +56,23 @@ export default function RulesModal({ onClose }: RulesModalProps) {
         }}
       >
         <h2 style={{ fontSize: '20px', fontWeight: 700, textAlign: 'center' }}>
-          Comment jouer 🌍
+          {t.rules.title} 🌍
         </h2>
 
         <ol style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '0', listStyle: 'none', margin: 0 }}>
-          {RULES.map((rule, i) => (
+          {t.rules.items.map((item, i) => (
             <li key={i} style={{ display: 'flex', gap: '12px', fontSize: '14px', color: 'rgba(255,255,255,0.85)' }}>
               <span style={{ fontWeight: 700, color: '#534AB7', minWidth: '20px' }}>{i + 1}.</span>
-              {rule}
+              {item}
             </li>
           ))}
         </ol>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {COLORS.map(({ emoji, label, detail }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
+          {COLORS.map(({ emoji, text }) => (
+            <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>{emoji}</span>
-              <span style={{ color: 'rgba(255,255,255,0.85)' }}>{label}</span>
-              {detail && (
-                <span style={{ color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>{detail}</span>
-              )}
+              <span style={{ color: 'rgba(255,255,255,0.85)' }}>{text}</span>
             </div>
           ))}
         </div>
@@ -102,7 +94,7 @@ export default function RulesModal({ onClose }: RulesModalProps) {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
-          C&apos;est parti !
+          {t.rules.cta}
         </button>
       </div>
     </div>

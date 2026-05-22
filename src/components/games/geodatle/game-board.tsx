@@ -8,27 +8,9 @@ import GuessRow from '@/components/games/geodatle/guess-row'
 import WorldMap from '@/components/games/geodatle/world-map'
 import ResultScreen from '@/components/games/geodatle/result-screen'
 import RulesModal from '@/components/games/geodatle/rules-modal'
+import { LangProvider, useLang } from '@/components/games/geodatle/lang-context'
 
 const MAX_GUESSES = 8
-
-const HEADERS: { label: string; year?: string; key?: string }[] = [
-  { label: 'Pays' },
-  { label: 'Continent',          key: 'continent'      },
-  { label: 'Population',         key: 'population'     },
-  { label: 'Superficie (km²)',   key: 'area'           },
-  { label: 'Pauvreté ext. (%)',  key: 'poverty',       year: '2019' },
-  { label: 'Espérance (ans)',    key: 'lifeExpectancy', year: '2022' },
-  { label: 'Viande (kg/an)',     key: 'meatSupply',    year: '2021' },
-  { label: 'CO₂ (t/an)',         key: 'co2PerCapita',  year: '2022' },
-  { label: 'Taux fertilité',     key: 'fertilityRate', year: '2022' },
-]
-
-const LEGEND = [
-  { icon: '≈',  label: 'Très proche', bg: 'rgba(22,163,74,0.2)',  color: '#16a34a' },
-  { icon: '↑',  label: 'Proche',      bg: 'rgba(202,138,4,0.2)',  color: '#ca8a04' },
-  { icon: '↑↑', label: 'Loin',        bg: 'rgba(194,65,12,0.2)',  color: '#c2410c' },
-  { icon: '✗',  label: 'Faux',        bg: 'rgba(185,28,28,0.2)',  color: '#b91c1c' },
-]
 
 const centred: React.CSSProperties = {
   maxWidth: '896px',
@@ -42,7 +24,9 @@ interface GameBoardProps {
   debugMode?: boolean
 }
 
-export default function GameBoard({ countries, target, debugMode }: GameBoardProps) {
+function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
+  const { lang, setLang, t } = useLang()
+
   const [currentTarget, setCurrentTarget] = useState<CountryData>(target)
   const [guesses, setGuesses] = useState<GuessResult[]>([])
   const [status, setStatus] = useState<GameStatus>('playing')
@@ -67,12 +51,13 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
     setInput('')
   }
 
+  const displayName = (c: CountryData) => lang === 'fr' ? c.nameFr : c.name
   const guessedNames = new Set(guesses.map((g) => g.name))
 
   const suggestions = input.trim().length > 0
     ? countries.filter(
         (c) =>
-          c.name.toLowerCase().includes(input.toLowerCase()) &&
+          displayName(c).toLowerCase().includes(input.toLowerCase()) &&
           !guessedNames.has(c.name),
       )
     : []
@@ -97,6 +82,37 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
       .filter(([_, v]) => v === null)
       .map(([k]) => k)
   )
+
+  const HEADERS: { label: string; year?: string; key?: string }[] = [
+    { label: t.headers.country },
+    { label: t.headers.continent,      key: 'continent'       },
+    { label: t.headers.population,     key: 'population'      },
+    { label: t.headers.area,           key: 'area'            },
+    { label: t.headers.poverty,        key: 'poverty',        year: '2019' },
+    { label: t.headers.lifeExpectancy, key: 'lifeExpectancy', year: '2022' },
+    { label: t.headers.meatSupply,     key: 'meatSupply',     year: '2021' },
+    { label: t.headers.co2PerCapita,   key: 'co2PerCapita',   year: '2022' },
+    { label: t.headers.fertilityRate,  key: 'fertilityRate',  year: '2022' },
+  ]
+
+  const LEGEND = [
+    { icon: '≈',  label: t.legend.similar, bg: 'rgba(22,163,74,0.2)',  color: '#16a34a' },
+    { icon: '↑',  label: t.legend.close,   bg: 'rgba(202,138,4,0.2)',  color: '#ca8a04' },
+    { icon: '↑↑', label: t.legend.far,     bg: 'rgba(194,65,12,0.2)',  color: '#c2410c' },
+    { icon: '✗',  label: t.legend.wrong,   bg: 'rgba(185,28,28,0.2)',  color: '#b91c1c' },
+  ]
+
+  const flagBtnStyle = (active: boolean): React.CSSProperties => ({
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '20px',
+    lineHeight: 1,
+    opacity: active ? 1 : 0.3,
+    padding: '2px',
+    transition: 'opacity 0.15s ease',
+    color: 'white',
+  })
 
   return (
     <>
@@ -137,9 +153,9 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
               ?
             </button>
             <div>
-              <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>Geodatle</h1>
+              <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>{t.title}</h1>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
-                Devinez le pays du jour
+                {t.subtitle}
               </p>
             </div>
             {debugMode && (
@@ -174,6 +190,8 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
                 → Pays suivant
               </button>
             )}
+            <button onClick={() => setLang('fr')} style={{ ...flagBtnStyle(lang === 'fr'), fontSize: '12px', fontWeight: 600 }}>FR</button>
+            <button onClick={() => setLang('en')} style={{ ...flagBtnStyle(lang === 'en'), fontSize: '12px', fontWeight: 600 }}>EN</button>
             <span
               style={{
                 background: 'rgba(255,255,255,0.08)',
@@ -185,7 +203,7 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
                 color: 'rgba(255,255,255,0.7)',
               }}
             >
-              Tentatives : {guesses.length}/{MAX_GUESSES}
+              {t.attempts} : {guesses.length}/{MAX_GUESSES}
             </span>
           </div>
         </div>
@@ -206,7 +224,7 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Chercher un pays…"
+              placeholder={t.searchPlaceholder}
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.06)',
@@ -240,7 +258,7 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <img src={c.flag} alt="" className="h-4 w-6 object-cover rounded-sm shrink-0" />
-                      {c.name}
+                      {displayName(c)}
                     </button>
                   </li>
                 ))}
@@ -324,7 +342,6 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
           {' · REST Countries API'}
         </p>
 
-
       </div>
     </div>
 
@@ -340,5 +357,13 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
       />
     )}
     </>
+  )
+}
+
+export default function GameBoard(props: GameBoardProps) {
+  return (
+    <LangProvider>
+      <GameBoardInner {...props} />
+    </LangProvider>
   )
 }

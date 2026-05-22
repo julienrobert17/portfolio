@@ -7,6 +7,7 @@ export type NumericCell = { result: NumericResult; direction: Direction }
 
 export type GuessResult = {
   name: string
+  nameFr: string
   flag: string
   values: {
     continent: string
@@ -85,6 +86,7 @@ function compareIndicator(guess: number, target: number, key: IndicatorKey): Num
 export function evaluateGuess(guess: CountryData, target: CountryData): GuessResult {
   return {
     name: guess.name,
+    nameFr: guess.nameFr,
     flag: guess.flag,
     values: {
       continent: guess.continent,

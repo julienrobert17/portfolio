@@ -1,4 +1,5 @@
 import type { GuessResult, NumericResult, Direction, NumericCell } from '@/lib/geodatle-game'
+import { useLang } from '@/components/games/geodatle/lang-context'
 
 interface GuessRowProps {
   guess: GuessResult
@@ -29,7 +30,9 @@ function fmt(key: string, value: number | string | null): string {
 }
 
 export default function GuessRow({ guess, index, unavailableIndicators = new Set() }: GuessRowProps) {
-  const { name, flag, values, results } = guess
+  const { lang } = useLang()
+  const { name, nameFr, flag, values, results } = guess
+  const displayName = lang === 'fr' ? nameFr : name
 
   const cells: { key: string; value: CellValue; display: string }[] = [
     { key: 'continent',      value: results.continent,      display: fmt('continent',      values.continent)      },
@@ -55,7 +58,7 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
       >
         <div className="flex items-center gap-2 whitespace-nowrap">
           <img src={flag} alt="" style={{ width: '24px', height: '16px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }} />
-          <span style={{ fontSize: '11px', fontWeight: 500, color: 'white' }}>{name}</span>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'white' }}>{displayName}</span>
         </div>
       </td>
 

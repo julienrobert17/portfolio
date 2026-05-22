@@ -6,11 +6,13 @@ interface RawCountry {
   continents: string[]
   flags: { svg: string }
   latlng?: number[]
+  translations?: { fra?: { common?: string } }
 }
 
 export interface RestCountry {
   code: string
   name: string
+  nameFr: string
   population: number
   area: number
   continent: string
@@ -21,7 +23,7 @@ export interface RestCountry {
 
 export async function getCountriesData(): Promise<RestCountry[]> {
   const res = await fetch(
-    'https://restcountries.com/v3.1/all?fields=name,population,area,continents,cca3,flags,latlng',
+    'https://restcountries.com/v3.1/all?fields=name,population,area,continents,cca3,flags,latlng,translations',
     { next: { revalidate: 86400 } },
   )
 
@@ -34,6 +36,7 @@ export async function getCountriesData(): Promise<RestCountry[]> {
     .map((c) => ({
       code: c.cca3,
       name: c.name.common,
+      nameFr: c.translations?.fra?.common ?? c.name.common,
       population: Math.round(c.population / 1000) * 1000,
       area: Math.round(c.area),
       continent: c.continents[0],

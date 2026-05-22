@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import type { CountryData } from '@/lib/geodatle-data'
 import type { GuessResult } from '@/lib/geodatle-game'
+import { useLang } from '@/components/games/geodatle/lang-context'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -36,7 +37,7 @@ function buildShareText(
   guessCount: number,
   status: 'won' | 'lost',
 ): string {
-  const date = new Date().toLocaleDateString('en-CA')
+  const date = new Date().toISOString().slice(0, 10)
   const score = status === 'won' ? `${guessCount}/8` : 'X/8'
   const rows = guesses
     .map((g) => RESULT_KEYS.map((k) => toEmoji(g.results[k])).join(''))
@@ -51,6 +52,7 @@ export default function ResultScreen({
   guesses,
   onClose,
 }: ResultScreenProps) {
+  const { lang, t } = useLang()
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
   const [timeLeft, setTimeLeft] = useState('')
@@ -74,8 +76,8 @@ export default function ResultScreen({
   }, [])
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 16)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setVisible(true), 16)
+    return () => clearTimeout(timer)
   }, [])
 
   async function handleShare() {
@@ -83,6 +85,8 @@ export default function ResultScreen({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const targetName = lang === 'fr' ? target.nameFr : target.name
 
   return (
     <div
@@ -160,22 +164,20 @@ export default function ResultScreen({
           onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
           onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
         >
-          ← Retour au portfolio
+          {t.results.back}
         </button>
 
         <h2 className="text-2xl font-semibold">
-          {status === 'won'
-            ? `🎉 Trouvé en ${guessCount} tentative${guessCount > 1 ? 's' : ''} !`
-            : '😞 Perdu !'}
+          {status === 'won' ? t.results.won(guessCount) : t.results.lost}
         </h2>
 
         <div className="flex flex-col items-center gap-3">
           <img
             src={target.flag}
-            alt={`Drapeau ${target.name}`}
+            alt={targetName}
             className="h-20 w-32 object-cover rounded-lg shadow-sm"
           />
-          <p className="text-3xl font-bold">{target.name}</p>
+          <p className="text-3xl font-bold">{targetName}</p>
         </div>
 
         <div style={{ height: '240px', overflow: 'hidden', borderRadius: '8px', background: '#0a0d12', width: '100%' }}>
@@ -225,10 +227,10 @@ export default function ResultScreen({
             {(target.population / 1_000_000).toFixed(1)}M hab.
           </span>
           <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', borderRadius: '999px', padding: '4px 12px', fontSize: '13px' }}>
-            Espérance {target.lifeExpectancy.toFixed(1)} ans
+            {target.lifeExpectancy.toFixed(1)} ans
           </span>
           <span style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', borderRadius: '999px', padding: '4px 12px', fontSize: '13px' }}>
-            Pauvreté {target.poverty != null ? target.poverty.toFixed(1) + '%' : '?'}
+            {target.poverty != null ? target.poverty.toFixed(1) + '%' : '?'}
           </span>
         </div>
 
@@ -236,11 +238,11 @@ export default function ResultScreen({
           onClick={handleShare}
           className="rounded-full bg-[#1a1a1a] text-white dark:bg-white dark:text-[#1a1a1a] px-6 py-3 text-sm font-medium transition-opacity hover:opacity-80"
         >
-          {copied ? 'Copié !' : 'Partager'}
+          {copied ? t.results.copied : t.results.share}
         </button>
 
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-          Prochain pays dans{' '}
+          {t.results.nextCountry}{' '}
           <span style={{ color: 'rgba(255,255,255,0.9)', fontVariantNumeric: 'tabular-nums' }}>
             {timeLeft}
           </span>
@@ -259,7 +261,7 @@ export default function ResultScreen({
           onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
           onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
         >
-          Découvrir les données sur Our World in Data →
+          {t.results.owid}
         </a>
       </div>
     </div>

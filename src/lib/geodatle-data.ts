@@ -4,6 +4,7 @@ import { getOwidData } from './owid-data'
 export type CountryData = {
   code: string
   name: string
+  nameFr: string
   flag: string
   continent: string
   population: number
@@ -41,6 +42,7 @@ export async function getGeoDateData(): Promise<CountryData[]> {
     result.push({
       code: country.code,
       name: country.name,
+      nameFr: country.nameFr,
       flag: country.flag,
       continent: country.continent,
       population: country.population,
