@@ -3,6 +3,7 @@ import type { GuessResult, NumericResult, Direction, NumericCell } from '@/lib/g
 interface GuessRowProps {
   guess: GuessResult
   index: number
+  unavailableIndicators?: Set<string>
 }
 
 type CellValue = 'correct' | 'wrong' | 'unknown' | NumericCell
@@ -27,7 +28,7 @@ function fmt(key: string, value: number | string | null): string {
   }
 }
 
-export default function GuessRow({ guess, index }: GuessRowProps) {
+export default function GuessRow({ guess, index, unavailableIndicators = new Set() }: GuessRowProps) {
   const { name, flag, values, results } = guess
 
   const cells: { key: string; value: CellValue; display: string }[] = [
@@ -39,7 +40,7 @@ export default function GuessRow({ guess, index }: GuessRowProps) {
     { key: 'meatSupply',     value: results.meatSupply,     display: fmt('meatSupply',     values.meatSupply)     },
     { key: 'co2PerCapita',   value: results.co2PerCapita,   display: fmt('co2PerCapita',   values.co2PerCapita)   },
     { key: 'fertilityRate',  value: results.fertilityRate,  display: fmt('fertilityRate',  values.fertilityRate)  },
-  ]
+  ].filter(c => !unavailableIndicators.has(c.key))
 
   return (
     <tr>

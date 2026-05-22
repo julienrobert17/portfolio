@@ -19,9 +19,22 @@ export default async function CountrylePage({
   const countries = await getGeoDateData()
   const target = getDailyCountry(countries, debugMode)
 
+  const seed = new Date().toISOString().slice(0, 10)
+
   return (
-    <main style={{ background: '#0f1117', minHeight: '100vh' }}>
+    <main style={{ background: '#0f1117', minHeight: '100vh', position: 'relative' }}>
       <GameBoard countries={countries} target={target} debugMode={debugMode} />
+      <p style={{
+        position: 'fixed',
+        bottom: '8px',
+        right: '12px',
+        fontSize: '10px',
+        color: 'rgba(255,255,255,0.2)',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}>
+        {seed} · {target.name}
+      </p>
     </main>
   )
 }

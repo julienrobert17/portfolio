@@ -11,16 +11,16 @@ import RulesModal from '@/components/games/geodatle/rules-modal'
 
 const MAX_GUESSES = 8
 
-const HEADERS: { label: string; year?: string }[] = [
+const HEADERS: { label: string; year?: string; key?: string }[] = [
   { label: 'Pays' },
-  { label: 'Continent' },
-  { label: 'Population' },
-  { label: 'Superficie (km²)' },
-  { label: 'Pauvreté ext. (%)', year: '2019' },
-  { label: 'Espérance (ans)',   year: '2022' },
-  { label: 'Viande (kg/an)',    year: '2021' },
-  { label: 'CO₂ (t/an)',        year: '2022' },
-  { label: 'Taux fertilité',    year: '2022' },
+  { label: 'Continent',          key: 'continent'      },
+  { label: 'Population',         key: 'population'     },
+  { label: 'Superficie (km²)',   key: 'area'           },
+  { label: 'Pauvreté ext. (%)',  key: 'poverty',       year: '2019' },
+  { label: 'Espérance (ans)',    key: 'lifeExpectancy', year: '2022' },
+  { label: 'Viande (kg/an)',     key: 'meatSupply',    year: '2021' },
+  { label: 'CO₂ (t/an)',         key: 'co2PerCapita',  year: '2022' },
+  { label: 'Taux fertilité',     key: 'fertilityRate', year: '2022' },
 ]
 
 const LEGEND = [
@@ -91,6 +91,12 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
       setModalOpen(true)
     }
   }
+
+  const unavailableIndicators = new Set(
+    Object.entries(currentTarget)
+      .filter(([_, v]) => v === null)
+      .map(([k]) => k)
+  )
 
   return (
     <>
@@ -248,33 +254,35 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
-                {HEADERS.map(({ label, year }, i) => (
-                  <th
-                    key={label}
-                    style={{
-                      width: i === 0 ? '120px' : undefined,
-                      padding: '6px 4px',
-                      textAlign: i === 0 ? 'left' : 'center',
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      color: 'rgba(255,255,255,0.35)',
-                      borderBottom: '1px solid rgba(255,255,255,0.08)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {label}
-                    {year && (
-                      <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
-                        {year}
-                      </span>
-                    )}
-                  </th>
-                ))}
+                {HEADERS
+                  .filter(h => !h.key || !unavailableIndicators.has(h.key))
+                  .map(({ label, year }, i) => (
+                    <th
+                      key={label}
+                      style={{
+                        width: i === 0 ? '120px' : undefined,
+                        padding: '6px 4px',
+                        textAlign: i === 0 ? 'left' : 'center',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        color: 'rgba(255,255,255,0.35)',
+                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {label}
+                      {year && (
+                        <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
+                          {year}
+                        </span>
+                      )}
+                    </th>
+                  ))}
               </tr>
             </thead>
             <tbody>
               {guesses.map((guess, i) => (
-                <GuessRow key={guess.name} guess={guess} index={i} />
+                <GuessRow key={guess.name} guess={guess} index={i} unavailableIndicators={unavailableIndicators} />
               ))}
             </tbody>
           </table>
