@@ -9,13 +9,36 @@ interface GuessRowProps {
 
 type CellValue = 'correct' | 'wrong' | 'unknown' | NumericCell
 
-function cellStyle(value: CellValue): { bg: string; icon: string; color?: string } {
-  if (value === 'unknown') return { bg: 'rgba(255,255,255,0.08)', icon: '?', color: 'rgba(255,255,255,0.4)' }
-  if (value === 'correct') return { bg: '#16a34a', icon: '✓' }
-  if (value === 'wrong')   return { bg: '#dc2626', icon: '✗' }
+const INDICATOR_ICONS: Record<string, string> = {
+  continent:      '🌍',
+  population:     '👥',
+  area:           '🗺️',
+  poverty:        '🪙',
+  lifeExpectancy: '❤️',
+  meatSupply:     '🥩',
+  co2PerCapita:   '🌿',
+  fertilityRate:  '👶',
+}
+
+function cellBg(value: CellValue): string {
+  if (value === 'unknown') return 'rgba(255,255,255,0.08)'
+  if (value === 'correct') return '#16a34a'
+  if (value === 'wrong')   return '#dc2626'
   const bgMap: Record<NumericResult, string> = { similar: '#16a34a', close: '#ca8a04', far: '#dc2626' }
-  const iconMap: Record<Direction, string>   = { up: '↑', down: '↓', none: '✓' }
-  return { bg: bgMap[value.result], icon: iconMap[value.direction] }
+  return bgMap[value.result]
+}
+
+function resultIcon(value: CellValue): string {
+  if (value === 'unknown') return '?'
+  if (value === 'correct') return '✓'
+  if (value === 'wrong')   return '✗'
+  if (value.result === 'similar') return '≈'
+  const dirMap: Record<Direction, string> = {
+    up:   value.result === 'close' ? '↑'  : '↑↑',
+    down: value.result === 'close' ? '↓'  : '↓↓',
+    none: '≈',
+  }
+  return dirMap[value.direction]
 }
 
 function fmt(key: string, value: number | string | null): string {
@@ -62,31 +85,28 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
         </div>
       </td>
 
-      {cells.map(({ key, value, display }, colIndex) => {
-        const { bg, icon, color } = cellStyle(value)
-        return (
-          <td
-            key={key}
-            className="animate-[fadeFlip_0.4s_ease-out_both]"
-            style={{
-              backgroundColor: bg,
-              borderRadius: '6px',
-              padding: '5px 4px',
-              fontSize: '11px',
-              fontWeight: 600,
-              color: color ?? 'white',
-              textAlign: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
-              animationDelay: `${index * 80 + (colIndex + 1) * 120}ms`,
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3 }}>
-              <span>{display}</span>
-              <span>{icon}</span>
-            </div>
-          </td>
-        )
-      })}
+      {cells.map(({ key, value, display }, colIndex) => (
+        <td
+          key={key}
+          className="animate-[fadeFlip_0.4s_ease-out_both]"
+          style={{
+            backgroundColor: cellBg(value),
+            borderRadius: '8px',
+            padding: '8px 5px',
+            textAlign: 'center',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            animationDelay: `${index * 80 + (colIndex + 1) * 120}ms`,
+            flex: 1,
+            minWidth: '52px',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>{INDICATOR_ICONS[key] ?? ''}</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'white', lineHeight: 1 }}>{display}</span>
+            <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>{resultIcon(value)}</span>
+          </div>
+        </td>
+      ))}
     </tr>
   )
 }

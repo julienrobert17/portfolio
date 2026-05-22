@@ -16,34 +16,7 @@ interface ResultScreenProps {
   onClose?: () => void
 }
 
-const RESULT_KEYS = [
-  'continent', 'population', 'area', 'poverty',
-  'lifeExpectancy', 'meatSupply', 'co2PerCapita', 'fertilityRate',
-] as const satisfies ReadonlyArray<keyof GuessResult['results']>
 
-type ResultValue = GuessResult['results'][keyof GuessResult['results']]
-
-function toEmoji(value: ResultValue): string {
-  if (value === 'unknown') return '⬜'
-  if (value === 'correct') return '🟩'
-  if (value === 'wrong')   return '🟥'
-  if (value.result === 'similar') return '🟩'
-  if (value.result === 'close')   return '🟨'
-  return '🟥'
-}
-
-function buildShareText(
-  guesses: GuessResult[],
-  guessCount: number,
-  status: 'won' | 'lost',
-): string {
-  const date = new Date().toISOString().slice(0, 10)
-  const score = status === 'won' ? `${guessCount}/8` : 'X/8'
-  const rows = guesses
-    .map((g) => RESULT_KEYS.map((k) => toEmoji(g.results[k])).join(''))
-    .join('\n')
-  return `Geodatle ${date} ${score}\n${rows}`
-}
 
 export default function ResultScreen({
   status,
@@ -54,7 +27,6 @@ export default function ResultScreen({
 }: ResultScreenProps) {
   const { lang, t } = useLang()
   const [visible, setVisible] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [timeLeft, setTimeLeft] = useState('')
 
   useEffect(() => {
@@ -79,12 +51,6 @@ export default function ResultScreen({
     const timer = setTimeout(() => setVisible(true), 16)
     return () => clearTimeout(timer)
   }, [])
-
-  async function handleShare() {
-    await navigator.clipboard.writeText(buildShareText(guesses, guessCount, status))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   const targetName = lang === 'fr' ? target.nameFr : target.name
 
@@ -150,19 +116,25 @@ export default function ResultScreen({
         <button
           onClick={() => { window.location.href = '/' }}
           style={{
-            position: 'absolute',
-            top: '16px',
-            left: '16px',
-            background: 'transparent',
-            border: 'none',
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '999px',
             cursor: 'pointer',
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.4)',
-            transition: 'color 0.2s ease',
-            padding: '4px 0',
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.7)',
+            padding: '8px 20px',
+            marginBottom: '8px',
+            alignSelf: 'flex-start',
+            transition: 'color 0.2s ease, border-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'white'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
+          }}
         >
           {t.results.back}
         </button>
@@ -233,13 +205,6 @@ export default function ResultScreen({
             {target.poverty != null ? target.poverty.toFixed(1) + '%' : '?'}
           </span>
         </div>
-
-        <button
-          onClick={handleShare}
-          className="rounded-full bg-[#1a1a1a] text-white dark:bg-white dark:text-[#1a1a1a] px-6 py-3 text-sm font-medium transition-opacity hover:opacity-80"
-        >
-          {copied ? t.results.copied : t.results.share}
-        </button>
 
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
           {t.results.nextCountry}{' '}

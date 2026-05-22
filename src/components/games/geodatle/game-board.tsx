@@ -34,8 +34,28 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
   const [input, setInput] = useState('')
   const [showRules, setShowRules] = useState(false)
 
+  const today = new Date().toISOString().slice(0, 10)
+
   useEffect(() => {
     if (!localStorage.getItem('geodatle-rules-seen')) setShowRules(true)
+  }, [])
+
+  useEffect(() => {
+    if (debugMode) return
+    const raw = localStorage.getItem('geodatle-game-state')
+    if (!raw) return
+    try {
+      const saved = JSON.parse(raw) as { date: string; guesses: GuessResult[]; status: 'won' | 'lost' }
+      if (saved.date === today && saved.status !== 'playing') {
+        setGuesses(saved.guesses)
+        setStatus(saved.status)
+        setModalOpen(true)
+      } else {
+        localStorage.removeItem('geodatle-game-state')
+      }
+    } catch {
+      localStorage.removeItem('geodatle-game-state')
+    }
   }, [])
 
   function handleCloseRules() {
@@ -62,7 +82,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
     ? countries.filter(
         (c) =>
           normalize(displayName(c)).includes(normalize(input)) &&
-          !guessedNames.has(c.name),
+          (debugMode ? true : !guessedNames.has(c.name)),
       )
     : []
 
@@ -72,12 +92,18 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
     setGuesses(next)
     setInput('')
 
-    if (isWin(result)) {
-      setStatus('won')
+    let newStatus: GameStatus = 'playing'
+    if (isWin(result)) newStatus = 'won'
+    else if (next.length >= MAX_GUESSES) newStatus = 'lost'
+
+    if (newStatus !== 'playing') {
+      setStatus(newStatus)
       setModalOpen(true)
-    } else if (next.length >= MAX_GUESSES) {
-      setStatus('lost')
-      setModalOpen(true)
+      localStorage.setItem('geodatle-game-state', JSON.stringify({
+        date: today,
+        guesses: next,
+        status: newStatus,
+      }))
     }
   }
 
@@ -136,6 +162,26 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => { window.location.href = '/' }}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '999px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '20px',
+                fontWeight: 400,
+                flexShrink: 0,
+              }}
+            >
+              ‹
+            </button>
             <button
               onClick={() => setShowRules(true)}
               style={{
@@ -273,7 +319,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
 
         {/* Grid */}
         {guesses.length > 0 && (
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full text-xs" style={{ borderCollapse: 'separate', borderSpacing: '6px 6px' }}>
             <thead>
               <tr>
                 {HEADERS
