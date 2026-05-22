@@ -45,7 +45,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
     const raw = localStorage.getItem('geodatle-game-state')
     if (!raw) return
     try {
-      const saved = JSON.parse(raw) as { date: string; guesses: GuessResult[]; status: 'won' | 'lost' }
+      const saved = JSON.parse(raw) as { date: string; guesses: GuessResult[]; status: GameStatus }
       if (saved.date === today && saved.status !== 'playing') {
         setGuesses(saved.guesses)
         setStatus(saved.status)
