@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { getCountryleData } from '@/lib/countryle'
-import { getDailyCountry } from '@/lib/countryle-game'
-import GameBoard from '@/components/games/countryle/game-board'
+import { getGeoDateData } from '@/lib/geodatle-data'
+import { getDailyCountry } from '@/lib/geodatle-game'
+import GameBoard from '@/components/games/geodatle/game-board'
 
 export const metadata: Metadata = {
   title: 'Geodatle — Devine le pays du jour',
@@ -16,7 +16,7 @@ export default async function CountrylePage({
   const { debug } = await searchParams
   const debugMode = debug === 'true'
 
-  const countries = await getCountryleData()
+  const countries = await getGeoDateData()
   const target = getDailyCountry(countries, debugMode)
 
   return (

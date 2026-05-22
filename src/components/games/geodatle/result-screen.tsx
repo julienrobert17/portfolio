@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import type { CountryData } from '@/lib/countryle'
-import type { GuessResult } from '@/lib/countryle-game'
+import type { CountryData } from '@/lib/geodatle-data'
+import type { GuessResult } from '@/lib/geodatle-game'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -20,10 +20,15 @@ const RESULT_KEYS = [
   'lifeExpectancy', 'meatSupply', 'co2PerCapita', 'fertilityRate',
 ] as const satisfies ReadonlyArray<keyof GuessResult['results']>
 
-function toEmoji(value: string): string {
+type ResultValue = GuessResult['results'][keyof GuessResult['results']]
+
+function toEmoji(value: ResultValue): string {
+  if (value === 'unknown') return '⬜'
   if (value === 'correct') return '🟩'
   if (value === 'wrong')   return '🟥'
-  return '🟧'
+  if (value.result === 'similar') return '🟩'
+  if (value.result === 'close')   return '🟨'
+  return '🟥'
 }
 
 function buildShareText(
@@ -48,6 +53,25 @@ export default function ResultScreen({
 }: ResultScreenProps) {
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [timeLeft, setTimeLeft] = useState('')
+
+  useEffect(() => {
+    function update() {
+      const now = new Date()
+      const midnight = new Date(now)
+      midnight.setUTCHours(24, 0, 0, 0)
+      const diff = midnight.getTime() - now.getTime()
+      const h = Math.floor(diff / 3_600_000).toString().padStart(2, '0')
+      const m = Math.floor((diff % 3_600_000) / 60_000).toString().padStart(2, '0')
+      const s = Math.floor((diff % 60_000) / 1_000).toString().padStart(2, '0')
+      const formatted = `${h}:${m}:${s}`
+      setTimeLeft(formatted)
+      if (formatted === '00:00:00') window.location.reload()
+    }
+    update()
+    const id = setInterval(update, 1_000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 16)
@@ -214,6 +238,13 @@ export default function ResultScreen({
         >
           {copied ? 'Copié !' : 'Partager'}
         </button>
+
+        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+          Prochain pays dans{' '}
+          <span style={{ color: 'rgba(255,255,255,0.9)', fontVariantNumeric: 'tabular-nums' }}>
+            {timeLeft}
+          </span>
+        </p>
 
         <a
           href="https://ourworldindata.org"

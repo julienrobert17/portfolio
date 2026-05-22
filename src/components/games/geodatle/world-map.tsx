@@ -1,8 +1,8 @@
 'use client'
 
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import type { GuessResult } from '@/lib/countryle-game'
-import type { CountryData } from '@/lib/countryle'
+import type { GuessResult } from '@/lib/geodatle-game'
+import type { CountryData } from '@/lib/geodatle-data'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 

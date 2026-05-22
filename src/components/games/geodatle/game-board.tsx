@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import type { CountryData } from '@/lib/countryle'
-import type { GuessResult, GameStatus } from '@/lib/countryle-game'
-import { evaluateGuess, isWin } from '@/lib/countryle-game'
-import GuessRow from '@/components/games/countryle/guess-row'
-import WorldMap from '@/components/games/countryle/world-map'
-import ResultScreen from '@/components/games/countryle/result-screen'
+import { useState, useEffect } from 'react'
+import type { CountryData } from '@/lib/geodatle-data'
+import type { GuessResult, GameStatus } from '@/lib/geodatle-game'
+import { evaluateGuess, isWin } from '@/lib/geodatle-game'
+import GuessRow from '@/components/games/geodatle/guess-row'
+import WorldMap from '@/components/games/geodatle/world-map'
+import ResultScreen from '@/components/games/geodatle/result-screen'
+import RulesModal from '@/components/games/geodatle/rules-modal'
 
 const MAX_GUESSES = 8
 
@@ -23,9 +24,10 @@ const HEADERS: { label: string; year?: string }[] = [
 ]
 
 const LEGEND = [
-  { icon: '✓', label: 'Exact',  bg: 'rgba(22,163,74,0.2)',  color: '#16a34a' },
-  { icon: '↑↓', label: 'Proche', bg: 'rgba(234,88,12,0.2)',  color: '#ea580c' },
-  { icon: '✗', label: 'Faux',   bg: 'rgba(220,38,38,0.2)',  color: '#dc2626' },
+  { icon: '≈',  label: 'Très proche', bg: 'rgba(22,163,74,0.2)',  color: '#16a34a' },
+  { icon: '↑',  label: 'Proche',      bg: 'rgba(202,138,4,0.2)',  color: '#ca8a04' },
+  { icon: '↑↑', label: 'Loin',        bg: 'rgba(194,65,12,0.2)',  color: '#c2410c' },
+  { icon: '✗',  label: 'Faux',        bg: 'rgba(185,28,28,0.2)',  color: '#b91c1c' },
 ]
 
 const centred: React.CSSProperties = {
@@ -46,6 +48,16 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
   const [status, setStatus] = useState<GameStatus>('playing')
   const [modalOpen, setModalOpen] = useState(false)
   const [input, setInput] = useState('')
+  const [showRules, setShowRules] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem('geodatle-rules-seen')) setShowRules(true)
+  }, [])
+
+  function handleCloseRules() {
+    setShowRules(false)
+    localStorage.setItem('geodatle-rules-seen', 'true')
+  }
 
   function nextDebugCountry() {
     setCurrentTarget(countries[Math.floor(Math.random() * countries.length)])
@@ -98,6 +110,26 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowRules(true)}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '999px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '15px',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              ?
+            </button>
             <div>
               <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>Geodatle</h1>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
@@ -287,6 +319,8 @@ export default function GameBoard({ countries, target, debugMode }: GameBoardPro
 
       </div>
     </div>
+
+    {showRules && <RulesModal onClose={handleCloseRules} />}
 
     {modalOpen && status !== 'playing' && (
       <ResultScreen

@@ -17,7 +17,7 @@ export type CountryData = {
   fertilityRate: number
 }
 
-export async function getCountryleData(): Promise<CountryData[]> {
+export async function getGeoDateData(): Promise<CountryData[]> {
   const restCountries = await getCountriesData()
   const names = restCountries.map((c) => c.name)
   const owidMap = await getOwidData(names)

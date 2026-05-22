@@ -1,19 +1,19 @@
-import type { GuessResult } from '@/lib/countryle-game'
+import type { GuessResult, NumericResult, Direction, NumericCell } from '@/lib/geodatle-game'
 
 interface GuessRowProps {
   guess: GuessResult
   index: number
 }
 
+type CellValue = 'correct' | 'wrong' | 'unknown' | NumericCell
 
-type CellResult = 'correct' | 'wrong' | 'higher' | 'lower' | 'unknown'
-
-const CELL_CONFIG: Record<CellResult, { bg: string; icon: string; color?: string }> = {
-  correct: { bg: '#16a34a', icon: '✓' },
-  wrong:   { bg: '#dc2626', icon: '✗' },
-  higher:  { bg: '#ea580c', icon: '↑' },
-  lower:   { bg: '#ea580c', icon: '↓' },
-  unknown: { bg: 'rgba(255,255,255,0.08)', icon: '?', color: 'rgba(255,255,255,0.4)' },
+function cellStyle(value: CellValue): { bg: string; icon: string; color?: string } {
+  if (value === 'unknown') return { bg: 'rgba(255,255,255,0.08)', icon: '?', color: 'rgba(255,255,255,0.4)' }
+  if (value === 'correct') return { bg: '#16a34a', icon: '✓' }
+  if (value === 'wrong')   return { bg: '#dc2626', icon: '✗' }
+  const bgMap: Record<NumericResult, string> = { similar: '#16a34a', close: '#ca8a04', far: '#dc2626' }
+  const iconMap: Record<Direction, string>   = { up: '↑', down: '↓', none: '✓' }
+  return { bg: bgMap[value.result], icon: iconMap[value.direction] }
 }
 
 function fmt(key: string, value: number | string | null): string {
@@ -30,15 +30,15 @@ function fmt(key: string, value: number | string | null): string {
 export default function GuessRow({ guess, index }: GuessRowProps) {
   const { name, flag, values, results } = guess
 
-  const cells: { key: string; result: CellResult; display: string; }[] = [
-    { key: 'continent',      result: results.continent,      display: fmt('continent',      values.continent)      },
-    { key: 'population',     result: results.population,     display: fmt('population',     values.population)     },
-    { key: 'area',           result: results.area,           display: fmt('area',           values.area)           },
-    { key: 'poverty',        result: results.poverty,        display: fmt('poverty',        values.poverty)        },
-    { key: 'lifeExpectancy', result: results.lifeExpectancy, display: fmt('lifeExpectancy', values.lifeExpectancy) },
-    { key: 'meatSupply',     result: results.meatSupply,     display: fmt('meatSupply',     values.meatSupply)     },
-    { key: 'co2PerCapita',   result: results.co2PerCapita,   display: fmt('co2PerCapita',   values.co2PerCapita)   },
-    { key: 'fertilityRate',  result: results.fertilityRate,  display: fmt('fertilityRate',  values.fertilityRate)  },
+  const cells: { key: string; value: CellValue; display: string }[] = [
+    { key: 'continent',      value: results.continent,      display: fmt('continent',      values.continent)      },
+    { key: 'population',     value: results.population,     display: fmt('population',     values.population)     },
+    { key: 'area',           value: results.area,           display: fmt('area',           values.area)           },
+    { key: 'poverty',        value: results.poverty,        display: fmt('poverty',        values.poverty)        },
+    { key: 'lifeExpectancy', value: results.lifeExpectancy, display: fmt('lifeExpectancy', values.lifeExpectancy) },
+    { key: 'meatSupply',     value: results.meatSupply,     display: fmt('meatSupply',     values.meatSupply)     },
+    { key: 'co2PerCapita',   value: results.co2PerCapita,   display: fmt('co2PerCapita',   values.co2PerCapita)   },
+    { key: 'fertilityRate',  value: results.fertilityRate,  display: fmt('fertilityRate',  values.fertilityRate)  },
   ]
 
   return (
@@ -58,8 +58,8 @@ export default function GuessRow({ guess, index }: GuessRowProps) {
         </div>
       </td>
 
-      {cells.map(({ key, result, display }, colIndex) => {
-        const { bg, icon, color } = CELL_CONFIG[result]
+      {cells.map(({ key, value, display }, colIndex) => {
+        const { bg, icon, color } = cellStyle(value)
         return (
           <td
             key={key}
