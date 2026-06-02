@@ -20,7 +20,7 @@ export default async function CountrylePage({
   const target = getDailyCountry(countries, debugMode)
 
   return (
-    <main style={{ background: '#0f1117', minHeight: '100vh' }}>
+    <main style={{ background: '#0f1117', minHeight: '100dvh' }}>
       <GameBoard countries={countries} target={target} debugMode={debugMode} />
     </main>
   )

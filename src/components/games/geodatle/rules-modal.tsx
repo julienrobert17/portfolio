@@ -50,6 +50,8 @@ export default function RulesModal({ onClose }: RulesModalProps) {
           flexDirection: 'column',
           gap: '20px',
           color: 'white',
+          maxHeight: '85dvh',
+          overflowY: 'auto',
           opacity: visible ? 1 : 0,
           transform: visible ? 'scale(1)' : 'scale(0.9)',
           transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
