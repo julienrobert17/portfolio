@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { CountryData } from '@/lib/geodatle-data'
 import type { GuessResult, GameStatus } from '@/lib/geodatle-game'
 import { evaluateGuess, isWin } from '@/lib/geodatle-game'
@@ -35,7 +35,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
   const [input, setInput] = useState('')
   const [showRules, setShowRules] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
-  const [searchFocused, setSearchFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const today = new Date().toISOString().slice(0, 10)
 
@@ -265,7 +265,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
       </div>
 
       {/* Map — full width */}
-      <div style={{ width: '100%', background: '#0a0d12', overflow: 'hidden', height: isMobile && searchFocused ? 'clamp(120px, 20vh, 180px)' : 'clamp(300px, 50vh, 520px)', transition: 'height 0.3s ease' }}>
+      <div style={{ width: '100%', background: '#0a0d12', overflow: 'hidden', height: 'clamp(300px, 50vh, 520px)' }}>
         <WorldMap guesses={guesses} target={status !== 'playing' ? currentTarget : null} />
       </div>
 
@@ -290,9 +290,13 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
                 color: 'white',
                 outline: 'none',
               }}
+              ref={inputRef}
               className="placeholder:text-[rgba(255,255,255,0.3)]"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
+              onFocus={() => {
+                setTimeout(() => {
+                  inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }, 300)
+              }}
             />
             {suggestions.length > 0 && (
               <ul
