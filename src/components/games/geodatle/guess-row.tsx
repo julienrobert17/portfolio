@@ -1,3 +1,5 @@
+'use client'
+
 import type { GuessResult, NumericResult, Direction, NumericCell } from '@/lib/geodatle-game'
 import { useLang } from '@/components/games/geodatle/lang-context'
 
@@ -5,6 +7,7 @@ interface GuessRowProps {
   guess: GuessResult
   index: number
   unavailableIndicators?: Set<string>
+  isMobile?: boolean
 }
 
 type CellValue = 'correct' | 'wrong' | 'unknown' | NumericCell
@@ -19,6 +22,20 @@ const INDICATOR_ICONS: Record<string, string> = {
   co2PerCapita:   '🌿',
   fertilityRate:  '👶',
 }
+
+const INDICATOR_LABELS: Record<string, string> = {
+  continent:      'Continent',
+  population:     'Population',
+  area:           'Superficie',
+  poverty:        'Pauvreté',
+  lifeExpectancy: 'Espérance vie',
+  meatSupply:     'Viande kg/an',
+  co2PerCapita:   'CO₂ t/an',
+  fertilityRate:  'Fertilité',
+}
+
+const GRID1_KEYS = ['continent', 'population', 'area', 'poverty']
+const GRID2_KEYS = ['lifeExpectancy', 'meatSupply', 'co2PerCapita', 'fertilityRate']
 
 function cellBg(value: CellValue): string {
   if (value === 'unknown') return 'rgba(255,255,255,0.08)'
@@ -52,7 +69,7 @@ function fmt(key: string, value: number | string | null): string {
   }
 }
 
-export default function GuessRow({ guess, index, unavailableIndicators = new Set() }: GuessRowProps) {
+export default function GuessRow({ guess, index, unavailableIndicators = new Set(), isMobile = false }: GuessRowProps) {
   const { lang } = useLang()
   const { name, nameFr, flag, values, results } = guess
   const displayName = lang === 'fr' ? nameFr : name
@@ -66,7 +83,67 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
     { key: 'meatSupply',     value: results.meatSupply,     display: fmt('meatSupply',     values.meatSupply)     },
     { key: 'co2PerCapita',   value: results.co2PerCapita,   display: fmt('co2PerCapita',   values.co2PerCapita)   },
     { key: 'fertilityRate',  value: results.fertilityRate,  display: fmt('fertilityRate',  values.fertilityRate)  },
-  ].filter(c => !unavailableIndicators.has(c.key))
+  ]
+
+  if (isMobile) {
+    const renderCell = (key: string, value: CellValue, display: string, colIndex: number) => {
+      const effectiveValue: CellValue = unavailableIndicators.has(key) ? 'unknown' : value
+      const effectiveDisplay = unavailableIndicators.has(key) ? 'N/A' : display
+      return (
+        <div
+          key={key}
+          className="animate-[fadeFlip_0.4s_ease-out_both]"
+          style={{
+            backgroundColor: cellBg(effectiveValue),
+            borderRadius: '6px',
+            padding: '6px 4px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2px',
+            animationDelay: `${index * 80 + (colIndex + 1) * 120}ms`,
+          }}
+        >
+          <span style={{ fontSize: '14px', lineHeight: 1 }}>{INDICATOR_ICONS[key] ?? ''}</span>
+          <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.2, textAlign: 'center' }}>
+            {INDICATOR_LABELS[key]}
+          </span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: 'white', lineHeight: 1 }}>{effectiveDisplay}</span>
+          <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>{resultIcon(effectiveValue)}</span>
+        </div>
+      )
+    }
+
+    const renderGroup = (groupKeys: string[], offset: number) =>
+      groupKeys.map((key, i) => {
+        const cell = cells.find(c => c.key === key)!
+        return renderCell(key, cell.value, cell.display, offset + i)
+      })
+
+    return (
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '8px 0' }}>
+        <div
+          className="animate-[fadeFlip_0.4s_ease-out_both]"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '6px',
+            animationDelay: `${index * 80}ms`,
+          }}
+        >
+          <img src={flag} alt="" style={{ width: '24px', height: '16px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }} />
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'white' }}>{displayName}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px', marginBottom: '3px' }}>
+          {renderGroup(GRID1_KEYS, 0)}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px' }}>
+          {renderGroup(GRID2_KEYS, 4)}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <tr>
@@ -85,7 +162,7 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
         </div>
       </td>
 
-      {cells.map(({ key, value, display }, colIndex) => (
+      {cells.filter(c => !unavailableIndicators.has(c.key)).map(({ key, value, display }, colIndex) => (
         <td
           key={key}
           className="animate-[fadeFlip_0.4s_ease-out_both]"

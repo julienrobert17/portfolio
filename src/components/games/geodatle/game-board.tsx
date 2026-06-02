@@ -12,6 +12,17 @@ import { LangProvider, useLang } from '@/components/games/geodatle/lang-context'
 
 const MAX_GUESSES = 8
 
+const MOBILE_INDICATORS = [
+  { key: 'continent',      icon: '🌍', shortLabel: 'Cont.'   },
+  { key: 'population',     icon: '👥', shortLabel: 'Pop.'    },
+  { key: 'area',           icon: '🗺️', shortLabel: 'Superf.' },
+  { key: 'poverty',        icon: '🪙', shortLabel: 'Pauv.'   },
+  { key: 'lifeExpectancy', icon: '❤️', shortLabel: 'Espér.'  },
+  { key: 'meatSupply',     icon: '🥩', shortLabel: 'Viande'  },
+  { key: 'co2PerCapita',   icon: '🌿', shortLabel: 'CO₂'     },
+  { key: 'fertilityRate',  icon: '👶', shortLabel: 'Fertil.' },
+]
+
 const centred: React.CSSProperties = {
   maxWidth: '896px',
   margin: '0 auto',
@@ -33,11 +44,19 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [input, setInput] = useState('')
   const [showRules, setShowRules] = useState(false)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
 
   const today = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     if (!localStorage.getItem('geodatle-rules-seen')) setShowRules(true)
+  }, [])
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
   useEffect(() => {
@@ -125,13 +144,6 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
     { label: t.headers.fertilityRate,  key: 'fertilityRate',  year: '2022' },
   ]
 
-  const LEGEND = [
-    { icon: '≈',  label: t.legend.similar, bg: 'rgba(22,163,74,0.2)',  color: '#16a34a' },
-    { icon: '↑',  label: t.legend.close,   bg: 'rgba(202,138,4,0.2)',  color: '#ca8a04' },
-    { icon: '↑↑', label: t.legend.far,     bg: 'rgba(194,65,12,0.2)',  color: '#c2410c' },
-    { icon: '✗',  label: t.legend.wrong,   bg: 'rgba(185,28,28,0.2)',  color: '#b91c1c' },
-  ]
-
   const flagBtnStyle = (active: boolean): React.CSSProperties => ({
     background: 'none',
     border: 'none',
@@ -182,26 +194,28 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
             >
               ‹
             </button>
-            <button
-              onClick={() => setShowRules(true)}
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '999px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '15px',
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              ?
-            </button>
+            {!isMobile && (
+              <button
+                onClick={() => setShowRules(true)}
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '999px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.7)',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                ?
+              </button>
+            )}
             <div>
               <h1 style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>{t.title}</h1>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
@@ -317,64 +331,80 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
           </div>
         )}
 
-        {/* Grid */}
-        {guesses.length > 0 && (
-          <table className="w-full text-xs" style={{ borderCollapse: 'separate', borderSpacing: '6px 6px' }}>
-            <thead>
-              <tr>
-                {HEADERS
-                  .filter(h => !h.key || !unavailableIndicators.has(h.key))
-                  .map(({ label, year }, i) => (
-                    <th
-                      key={label}
-                      style={{
-                        width: i === 0 ? '120px' : undefined,
-                        padding: '6px 4px',
-                        textAlign: i === 0 ? 'left' : 'center',
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        color: 'rgba(255,255,255,0.35)',
-                        borderBottom: '1px solid rgba(255,255,255,0.08)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {label}
-                      {year && (
-                        <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
-                          {year}
-                        </span>
-                      )}
-                    </th>
-                  ))}
-              </tr>
-            </thead>
-            <tbody>
-              {guesses.map((guess, i) => (
-                <GuessRow key={guess.name} guess={guess} index={i} unavailableIndicators={unavailableIndicators} />
+        {/* Indicator legend — mobile only */}
+        {isMobile && (
+          <div style={{ overflowX: 'auto', display: 'flex', gap: '8px', padding: '4px 0', whiteSpace: 'nowrap' }}>
+            {MOBILE_INDICATORS
+              .filter(ind => !unavailableIndicators.has(ind.key))
+              .map(({ key, icon, shortLabel }) => (
+                <div
+                  key={key}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '2px',
+                    flexShrink: 0,
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: '8px',
+                    padding: '6px 8px',
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>{icon}</span>
+                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }}>{shortLabel}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
+          </div>
         )}
 
-        {/* Legend */}
-        <div className="flex gap-2 flex-wrap">
-          {LEGEND.map(({ icon, label, bg, color }) => (
-            <span
-              key={label}
-              style={{
-                background: bg,
-                color,
-                border: `1px solid ${color}40`,
-                borderRadius: '999px',
-                padding: '3px 10px',
-                fontSize: '11px',
-                fontWeight: 500,
-              }}
-            >
-              {icon} {label}
-            </span>
-          ))}
-        </div>
+        {/* Grid */}
+        {guesses.length > 0 && isMobile !== null && (
+          isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {guesses.map((guess, i) => (
+                <GuessRow key={guess.name} guess={guess} index={i} unavailableIndicators={unavailableIndicators} isMobile={isMobile ?? false} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="w-full text-xs" style={{ borderCollapse: 'separate', borderSpacing: '6px 6px' }}>
+                <thead>
+                  <tr>
+                    {HEADERS
+                      .filter(h => !h.key || !unavailableIndicators.has(h.key))
+                      .map(({ label, year }, i) => (
+                        <th
+                          key={label}
+                          style={{
+                            width: i === 0 ? '120px' : undefined,
+                            padding: '6px 4px',
+                            textAlign: i === 0 ? 'left' : 'center',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            color: 'rgba(255,255,255,0.35)',
+                            borderBottom: '1px solid rgba(255,255,255,0.08)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {label}
+                          {year && (
+                            <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>
+                              {year}
+                            </span>
+                          )}
+                        </th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {guesses.map((guess, i) => (
+                    <GuessRow key={guess.name} guess={guess} index={i} unavailableIndicators={unavailableIndicators} isMobile={isMobile ?? false} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
 
         {/* Sources */}
         <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
@@ -394,6 +424,33 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
 
       </div>
     </div>
+
+    {/* Fixed help button — mobile only */}
+    {isMobile && (
+      <button
+        onClick={() => setShowRules(true)}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.12)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 700,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        ?
+      </button>
+    )}
 
     {showRules && <RulesModal onClose={handleCloseRules} />}
 
