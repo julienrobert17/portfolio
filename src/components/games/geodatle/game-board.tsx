@@ -12,16 +12,6 @@ import { LangProvider, useLang } from '@/components/games/geodatle/lang-context'
 
 const MAX_GUESSES = 8
 
-const MOBILE_INDICATORS = [
-  { key: 'continent',      icon: '🌍', shortLabel: 'Cont.'   },
-  { key: 'population',     icon: '👥', shortLabel: 'Pop.'    },
-  { key: 'area',           icon: '🗺️', shortLabel: 'Superf.' },
-  { key: 'poverty',        icon: '🪙', shortLabel: 'Pauv.'   },
-  { key: 'lifeExpectancy', icon: '❤️', shortLabel: 'Espér.'  },
-  { key: 'meatSupply',     icon: '🥩', shortLabel: 'Viande'  },
-  { key: 'co2PerCapita',   icon: '🌿', shortLabel: 'CO₂'     },
-  { key: 'fertilityRate',  icon: '👶', shortLabel: 'Fertil.' },
-]
 
 const centred: React.CSSProperties = {
   maxWidth: '896px',
@@ -328,32 +318,6 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
                 ))}
               </ul>
             )}
-          </div>
-        )}
-
-        {/* Indicator legend — mobile only */}
-        {isMobile && (
-          <div style={{ overflowX: 'auto', display: 'flex', gap: '8px', padding: '4px 0', whiteSpace: 'nowrap' }}>
-            {MOBILE_INDICATORS
-              .filter(ind => !unavailableIndicators.has(ind.key))
-              .map(({ key, icon, shortLabel }) => (
-                <div
-                  key={key}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '2px',
-                    flexShrink: 0,
-                    background: 'rgba(255,255,255,0.06)',
-                    borderRadius: '8px',
-                    padding: '6px 8px',
-                  }}
-                >
-                  <span style={{ fontSize: '14px' }}>{icon}</span>
-                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }}>{shortLabel}</span>
-                </div>
-              ))}
           </div>
         )}
 

@@ -77,6 +77,27 @@ export default function RulesModal({ onClose }: RulesModalProps) {
           ))}
         </div>
 
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            Indicateurs
+          </p>
+          {[
+            { icon: '🌍', label: 'Continent' },
+            { icon: '👥', label: 'Population' },
+            { icon: '🗺️', label: 'Superficie (km²)' },
+            { icon: '🪙', label: 'Pauvreté extrême (%)' },
+            { icon: '❤️', label: 'Espérance de vie (ans)' },
+            { icon: '🥩', label: 'Viande (kg/an)' },
+            { icon: '🌿', label: 'CO₂ par habitant (t/an)' },
+            { icon: '👶', label: 'Taux de fertilité' },
+          ].map(({ icon, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+              <span style={{ fontSize: '16px', lineHeight: 1, width: '20px', textAlign: 'center' }}>{icon}</span>
+              <span style={{ color: 'rgba(255,255,255,0.85)' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+
         <button
           onClick={onClose}
           style={{
