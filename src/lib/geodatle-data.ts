@@ -7,6 +7,7 @@ export type CountryData = {
   nameFr: string
   flag: string
   continent: string
+  subregion: string
   population: number
   area: number
   lat: number
@@ -44,7 +45,13 @@ export async function getGeoDateData(): Promise<CountryData[]> {
       name: country.name,
       nameFr: country.nameFr,
       flag: country.flag,
-      continent: country.continent,
+      continent:
+        country.subregion === 'South America'
+          ? 'South America'
+          : country.continent === 'Americas'
+            ? 'North America'
+            : country.continent,
+      subregion: country.subregion,
       population: country.population,
       area: country.area,
       lat: country.lat,
