@@ -29,9 +29,13 @@ export async function getCountriesData(): Promise<RestCountry[]> {
 
   if (!res.ok) throw new Error('Failed to fetch REST Countries')
 
-  const raw: RawCountry[] = await res.json()
+  const raw: unknown = await res.json()
 
-  return raw
+  if (!Array.isArray(raw)) {
+    throw new Error(`RestCountries unexpected response: ${JSON.stringify(raw).slice(0, 200)}`)
+  }
+
+  return (raw as RawCountry[])
     .filter((c) => c.population > 1_000_000)
     .map((c) => ({
       code: c.cca3,
