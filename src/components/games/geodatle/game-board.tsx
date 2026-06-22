@@ -265,7 +265,7 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
       </div>
 
       {/* Map — full width */}
-      <div style={{ width: '100%', background: '#0a0d12', overflow: 'hidden', height: 'clamp(300px, 44vh, 520px)' }}>
+      <div style={{ width: '100%', background: '#0a0d12', overflow: 'hidden', height: isMobile ? '56vw' : 'clamp(300px, 44vh, 500px)' }}>
         <WorldMap guesses={guesses} target={status !== 'playing' ? currentTarget : null} />
       </div>
 

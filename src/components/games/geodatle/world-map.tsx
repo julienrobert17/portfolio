@@ -35,11 +35,12 @@ interface WorldMapProps {
 
 export default function WorldMap({ guesses, target }: WorldMapProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState(400)
+  const [dims, setDims] = useState({ width: 800, height: 400 })
 
   useEffect(() => {
     const obs = new ResizeObserver(([entry]) => {
-      setHeight(entry.contentRect.height)
+      const h = entry.contentRect.height
+      setDims({ width: entry.contentRect.width, height: h })
     })
     obs.observe(wrapperRef.current!)
     return () => obs.disconnect()
@@ -66,13 +67,13 @@ export default function WorldMap({ guesses, target }: WorldMapProps) {
   }
 
   return (
-    <div ref={wrapperRef} style={{ width: '100%', height: 'clamp(300px, 44vh, 500px)' }}>
+    <div ref={wrapperRef} style={{ width: '100%', height: '100%' }}>
       <ComposableMap
         projection="geoNaturalEarth1"
-        width={height * 2}
-        height={height}
+        width={dims.width}
+        height={dims.height}
         style={{ width: '100%', height: '100%' }}
-        projectionConfig={{ scale: height * 0.38, center: [0, 10] }}
+        projectionConfig={{ scale: dims.height * 0.38, center: [0, 10] }}
       >
         <Geographies geography={GEO_URL}>
           {({ geographies }: { geographies: { rsmKey: string; properties: { name?: string }; [key: string]: unknown }[] }) =>

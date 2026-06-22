@@ -120,6 +120,9 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
         return renderCell(key, cell.value, cell.display, offset + i)
       })
 
+    const filteredKeys1 = GRID1_KEYS.filter(k => !unavailableIndicators.has(k))
+    const filteredKeys2 = GRID2_KEYS.filter(k => !unavailableIndicators.has(k))
+
     return (
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '8px 0' }}>
         <div
@@ -135,11 +138,11 @@ export default function GuessRow({ guess, index, unavailableIndicators = new Set
           <img src={flag} alt="" style={{ width: '24px', height: '16px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }} />
           <span style={{ fontSize: '11px', fontWeight: 500, color: 'white' }}>{displayName}</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px', marginBottom: '3px' }}>
-          {renderGroup(GRID1_KEYS, 0)}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${filteredKeys1.length}, 1fr)`, gap: '3px', marginBottom: '3px' }}>
+          {renderGroup(filteredKeys1, 0)}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px' }}>
-          {renderGroup(GRID2_KEYS, 4)}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${filteredKeys2.length}, 1fr)`, gap: '3px' }}>
+          {renderGroup(filteredKeys2, 4)}
         </div>
       </div>
     )
