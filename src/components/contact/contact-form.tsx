@@ -4,6 +4,18 @@ import { useState } from 'react'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
+const EASE = 'cubic-bezier(0.16,1,0.3,1)'
+
+const LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  color: '#d0f0d2',
+  fontSize: '12px',
+  fontWeight: 500,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  marginBottom: '8px',
+}
+
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
@@ -40,49 +52,84 @@ export default function ContactForm() {
 
   if (status === 'success') {
     return (
-      <p className="text-sm font-medium text-[#534AB7]">
-        Message envoyé ! Je vous réponds sous 48h.
-      </p>
+      <div style={{
+        width: 'clamp(340px, 40vw, 520px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(208,240,210,0.1)',
+        borderRadius: '16px',
+        padding: '40px',
+        animation: `slideUp 700ms ${EASE} 0ms both`,
+      }}>
+        <p style={{ color: '#4ade80', fontSize: '16px', fontWeight: 500 }}>
+          Message envoyé ! Je vous réponds sous 48h.
+        </p>
+      </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      style={{
+        width: 'clamp(340px, 40vw, 520px)',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(208,240,210,0.1)',
+        borderRadius: '16px',
+        padding: '40px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        animation: `slideUp 700ms ${EASE} 500ms both`,
+      }}
+    >
+      {error && (
+        <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{error}</p>
+      )}
       {status === 'error' && (
-        <p className="text-sm text-red-500">Une erreur est survenue, réessayez.</p>
+        <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>
+          Une erreur est survenue, réessayez.
+        </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium">Nom</label>
+      <div>
+        <label htmlFor="name" style={LABEL_STYLE}>Nom</label>
         <input
           id="name" name="name" type="text" autoComplete="name"
-          className="rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#534AB7]/40"
+          placeholder="Votre nom"
+          className="contact-input"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium">Email</label>
+      <div>
+        <label htmlFor="email" style={LABEL_STYLE}>Email</label>
         <input
           id="email" name="email" type="email" autoComplete="email"
-          className="rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#534AB7]/40"
+          placeholder="votre@email.com"
+          className="contact-input"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="message" className="text-sm font-medium">Message</label>
+      <div>
+        <label htmlFor="message" style={LABEL_STYLE}>Message</label>
         <textarea
-          id="message" name="message" rows={5}
-          className="rounded-lg border border-border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#534AB7]/40 resize-none"
+          id="message" name="message" rows={4}
+          placeholder="Votre message…"
+          className="contact-input"
+          style={{ resize: 'none' }}
         />
       </div>
 
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="self-start rounded-full bg-[#1a1a1a] text-white dark:bg-white dark:text-[#1a1a1a] px-6 py-3 text-sm font-medium transition-opacity disabled:opacity-50"
+        className="hero-btn"
+        style={{ opacity: status === 'loading' ? 0.5 : 1, alignSelf: 'flex-start' }}
       >
-        {status === 'loading' ? 'Envoi…' : 'Envoyer'}
+        {status === 'loading' ? 'Envoi…' : 'Envoyer →'}
       </button>
     </form>
   )

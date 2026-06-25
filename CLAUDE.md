@@ -82,6 +82,7 @@ Jeu de géographie quotidien type Wordle.
 - Variable d'env requise : DATABASE_URL (Neon)
 
 ## État actuel (juin 2026)
+
 ### Fait
 - Portfolio complet (home, projets, contact)
 - Geodatle entièrement fonctionnel avec responsive mobile
@@ -89,11 +90,18 @@ Jeu de géographie quotidien type Wordle.
 - Modale règles + timer compte à rebours UTC
 - Persistance localStorage (état de la partie)
 - Mode debug (?debug=true)
+- Migration RestCountries → JSON statique (World Bank + world-countries npm)
+- Script scripts/generate-countries.mjs pour regénérer les données
+- Séparation Amériques Nord/Sud via subregion mledoze
+- Carte monde responsive basée sur hauteur avec ResizeObserver
+- Légende indicateurs dans modale règles
+- Custom cursor désactivé sur /games/*
+- Bouton ? fixe mobile (bottom-right)
+- Labels indicateurs permanents sur toutes les lignes mobile
 
 ### En cours / À faire
-- Expérience Three.js sur la home (particules subtiles)
+- Home page : animations scroll-driven (texte qui vole, 
+  révélation au scroll, section réalisations en cards)
 - Expérience Three.js standalone orientée impact écologique/social
-- Valider le comportement scroll/focus input sur mobile
-
-## Modèles de données
-Voir /prisma/schema.prisma pour la structure complète.
+  (paysage montagne nuit + sphères navigables — mis de côté)
+- Valider comportement scroll/focus input mobile

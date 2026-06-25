@@ -1,19 +1,16 @@
-import { getFeaturedProjects, getLatestExperiences } from '@/lib/data'
-import HeroSection from '@/components/home/hero-section'
-import FeaturedProjects from '@/components/home/featured-projects'
-import ExperiencesSection from '@/components/home/experiences-section'
+import { getFeaturedProjects } from '@/lib/data'
+import ScrollController from '@/components/home/scroll-controller'
 
 export default async function HomePage() {
-  const [projects, experiences] = await Promise.all([
-    getFeaturedProjects(),
-    getLatestExperiences(),
-  ])
-
+  const projects = await getFeaturedProjects()
   return (
-    <main>
-      <HeroSection />
-      <FeaturedProjects projects={projects} />
-      <ExperiencesSection experiences={experiences} />
+    <main style={{
+      backgroundColor: '#0d271e',
+      height: '100vh',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      <ScrollController projects={projects} />
     </main>
   )
 }

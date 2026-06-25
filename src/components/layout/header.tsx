@@ -2,64 +2,44 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect } from 'react'
-
-const nav = [
-  { label: 'Projets', href: '/projects' },
-  { label: 'Contact', href: '/contact' },
-]
 
 export default function Header() {
   const pathname = usePathname()
-  const [scrolled, setScrolled] = useState(false)
-  const isGame = pathname.startsWith('/games')
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const headerClass = isGame
-    ? 'bg-transparent border-b border-transparent'
-    : scrolled
-      ? 'bg-white border-b border-border'
-      : 'bg-transparent border-b border-transparent'
+  const isDark = pathname === '/' || pathname === '/contact' || pathname.startsWith('/games')
+  const color = isDark ? '#d0f0d2' : '#171717'
 
   return (
-    <header
-      style={{
-        transition: 'background-color 0.3s ease, border-color 0.3s ease',
-        ...(isGame ? { background: 'transparent', borderColor: 'transparent' } : {}),
-      }}
-      className={`sticky top-0 z-50 flex items-center justify-between px-6 h-14 ${headerClass}`}
-    >
-      <Link
-        href="/"
-        className="text-sm font-semibold tracking-widest transition-colors"
-        style={{ color: isGame ? 'rgba(255,255,255,0.7)' : '#534AB7' }}
-      >
+    <header style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 50,
+      height: '56px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 clamp(48px, 6vw, 100px)',
+    }}>
+      <Link href="/" style={{
+        color,
+        fontSize: '14px',
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        textDecoration: 'none',
+      }}>
         JR
       </Link>
 
-      <nav className="flex items-center gap-6">
-        {nav.map(({ label, href }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`text-sm font-medium transition-colors ${
-              isGame
-                ? 'hover:text-white'
-                : pathname === href
-                  ? 'text-[#534AB7]'
-                  : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-            style={isGame ? { color: 'rgba(255,255,255,0.7)' } : undefined}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
+      <Link href="/contact" style={{
+        color,
+        fontSize: '14px',
+        fontWeight: 800,
+        letterSpacing: '0.04em',
+        textDecoration: 'none',
+      }}>
+        Contact
+      </Link>
     </header>
   )
 }
