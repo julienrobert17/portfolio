@@ -53,7 +53,11 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
   const internalRef      = useRef<THREE.Group | null>(null)
   const trunkMatRef      = useRef<THREE.MeshStandardMaterial | null>(null)
   const branchMatRef     = useRef<THREE.MeshStandardMaterial | null>(null)
-  const smokeMatRef      = useRef<THREE.PointsMaterial | null>(null)
+  const arthMatRef           = useRef<THREE.MeshStandardMaterial | null>(null)
+  const foliageMatRef        = useRef<THREE.MeshStandardMaterial | null>(null)
+  const secondaryProtoMatRef = useRef<THREE.MeshStandardMaterial | null>(null)
+  const farTreeMatRef        = useRef<THREE.MeshStandardMaterial | null>(null)
+  const smokeMatRef          = useRef<THREE.PointsMaterial | null>(null)
   const smokeBufRef      = useRef<THREE.BufferGeometry | null>(null)
   const smokeVelsRef     = useRef<Float32Array | null>(null)
   const arthropodsRef    = useRef<{
@@ -82,8 +86,8 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
     // ── Scene + fog ─────────────────────────────────────────────────────────
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#020a06')
-    scene.fog = new THREE.FogExp2(0x020a06, 0.015)
+    scene.background = new THREE.Color('#4a6fa0')
+    scene.fog = new THREE.FogExp2(0xb8956a, 0.008)
 
     // ── Camera ──────────────────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(
@@ -122,13 +126,24 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
         varying vec3 vWorldPos;
         void main() {
           float t = clamp((vWorldPos.y + 400.0) / 800.0, 0.0, 1.0);
-          vec3 horizon = vec3(0.102, 0.208, 0.125);
-          vec3 zenith  = vec3(0.039, 0.102, 0.063);
+          vec3 horizon = vec3(0.55, 0.42, 0.28);
+          vec3 zenith  = vec3(0.28, 0.45, 0.72);
           gl_FragColor = vec4(mix(horizon, zenith, t), 1.0);
         }
       `,
     })
     scene.add(new THREE.Mesh(skyGeo, skyMat))
+
+    // ── Sun — point light + visual disk ─────────────────────────────────────
+    const sunLight = new THREE.PointLight('#fff5d0', 3.0, 0, 0)
+    sunLight.position.set(120, 200, 80)
+    scene.add(sunLight)
+    // MeshBasicMaterial ignores lighting → always rendered at full brightness
+    const sunDiskGeo = new THREE.SphereGeometry(8, 16, 16)
+    const sunDiskMat = new THREE.MeshBasicMaterial({ color: '#fff5d0' })
+    const sunDisk    = new THREE.Mesh(sunDiskGeo, sunDiskMat)
+    sunDisk.position.set(120, 200, 80)
+    scene.add(sunDisk)
 
     // ── Ground ───────────────────────────────────────────────────────────────
     // Compromise: vertex displacement done in JS (CPU) rather than GLSL for
@@ -192,7 +207,8 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     // ── Arthropods (12 simple creatures) ─────────────────────────────────────
     const bodyGeo = new THREE.BoxGeometry(0.3, 0.08, 0.15)
     const legGeo  = new THREE.CylinderGeometry(0.008, 0.008, 0.18, 4)
-    const arthMat = new THREE.MeshStandardMaterial({ color: '#1a0e08', roughness: 0.95 })
+    const arthMat = new THREE.MeshStandardMaterial({ color: '#1a0e08', roughness: 0.95, transparent: true, opacity: 0 })
+    arthMatRef.current = arthMat
     const arthData: typeof arthropodsRef.current = []
     for (let i = 0; i < 12; i++) {
       const ag = new THREE.Group()
@@ -231,9 +247,15 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
         varying vec2 vUv;
         varying vec3 vNormal;
         void main() {
+          vec3 pos = position;
+          float radialDisp = sin(pos.y * 3.0 + uv.x * 6.28318) * 0.08
+                           + sin(pos.y * 7.0) * 0.04;
+          vec2 xzDir = normalize(pos.xz + vec2(0.0001));
+          pos.x += xzDir.x * radialDisp;
+          pos.z += xzDir.y * radialDisp;
           vUv = uv;
           vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
       `,
       fragmentShader: `
@@ -257,6 +279,23 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     protoMesh.position.set(0, 4, 0)
     scene.add(protoMesh)
     protoShaderRef.current = protoShader
+
+    // ── Secondary Prototaxites (5 instances — même géométrie, matériau simple) ─
+    const protoSecMat = new THREE.MeshStandardMaterial({ color: '#1f1008', roughness: 0.94, metalness: 0.01, transparent: true, opacity: 1 })
+    secondaryProtoMatRef.current = protoSecMat
+    const secondaryProtos = [
+      { x: -12, y: 3,   z:  -8, sx: 0.7,  sy: 0.75, sz: 0.7  },
+      { x:  15, y: 2.4, z:  -5, sx: 0.6,  sy: 0.6,  sz: 0.6  },
+      { x:  -6, y: 4,   z:  14, sx: 0.85, sy: 1.0,  sz: 0.85 },
+      { x:  20, y: 2.2, z:   8, sx: 0.5,  sy: 0.55, sz: 0.5  },
+      { x: -18, y: 4.4, z:   5, sx: 0.9,  sy: 1.1,  sz: 0.9  },
+    ]
+    secondaryProtos.forEach(({ x, y, z, sx, sy, sz }) => {
+      const m = new THREE.Mesh(protoGeo, protoSecMat)
+      m.scale.set(sx, sy, sz)
+      m.position.set(x, y, z)
+      scene.add(m)
+    })
 
     // ── Internal structure (hidden; revealed in 'interior' phase) ─────────────
     const internalGroup = new THREE.Group()
@@ -309,6 +348,10 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     branchMatRef.current = branchMat
     const trunkBaseGeo  = new THREE.CylinderGeometry(0.25, 0.35, 1, 6)
     const branchBaseGeo = new THREE.CylinderGeometry(0.05, 0.09, 1, 4)
+    // Couronne de feuillage : sphère aplatie simulant les frondes dévoniennes
+    const foliageGeo = new THREE.SphereGeometry(2.5, 6, 4)
+    const foliageMat = new THREE.MeshStandardMaterial({ color: '#1a3a0e', roughness: 0.9, transparent: true, opacity: 0 })
+    foliageMatRef.current = foliageMat
     const treesGroup    = new THREE.Group()
     for (let i = 0; i < 24; i++) {
       const ang  = (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
@@ -330,9 +373,34 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
         br.rotation.x = (Math.sin(ba) * Math.PI) / 5
         tg.add(br)
       }
+      // Couronne ovale au sommet du tronc
+      const crown = new THREE.Mesh(foliageGeo, foliageMat)
+      crown.scale.set(1, 0.4, 1)
+      crown.position.y = h
+      tg.add(crown)
       treesGroup.add(tg)
     }
     scene.add(treesGroup)
+
+    // ── Far trees — prolifération pendant 'zoomout' ───────────────────────────
+    // Compromise : troncs uniquement (pas de branches ni feuillage) pour les
+    // instances lointaines (r=35-80), pour limiter le nombre de draw calls.
+    const farTreeMat = new THREE.MeshStandardMaterial({ color: '#1a0e06', roughness: 0.95, transparent: true, opacity: 0 })
+    farTreeMatRef.current = farTreeMat
+    const farTreesGroup = new THREE.Group()
+    for (let i = 0; i < 40; i++) {
+      const ang  = Math.random() * Math.PI * 2
+      const dist = 35 + Math.random() * 45
+      const h    = 6 + Math.random() * 8
+      const tg   = new THREE.Group()
+      tg.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist)
+      const trunk = new THREE.Mesh(trunkBaseGeo, farTreeMat)
+      trunk.scale.y = h
+      trunk.position.y = h * 0.5
+      tg.add(trunk)
+      farTreesGroup.add(tg)
+    }
+    scene.add(farTreesGroup)
 
     // ── Smoke particles (visible at end of 'zoomout') ─────────────────────────
     const SMOKE_N = 40
@@ -403,7 +471,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
         if (d2 > 3600) arth.dir += Math.PI + (Math.random() - 0.5) * 0.4
       })
 
-      // Zoomout: camera driven by progress
+      // Zoomout: camera driven by progress + far trees proliferate
       if (phase === 'zoomout') {
         camera.position.x = THREE.MathUtils.lerp(ZOOM_P0[0], ZOOM_P1[0], prog)
         camera.position.y = THREE.MathUtils.lerp(ZOOM_P0[1], ZOOM_P1[1], prog)
@@ -413,14 +481,27 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
           THREE.MathUtils.lerp(ZOOM_T0[1], ZOOM_T1[1], prog),
           THREE.MathUtils.lerp(ZOOM_T0[2], ZOOM_T1[2], prog),
         )
+        // Far trees visibles à 50 % du dézoom
+        if (farTreeMatRef.current) {
+          farTreeMatRef.current.opacity = THREE.MathUtils.clamp(prog * 2, 0, 1)
+        }
       }
 
-      // Eclipse: trees fade in, Prototaxite dims after 60%
+      // Eclipse: trees + foliage fade in; Prototaxites s'éteignent après 50%
       if (phase === 'eclipse') {
         const op = THREE.MathUtils.clamp(prog * 1.5, 0, 1)
-        if (trunkMatRef.current)  trunkMatRef.current.opacity  = op
-        if (branchMatRef.current) branchMatRef.current.opacity = op
-        // ShaderMaterial : l'émission est gérée via uTime dans le fragment shader
+        if (trunkMatRef.current)   trunkMatRef.current.opacity   = op
+        if (branchMatRef.current)  branchMatRef.current.opacity  = op
+        if (foliageMatRef.current) foliageMatRef.current.opacity = op
+        if (prog > 0.5) {
+          const fadeP = (prog - 0.5) / 0.5  // 0→1 entre 50 % et 100 %
+          if (protoShaderRef.current) {
+            protoShaderRef.current.uniforms.uOpacity.value = Math.max(0, 1 - fadeP)
+          }
+          if (secondaryProtoMatRef.current) {
+            secondaryProtoMatRef.current.opacity = Math.max(0, 1 - fadeP)
+          }
+        }
       }
 
       // Smoke: appears when zoomout progress > 0.85
@@ -463,6 +544,8 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
       // Dispose shared geometries
       skyGeo.dispose()
       skyMat.dispose()
+      sunDiskGeo.dispose()
+      sunDiskMat.dispose()
       groundGeo.dispose()
       groundMat.dispose()
       stemGeo.dispose()
@@ -471,15 +554,20 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
       pMat1.dispose()
       bodyGeo.dispose()
       legGeo.dispose()
+      gsap.killTweensOf(arthMat)
       arthMat.dispose()
       protoGeo.dispose()
       protoShader.dispose()
+      protoSecMat.dispose()
       protoShaderRef.current?.dispose()
       tubeBaseGeo.dispose()
       spotBaseGeo.dispose()
       internalMats.forEach(m => m.dispose())
       trunkBaseGeo.dispose()
       branchBaseGeo.dispose()
+      foliageGeo.dispose()
+      foliageMat.dispose()
+      farTreeMat.dispose()
       trunkMat.dispose()
       branchMat.dispose()
       smokeBuf.dispose()
@@ -510,6 +598,23 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
       gsap.killTweensOf(lookAt)
       gsap.to(camera.position, { x: cp.p[0], y: cp.p[1], z: cp.p[2], duration: 2.5, ease: 'power2.inOut' })
       gsap.to(lookAt,          { x: cp.t[0], y: cp.t[1], z: cp.t[2], duration: 2.5, ease: 'power2.inOut' })
+    }
+
+    // Arthropods — hidden until 'ecosystem'
+    const arthMat = arthMatRef.current
+    if (arthMat) {
+      if (currentPhase === 'ecosystem') {
+        gsap.to(arthMat, { opacity: 1, duration: 2.0, ease: 'power1.inOut' })
+      } else if (currentPhase === 'presence' || currentPhase === 'interior') {
+        gsap.killTweensOf(arthMat)
+        arthMat.opacity = 0
+      }
+    }
+
+    // Restaure l'opacité des Prototaxites si on quitte 'eclipse'
+    if (prev === 'eclipse' && currentPhase !== 'eclipse') {
+      if (protoShaderRef.current) protoShaderRef.current.uniforms.uOpacity.value = 1
+      if (secondaryProtoMatRef.current) secondaryProtoMatRef.current.opacity = 1
     }
 
     // Entering 'interior' — reveal internal structure through translucent body
