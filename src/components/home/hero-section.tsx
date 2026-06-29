@@ -63,6 +63,18 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
               inset: 0,
               backgroundColor: 'rgba(13,39,30,0.4)',
             }} />
+
+            {/* Iris — cercle qui se ferme sur la photo au départ */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: '#0d271e',
+              borderRadius: '50%',
+              transform: isLeaving ? 'scale(2.2)' : 'scale(0)',
+              transition: 'transform 750ms cubic-bezier(0.4, 0, 1, 1)',
+              transformOrigin: 'center center',
+              pointerEvents: 'none',
+            }} />
           </div>
 
           {/* Traits rotatifs */}

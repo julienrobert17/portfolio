@@ -40,6 +40,7 @@ async function main() {
       title: 'Geodatle',
       description: 'Jeu de géographie quotidien inspiré de Wordle. Devinez le pays mystère en 8 tentatives grâce à des données réelles (OWID, REST Countries).',
       tags: ['Next.js', 'TypeScript', 'React', 'Data', 'Game', 'OWID'],
+      imageUrl: '/GEODATLE.png',
     },
     create: {
       slug: 'geodatle',

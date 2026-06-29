@@ -5,6 +5,6 @@ import Header from './header'
 
 export default function ConditionalHeader() {
   const pathname = usePathname()
-  if (pathname.startsWith('/games')) return null
+  if (pathname.startsWith('/games') || pathname.startsWith('/experience')) return null
   return <Header />
 }

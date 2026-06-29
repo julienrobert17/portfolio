@@ -10,11 +10,11 @@ interface Props {
 }
 
 export default function FeaturedProjects({ projects, isActive }: Props) {
-  const titleRef = useRef<HTMLHeadingElement>(null)
-  const cardsRef = useRef<HTMLDivElement>(null)
+  const titleRef  = useRef<HTMLHeadingElement>(null)
+  const cardsRef  = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const title = titleRef.current
+    const title     = titleRef.current
     const container = cardsRef.current
 
     if (!isActive) {
@@ -28,12 +28,12 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
       return
     }
 
-    // Trigger reveals after the section starts fading in (300ms delay on container)
+    // Titre d'abord, puis cards en cascade avec 180ms de head start
     const timer = setTimeout(() => {
       title?.classList.add('is-visible')
       if (container) {
         Array.from(container.children).forEach((card, i) => {
-          ;(card as HTMLElement).style.transitionDelay = `${i * 100}ms`
+          ;(card as HTMLElement).style.transitionDelay = `${180 + i * 140}ms`
           card.classList.add('is-visible')
         })
       }
@@ -72,76 +72,127 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         }}
       >
-        {projects.map((project) => (
+        {projects.map((project, i) => (
           <article
             key={project.id}
-            className="card-reveal"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 14,
-              borderRadius: 16,
-              border: '1px solid rgba(74,222,128,0.1)',
-              padding: '24px',
-              backgroundColor: '#0d2318',
-            }}
+            className="project-card card-reveal"
           >
-            <h3
-              style={{
-                fontWeight: 600,
-                fontSize: 18,
-                color: '#f0f7f2',
-                margin: 0,
-                lineHeight: 1.3,
-              }}
-            >
-              {project.title}
-            </h3>
+            {/* Image de fond */}
+            {project.slug === 'prototaxites' ? (
+              // Placeholder visuel spécifique à l'expérience Prototaxites (pas d'image)
+              <div
+                className="project-card-bg"
+                style={{ backgroundColor: '#020a06', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <span style={{
+                  fontFamily: 'monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.2em',
+                  color: 'rgba(74,222,128,0.55)',
+                  animation: 'proto-pulse 3s ease-in-out infinite',
+                }}>
+                  420 Ma
+                </span>
+              </div>
+            ) : (
+              <div
+                className="project-card-bg"
+                style={{
+                  backgroundColor: '#1a3d2b',
+                  backgroundImage: project.imageUrl ? `url(${project.imageUrl})` : undefined,
+                }}
+              />
+            )}
 
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.65,
-                color: 'rgba(240,247,242,0.55)',
-                flex: 1,
-                margin: 0,
-              }}
-            >
-              {project.description}
-            </p>
+            {/* Dégradé sombre vers le bas */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.12) 100%)',
+              zIndex: 1,
+            }} />
 
-            {project.tags.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {project.tags.map((tag) => (
+            {/* Numéro */}
+            <span style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              zIndex: 2,
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.3)',
+              letterSpacing: '0.08em',
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+
+            {/* Contenu bas */}
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: '0 24px 24px',
+              zIndex: 2,
+            }}>
+              {/* Tags */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                {project.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
                     style={{
-                      padding: '3px 10px',
+                      padding: '2px 8px',
                       borderRadius: 9999,
-                      backgroundColor: 'rgba(74,222,128,0.09)',
+                      backgroundColor: 'rgba(74,222,128,0.15)',
                       color: '#4ade80',
-                      fontSize: 11,
-                      fontWeight: 500,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      textTransform: 'uppercase',
                     }}
                   >
                     {tag}
                   </span>
                 ))}
               </div>
-            )}
 
-            <Link
-              href={`/projects/${project.slug}`}
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#4ade80',
-                textDecoration: 'none',
-                marginTop: 4,
-              }}
-            >
-              Voir le projet →
-            </Link>
+              {/* Titre */}
+              <h3 style={{
+                fontWeight: 700,
+                fontSize: 'clamp(17px, 1.8vw, 21px)',
+                color: '#f0f7f2',
+                margin: 0,
+                lineHeight: 1.25,
+              }}>
+                {project.title}
+              </h3>
+
+              {/* Reveal au hover : description + lien */}
+              <div className="project-card-reveal">
+                <div>
+                  <p style={{
+                    fontSize: 13,
+                    lineHeight: 1.65,
+                    color: 'rgba(240,247,242,0.65)',
+                    margin: '0 0 14px',
+                  }}>
+                    {project.description}
+                  </p>
+                  <Link
+                    href={project.liveUrl ?? `/projects/${project.slug}`}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#4ade80',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Voir le projet →
+                  </Link>
+                </div>
+              </div>
+            </div>
           </article>
         ))}
       </div>
