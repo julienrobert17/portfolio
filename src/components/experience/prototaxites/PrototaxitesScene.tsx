@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { gsap } from 'gsap'
 import type { Beat } from './constants/narrative'
 
@@ -21,8 +22,8 @@ const CAM: Record<Exclude<Phase, 'zoomout'>, {
   p: [number, number, number]
   t: [number, number, number]
 }> = {
-  context:   { p: [8,   3,  12], t: [0, 4, 0] },
-  presence:  { p: [8,   3,  12], t: [0, 4, 0] },
+  context:   { p: [8,   5,  14], t: [0, 4, 0] },
+  presence:  { p: [8,   5,  14], t: [0, 4, 0] },
   interior:  { p: [0.8, 3.5, 0.8], t: [0, 4.5, 0] },
   ecosystem: { p: [18,  8,  22], t: [0, 2, 0] },
   eclipse:   { p: [14,  6,  18], t: [0, 4, 0] },
@@ -51,12 +52,9 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
   const lookAtRef        = useRef<THREE.Vector3>(new THREE.Vector3(0, 4, 0))
   const protoShaderRef   = useRef<THREE.ShaderMaterial | null>(null)
   const internalRef      = useRef<THREE.Group | null>(null)
-  const trunkMatRef      = useRef<THREE.MeshStandardMaterial | null>(null)
-  const branchMatRef     = useRef<THREE.MeshStandardMaterial | null>(null)
+  const treeMatsRef      = useRef<THREE.Material[]>([])
   const arthMatRef           = useRef<THREE.MeshStandardMaterial | null>(null)
-  const foliageMatRef        = useRef<THREE.MeshStandardMaterial | null>(null)
   const secondaryProtoMatRef = useRef<THREE.MeshStandardMaterial | null>(null)
-  const farTreeMatRef        = useRef<THREE.MeshStandardMaterial | null>(null)
   const smokeMatRef          = useRef<THREE.PointsMaterial | null>(null)
   const smokeBufRef      = useRef<THREE.BufferGeometry | null>(null)
   const smokeVelsRef     = useRef<Float32Array | null>(null)
@@ -146,34 +144,91 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     scene.add(sunDisk)
 
     // ── Ground ───────────────────────────────────────────────────────────────
-    // Compromise: vertex displacement done in JS (CPU) rather than GLSL for
-    // reliability; visually equivalent for a 80×80 grid.
-    const groundGeo = new THREE.PlaneGeometry(300, 300, 80, 80)
+    const groundGeo = new THREE.PlaneGeometry(400, 400, 120, 120)
     groundGeo.rotateX(-Math.PI / 2)
-    const gp = groundGeo.attributes.position.array as Float32Array
-    for (let i = 0; i < gp.length; i += 3) {
-      const x = gp[i], z = gp[i + 2]
-      gp[i + 1] =
-        Math.sin(x * 0.5) * Math.cos(z * 0.3) * 0.8 +
-        Math.sin(x * 1.2 + z * 0.8) * 0.4 +
-        Math.sin(x * 3.1 + z * 2.7) * 0.15 - 0.3
-    }
-    groundGeo.attributes.position.needsUpdate = true
-    groundGeo.computeVertexNormals()
-    const colors = new Float32Array(gp.length)
-    for (let i = 0; i < gp.length; i += 3) {
-      const h  = gp[i + 1]
-      const ct = Math.max(0, Math.min(1, (h + 1.5) / 3.0))
-      colors[i]     = 0.35 + ct * 0.15
-      colors[i + 1] = 0.18 + ct * 0.08
-      colors[i + 2] = 0.08 + ct * 0.04
-    }
-    groundGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: '#5a3520',
-      roughness: 0.82,
-      metalness: 0,
-      vertexColors: true,
+
+    const groundMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+        varying float vHeight;
+        varying vec3 vNormal;
+
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(
+            mix(hash(i + vec2(0,0)), hash(i + vec2(1,0)), u.x),
+            mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x),
+            u.y
+          );
+        }
+        float fbm(vec2 p) {
+          float v = 0.0;
+          float a = 0.5;
+          for (int i = 0; i < 5; i++) {
+            v += a * noise(p);
+            p  = p * 2.1 + vec2(1.7, 9.2);
+            a *= 0.5;
+          }
+          return v;
+        }
+
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+
+          float h = fbm(pos.xz * 0.04) * 4.0
+                  + fbm(pos.xz * 0.12) * 1.5
+                  + fbm(pos.xz * 0.35) * 0.5;
+
+          float distFromCenter = length(pos.xz);
+          float flatFactor = smoothstep(8.0, 18.0, distFromCenter);
+          pos.y = h * flatFactor;
+
+          vHeight = pos.y;
+
+          float eps = 0.5;
+          float hL = fbm((pos.xz - vec2(eps, 0.0)) * 0.04) * 4.0;
+          float hR = fbm((pos.xz + vec2(eps, 0.0)) * 0.04) * 4.0;
+          float hD = fbm((pos.xz - vec2(0.0, eps)) * 0.04) * 4.0;
+          float hU = fbm((pos.xz + vec2(0.0, eps)) * 0.04) * 4.0;
+          vNormal = normalize(vec3(hL - hR, 2.0 * eps, hD - hU));
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        varying float vHeight;
+        varying vec3 vNormal;
+
+        void main() {
+          vec3 lowColor  = vec3(0.18, 0.10, 0.05);
+          vec3 midColor  = vec3(0.32, 0.18, 0.09);
+          vec3 highColor = vec3(0.45, 0.28, 0.12);
+
+          float t = clamp(vHeight / 4.0, 0.0, 1.0);
+          vec3 baseColor = mix(lowColor, mix(midColor, highColor, t * 1.5), t);
+
+          vec3 lightDir = normalize(vec3(0.6, 1.0, 0.4));
+          float diff = max(dot(normalize(vNormal), lightDir), 0.0);
+          float ambient = 0.35;
+          vec3 lit = baseColor * (ambient + diff * 0.65);
+
+          float micro = fract(vUv.x * 80.0) * fract(vUv.y * 80.0);
+          lit += vec3(micro * 0.02);
+
+          gl_FragColor = vec4(lit, 1.0);
+        }
+      `,
     })
     scene.add(new THREE.Mesh(groundGeo, groundMat))
 
@@ -294,6 +349,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
       const m = new THREE.Mesh(protoGeo, protoSecMat)
       m.scale.set(sx, sy, sz)
       m.position.set(x, y, z)
+      m.rotation.set(0, 0, 0)
       scene.add(m)
     })
 
@@ -341,66 +397,78 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     scene.add(internalGroup)
     internalRef.current = internalGroup
 
-    // ── Trees (hidden; revealed during 'eclipse') ─────────────────────────────
-    const trunkMat  = new THREE.MeshStandardMaterial({ color: '#1a0e06', roughness: 0.95, transparent: true, opacity: 0 })
-    const branchMat = new THREE.MeshStandardMaterial({ color: '#2d3a1a', roughness: 0.95, transparent: true, opacity: 0 })
-    trunkMatRef.current  = trunkMat
-    branchMatRef.current = branchMat
-    const trunkBaseGeo  = new THREE.CylinderGeometry(0.25, 0.35, 1, 6)
-    const branchBaseGeo = new THREE.CylinderGeometry(0.05, 0.09, 1, 4)
-    // Couronne de feuillage : sphère aplatie simulant les frondes dévoniennes
-    const foliageGeo = new THREE.SphereGeometry(2.5, 6, 4)
-    const foliageMat = new THREE.MeshStandardMaterial({ color: '#1a3a0e', roughness: 0.9, transparent: true, opacity: 0 })
-    foliageMatRef.current = foliageMat
-    const treesGroup    = new THREE.Group()
-    for (let i = 0; i < 24; i++) {
-      const ang  = (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
-      const dist = 15 + Math.random() * 20
-      const h    = 5 + Math.random() * 7
-      const tg   = new THREE.Group()
-      tg.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist)
-      const trunk = new THREE.Mesh(trunkBaseGeo, trunkMat)
-      trunk.scale.y = h
-      trunk.position.y = h * 0.5
-      tg.add(trunk)
-      for (let b = 0; b < 6; b++) {
-        const ba  = (b / 6) * Math.PI * 2
-        const bl  = 1.5 + Math.random()
-        const br  = new THREE.Mesh(branchBaseGeo, branchMat)
-        br.scale.y = bl
-        br.position.set(Math.cos(ba) * 0.4, h * 0.7 + Math.random() * h * 0.2, Math.sin(ba) * 0.4)
-        br.rotation.z = (Math.cos(ba) * Math.PI) / 5
-        br.rotation.x = (Math.sin(ba) * Math.PI) / 5
-        tg.add(br)
-      }
-      // Couronne ovale au sommet du tronc
-      const crown = new THREE.Mesh(foliageGeo, foliageMat)
-      crown.scale.set(1, 0.4, 1)
-      crown.position.y = h
-      tg.add(crown)
-      treesGroup.add(tg)
-    }
-    scene.add(treesGroup)
+    // ── Devonian trees (prehistoric_tree_01.glb) ──────────────────────────────
+    const treeGroup = new THREE.Group()
+    scene.add(treeGroup)
 
-    // ── Far trees — prolifération pendant 'zoomout' ───────────────────────────
-    // Compromise : troncs uniquement (pas de branches ni feuillage) pour les
-    // instances lointaines (r=35-80), pour limiter le nombre de draw calls.
-    const farTreeMat = new THREE.MeshStandardMaterial({ color: '#1a0e06', roughness: 0.95, transparent: true, opacity: 0 })
-    farTreeMatRef.current = farTreeMat
-    const farTreesGroup = new THREE.Group()
-    for (let i = 0; i < 40; i++) {
-      const ang  = Math.random() * Math.PI * 2
-      const dist = 35 + Math.random() * 45
-      const h    = 6 + Math.random() * 8
-      const tg   = new THREE.Group()
-      tg.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist)
-      const trunk = new THREE.Mesh(trunkBaseGeo, farTreeMat)
-      trunk.scale.y = h
-      trunk.position.y = h * 0.5
-      tg.add(trunk)
-      farTreesGroup.add(tg)
-    }
-    scene.add(farTreesGroup)
+    const loader = new GLTFLoader()
+    loader.load(
+      '/prehistoric_tree_01.glb',
+      (gltf) => {
+        const model = gltf.scene
+        treeGroup.add(model)
+
+        // Corrige la rotation en appliquant +90° sur model entier
+        // pour annuler le -90° interne du export Sketchfab
+        model.rotation.x = Math.PI / 2
+        model.updateMatrixWorld(true)
+
+        // Normalise hauteur à 7 unités
+        const rawBox  = new THREE.Box3().setFromObject(model)
+        const rawSize = rawBox.getSize(new THREE.Vector3())
+        const sc      = 7 / rawSize.y
+        model.scale.setScalar(sc)
+
+        // Repose au sol
+        model.updateMatrixWorld(true)
+        const box2 = new THREE.Box3().setFromObject(model)
+        model.position.y = -box2.min.y
+
+        // Collecte les matériaux pour contrôle opacity
+        const mats: THREE.Material[] = []
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            const matArr = Array.isArray(child.material)
+              ? child.material
+              : [child.material]
+            matArr.forEach((m) => {
+              m.transparent = true
+              m.opacity = 0
+              if (!mats.includes(m)) mats.push(m)
+            })
+          }
+        })
+        treeMatsRef.current = mats
+
+        // 24 arbres proches (r=10-18)
+        for (let i = 0; i < 24; i++) {
+          const ang  = (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
+          const dist = 10 + Math.random() * 8
+          const tree = model.clone(true)
+          tree.scale.setScalar(sc)
+          tree.position.set(Math.cos(ang) * dist, model.position.y, Math.sin(ang) * dist)
+          tree.rotation.x = Math.PI / 2
+          tree.rotation.y = Math.random() * Math.PI * 2
+          treeGroup.add(tree)
+        }
+
+        // 35 arbres lointains (r=35-90)
+        for (let i = 0; i < 35; i++) {
+          const ang  = Math.random() * Math.PI * 2
+          const dist = 35 + Math.random() * 55
+          const tree = model.clone(true)
+          tree.scale.setScalar(sc)
+          tree.position.set(Math.cos(ang) * dist, model.position.y, Math.sin(ang) * dist)
+          tree.rotation.x = Math.PI / 2
+          tree.rotation.y = Math.random() * Math.PI * 2
+          treeGroup.add(tree)
+        }
+      },
+      undefined,
+      (error) => {
+        throw new Error(`GLTFLoader: ${String(error)}`)
+      },
+    )
 
     // ── Smoke particles (visible at end of 'zoomout') ─────────────────────────
     const SMOKE_N = 40
@@ -471,7 +539,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
         if (d2 > 3600) arth.dir += Math.PI + (Math.random() - 0.5) * 0.4
       })
 
-      // Zoomout: camera driven by progress + far trees proliferate
+      // Zoomout: camera driven by progress
       if (phase === 'zoomout') {
         camera.position.x = THREE.MathUtils.lerp(ZOOM_P0[0], ZOOM_P1[0], prog)
         camera.position.y = THREE.MathUtils.lerp(ZOOM_P0[1], ZOOM_P1[1], prog)
@@ -481,18 +549,12 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
           THREE.MathUtils.lerp(ZOOM_T0[1], ZOOM_T1[1], prog),
           THREE.MathUtils.lerp(ZOOM_T0[2], ZOOM_T1[2], prog),
         )
-        // Far trees visibles à 50 % du dézoom
-        if (farTreeMatRef.current) {
-          farTreeMatRef.current.opacity = THREE.MathUtils.clamp(prog * 2, 0, 1)
-        }
       }
 
-      // Eclipse: trees + foliage fade in; Prototaxites s'éteignent après 50%
+      // Eclipse: trees fade in; Prototaxites s'éteignent après 50%
       if (phase === 'eclipse') {
         const op = THREE.MathUtils.clamp(prog * 1.5, 0, 1)
-        if (trunkMatRef.current)   trunkMatRef.current.opacity   = op
-        if (branchMatRef.current)  branchMatRef.current.opacity  = op
-        if (foliageMatRef.current) foliageMatRef.current.opacity = op
+        treeMatsRef.current.forEach((m) => { m.opacity = op })
         if (prog > 0.5) {
           const fadeP = (prog - 0.5) / 0.5  // 0→1 entre 50 % et 100 %
           if (protoShaderRef.current) {
@@ -563,13 +625,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
       tubeBaseGeo.dispose()
       spotBaseGeo.dispose()
       internalMats.forEach(m => m.dispose())
-      trunkBaseGeo.dispose()
-      branchBaseGeo.dispose()
-      foliageGeo.dispose()
-      foliageMat.dispose()
-      farTreeMat.dispose()
-      trunkMat.dispose()
-      branchMat.dispose()
+      // GLB matériaux et géométries libérés par renderer.dispose() au unmount
       smokeBuf.dispose()
       smokeMat.dispose()
       renderer.dispose()
@@ -587,6 +643,11 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
     const prev = prevPhaseRef.current
     prevPhaseRef.current = currentPhase
+
+    // Smoke invisible tant qu'on n'est pas en zoomout
+    if (smokeMatRef.current && currentPhase !== 'zoomout') {
+      smokeMatRef.current.opacity = 0
+    }
 
     // Zoomout camera is driven by progress in the animation loop
     if (currentPhase === 'zoomout') {
@@ -613,6 +674,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
     // Restaure l'opacité des Prototaxites si on quitte 'eclipse'
     if (prev === 'eclipse' && currentPhase !== 'eclipse') {
+      treeMatsRef.current.forEach((m) => { m.opacity = 0 })
       if (protoShaderRef.current) protoShaderRef.current.uniforms.uOpacity.value = 1
       if (secondaryProtoMatRef.current) secondaryProtoMatRef.current.opacity = 1
     }
