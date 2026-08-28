@@ -56,6 +56,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
   const arthMatRef           = useRef<THREE.MeshStandardMaterial | null>(null)
   const secondaryProtoMatRef = useRef<THREE.MeshStandardMaterial | null>(null)
   const smokeMatRef          = useRef<THREE.PointsMaterial | null>(null)
+  const waterMatRef          = useRef<THREE.ShaderMaterial | null>(null)
   const smokeBufRef      = useRef<THREE.BufferGeometry | null>(null)
   const smokeVelsRef     = useRef<Float32Array | null>(null)
   const arthropodsRef    = useRef<{
@@ -85,7 +86,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
     // ── Scene + fog ─────────────────────────────────────────────────────────
     const scene = new THREE.Scene()
     scene.background = new THREE.Color('#4a6fa0')
-    scene.fog = new THREE.FogExp2(0xb8956a, 0.008)
+    scene.fog = new THREE.FogExp2(0xb8956a, 0.012)
 
     // ── Camera ──────────────────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(
