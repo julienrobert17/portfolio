@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import PaperButton from '../ui/paper-button'
 import styles from '../invitation.module.css'
-import { COPY, PERSO } from '../content'
+import { COPY } from '../content'
 import type { StepProps } from './step-props'
 
 /** Le curseur de pression redescend, quoi qu'elle fasse. */
@@ -23,17 +23,26 @@ export default function StepTerms({ machine }: StepProps) {
   const [refused, setRefused] = useState(false)
   const [shaking, setShaking] = useState(false)
   const [autoChecked, setAutoChecked] = useState(false)
+  /** La descente ne commence qu'une fois l'écran en place et visible. */
+  const [armed, setArmed] = useState(false)
   const termsTimerRef = useRef<number | null>(null)
+
+  // On attend la fin de l'animation d'entrée : sinon la descente se joue
+  // pendant que l'écran arrive encore et personne ne la voit.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setArmed(true), 720)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   // Décroissance douce vers 0 : « aucune pression, promis ».
   useEffect(() => {
-    if (pressure <= 0) return
+    if (!armed || pressure <= 0) return
     const timer = window.setTimeout(
       () => setPressure((current) => Math.max(0, current - DECAY_STEP)),
       DECAY_MS,
     )
     return () => window.clearTimeout(timer)
-  }, [pressure])
+  }, [armed, pressure])
 
   useEffect(() => {
     if (!shaking) return
@@ -129,15 +138,9 @@ export default function StepTerms({ machine }: StepProps) {
         <p className={styles.termsTitle}>{copy.termsTitle}</p>
         <ol className={styles.clauses}>
           {copy.clauses.map((clause) => (
-            <li key={clause}>{clause.replace('{nom}', PERSO.chat.nom)}</li>
+            <li key={clause}>{clause}</li>
           ))}
         </ol>
-        <p className={styles.signature}>
-          <span className={styles.paw} aria-hidden="true">
-            🐾
-          </span>
-          {copy.signedBy.replace('{nom}', PERSO.chat.nom)}
-        </p>
       </div>
 
       <button

@@ -28,8 +28,10 @@ Puis http://localhost:3000/experience/un-moment-hors-du-temps
 
 ### À remplir avant d'envoyer le lien
 
-1. **`PERSO.chat.nom`** vaut `'Mimi'` (déduit du nom du dossier). Il apparaît
-   dans 4 gags : CAPTCHA, bandeau du trajet, clauses des CGU, signature.
+1. **`PERSO.chat.nom`** vaut `'Mimi'` : il sert d'alternative textuelle à la
+   photo. Le bandeau de l'étape 5 nomme Mimi en toutes lettres, et l'expéditeur
+   de l'enveloppe est « Le papa d'Oscar » — deux êtres différents, c'est voulu,
+   ne les uniformise pas.
 2. **La photo du chat** vit dans `public/experience/mimi/`. Trois fichiers :
    `chat.jpg` (l'original), `chat-tete.jpg` (carré recadré sur la tête, utilisé
    par les vignettes) et `chat-carte.jpg` (allégé, pour la carte du portfolio).
@@ -44,13 +46,13 @@ Puis http://localhost:3000/experience/un-moment-hors-du-temps
 | # | Écran | Mécanique |
 |---|-------|-----------|
 | 0 | Enveloppe | ouverture au tap, confettis, faux bandeau cookies |
-| 1 | Identité | prénom qui se réécrit seul, CAPTCHA dont tout est valide, case auto-cochée |
+| 1 | Identité | prénom qui se réécrit seul, CAPTCHA impossible, case auto-cochée |
 | 2 | LA question | le « Non » fuit le curseur, puis se pose au bout de 7 esquives |
-| 3 | La date | calendrier hostile à excuses absurdes, 4 créneaux dorés, compte à rebours |
+| 3 | La date | calendrier hostile, aujourd'hui en créneau doré, décomptes, double confirmation |
 | 4 | L'heure | slider à zones commentées, aimant contournable sur 19:30 |
-| 5 | L'activité | 5 cartes dont une qui se décoche seule, autocomplétion absurde |
-| 6 | Les modalités | 2 sliders truqués, CGU signées par le chat |
-| 7 | Confirmation | envoi truqué, ticket, `.ics`, WhatsApp, recommencer |
+| 5 | L'activité | 5 cartes dont une qui se décoche seule, menu déroulant absurde |
+| 6 | Les modalités | 2 sliders truqués, CGU parodiques |
+| 7 | Confirmation | envoi truqué, ticket, envoi de la réponse par WhatsApp |
 
 ## Ce qui n'est pas négociable dans le code
 
@@ -72,7 +74,8 @@ use-dodge.ts             moteur d'esquive (ressort 170/18, clamp viewport)
 use-reduced-motion.ts    useSyncExternalStore sur la media query
 celebration-context.tsx  canvas + confettis + easter egg
 use-konami.ts            Konami au clavier · 5 tapes rapides au doigt
-confetti.ts / ics.ts     modules purs, sans dépendance
+confetti.ts              module pur, sans dépendance
+ui/vessel.tsx            les 9 silhouettes SVG du CAPTCHA
 dates.ts / share.ts      helpers de date · récap, lien wa.me, n° de confirmation
 ui/                      bouton, carte d'étape, barre de progression, modale accessible
 steps/                   un fichier par écran
@@ -81,11 +84,12 @@ steps/                   un fichier par écran
 **État et navigation** — `sessionStorage['hors-du-temps']` pour le refresh, le
 hash d'URL (`#/3`) pour le bouton retour du navigateur. L'écran final réécrit le
 hash en `#/s/<état encodé en base64url>` : le lien est partageable et rejoue le
-ticket, sans backend. Un verrou de 420 ms neutralise double-clics et spam.
+ticket, sans backend. Un verrou de 420 ms neutralise double-clics et spam, et
+chaque changement d'étape ramène le conteneur défilant en haut.
 
-**Zéro dépendance ajoutée** : ressort, confettis et `.ics` sont écrits à la main
-(quelques dizaines de lignes chacun) plutôt que de tirer framer-motion,
-canvas-confetti et `ics`.
+**Zéro dépendance ajoutée** : le ressort et les confettis sont écrits à la main
+(quelques dizaines de lignes chacun) plutôt que de tirer framer-motion et
+canvas-confetti.
 
 ## Easter egg
 

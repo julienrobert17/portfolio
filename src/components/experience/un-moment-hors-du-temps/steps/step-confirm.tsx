@@ -5,21 +5,10 @@ import PaperButton from '../ui/paper-button'
 import CatPhoto from '../ui/cat-photo'
 import styles from '../invitation.module.css'
 import { COPY, PERSO } from '../content'
-import { buildIcs, downloadIcs } from '../ics'
 import { encodeState } from '../use-invitation-machine'
 import { useCelebration } from '../celebration-context'
-import {
-  activityLabel,
-  confirmationRef,
-  dateLabel,
-  eventStart,
-  timeLabel,
-  whatsappLink,
-} from '../share'
+import { activityLabel, confirmationRef, dateLabel, timeLabel, whatsappLink } from '../share'
 import type { StepProps } from './step-props'
-
-/** Durée par défaut de la réservation, en minutes. */
-const EVENT_MINUTES = 150
 
 export default function StepConfirm({ machine }: StepProps) {
   const copy = COPY.step7
@@ -48,26 +37,11 @@ export default function StepConfirm({ machine }: StepProps) {
     if (!sent) return
     const encoded = encodeState({
       screen: 7,
-      pass: machine.pass,
       answers: machine.answers,
       direction: 1,
     })
     window.history.replaceState({ screen: 7 }, '', `#/s/${encoded}`)
-  }, [sent, machine.pass, machine.answers])
-
-  const addToCalendar = () => {
-    const start = eventStart(answers)
-    if (!start) return
-    const ics = buildIcs({
-      title: copy.calendarTitle,
-      description: `${copy.calendarNote} ${activityLabel(answers)}.`,
-      location: PERSO.trajet.vers,
-      start,
-      durationMinutes: EVENT_MINUTES,
-      uidSeed: confirmationRef(answers),
-    })
-    downloadIcs('un-moment-hors-du-temps.ics', ics)
-  }
+  }, [sent, machine.answers])
 
   if (!sent) {
     const stage = copy.sending[index]
@@ -123,20 +97,10 @@ export default function StepConfirm({ machine }: StepProps) {
       </div>
 
       <div className={styles.actions}>
-        <PaperButton onClick={addToCalendar}>{copy.actions.calendar}</PaperButton>
         <PaperButton
-          variant="ghost"
           onClick={() => window.open(whatsappLink(answers), '_blank', 'noopener')}
         >
           {copy.actions.share}
-        </PaperButton>
-        <PaperButton
-          variant="quiet"
-          /* restart() pousse déjà '#/0' — et si le verrou anti-spam refuse,
-            * l'URL partageable reste intacte. */
-          onClick={machine.restart}
-        >
-          {machine.pass > 0 ? copy.actions.restartHint : copy.actions.restart}
         </PaperButton>
       </div>
     </>

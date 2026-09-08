@@ -11,7 +11,6 @@ export default function StepEnvelope({ machine }: StepProps) {
   const [opened, setOpened] = useState(false)
   const [cookiesAnswered, setCookiesAnswered] = useState(false)
   const { celebrate } = useCelebration()
-  const replay = machine.pass > 0
   const copy = COPY.step0
 
   const open = () => {
@@ -53,9 +52,9 @@ export default function StepEnvelope({ machine }: StepProps) {
         <div aria-live="polite">
           {opened && (
             <>
-              <h1 className={styles.title}>{replay ? copy.titleReplay : copy.title}</h1>
+              <h1 className={styles.title}>{copy.title}</h1>
               <p className={styles.subtitle} style={{ marginTop: 10 }}>
-                {replay ? copy.fromReplay : copy.from}
+                {copy.from}
               </p>
             </>
           )}
@@ -65,25 +64,14 @@ export default function StepEnvelope({ machine }: StepProps) {
       <div className={styles.footer}>
         {opened && <PaperButton onClick={machine.next}>{copy.cta}</PaperButton>}
 
-        <div className={styles.cookieBar}>
-          <p className={styles.cookieText}>
-            {cookiesAnswered ? copy.cookies.after : copy.cookies.text}
-          </p>
-          {!cookiesAnswered && (
-            <div className={styles.cookieRow}>
-              <PaperButton variant="ghost" onClick={acceptCookies}>
-                {copy.cookies.accept}
-              </PaperButton>
-              <PaperButton
-                variant="ghost"
-                className={styles.cookieSmall}
-                onClick={acceptCookies}
-              >
-                {copy.cookies.acceptSmall}
-              </PaperButton>
-            </div>
-          )}
-        </div>
+        {!cookiesAnswered && (
+          <div className={styles.cookieBar}>
+            <p className={styles.cookieText}>{copy.cookies.text}</p>
+            <PaperButton variant="ghost" className={styles.cookieBtn} onClick={acceptCookies}>
+              {copy.cookies.accept}
+            </PaperButton>
+          </div>
+        )}
       </div>
     </>
   )

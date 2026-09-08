@@ -427,17 +427,16 @@
 
 /* ── Faux bandeau cookies ── */
 .cookieBar {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  margin: 16px -6px -8px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: #fffaf1;
+  /* En flux, jamais en sticky : il poussait le contenu et recouvrait
+     l'enveloppe sur un écran de 667px de haut. */
+  margin-top: 6px;
+  padding: 8px 8px 8px 13px;
+  border-radius: 999px;
+  background: var(--paper);
   border: 1px solid var(--line);
-  box-shadow: 0 -10px 30px -22px rgba(46, 42, 38, 0.7);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   animation: cookieIn 520ms var(--spring) both;
 }
@@ -449,22 +448,19 @@
 
 .cookieText {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 11.5px;
+  line-height: 1.3;
   color: var(--ink-soft);
 }
 
-.cookieRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+.cookieBtn {
+  flex-shrink: 0;
+  font-size: 12px !important;
+  padding: 8px 14px !important;
+  min-height: 36px !important;
 }
 
-.cookieSmall {
-  font-size: 11px !important;
-  padding: 9px 13px !important;
-  min-height: 44px !important;
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   .envFlap,
@@ -585,57 +581,15 @@
   z-index: 1;
 }
 
-.tileArt {
-  font-size: clamp(24px, 7vw, 30px);
-  line-height: 1;
-}
 
-.tilePhoto {
-  position: relative;
-  width: clamp(38px, 12vw, 48px);
-  height: clamp(38px, 12vw, 48px);
-  border-radius: 10px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: var(--paper-deep);
-}
 
-.tileLabel {
-  font-size: 11.5px;
-  text-align: center;
-  line-height: 1.2;
-  /* Le parent est en `align-items: center` : sans stretch, la largeur est
-   * celle du contenu et le texte ne revient jamais à la ligne. */
-  align-self: stretch;
-}
 
-.tileCaption {
-  font-size: 10.5px;
-  font-style: italic;
-  text-align: center;
-  line-height: 1.2;
-  align-self: stretch;
-  color: var(--terracotta-deep);
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  /* Sans ceci, `overflow: hidden` rend l'élément compressible et le
-   * conteneur flex écrase la légende à une seule ligne tronquée. */
-  flex-shrink: 0;
-  transition: opacity 240ms var(--ease), max-height 240ms var(--ease);
-}
 
 .tileSelected {
   background: var(--gold-soft);
   transform: scale(0.94);
 }
 
-.tileSelected .tileCaption,
-.tile:hover .tileCaption {
-  opacity: 1;
-  max-height: 52px;
-}
 
 .tileTick {
   position: absolute;
@@ -689,7 +643,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tile,
-  .tileCaption,
   .checkBox {
     transition: none;
   }
@@ -1086,42 +1039,9 @@
 }
 
 /* ── Autocomplétion ── */
-.suggestBox {
-  position: relative;
-}
 
-.suggestList {
-  list-style: none;
-  margin: 6px 0 0;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fffaf1;
-  box-shadow: var(--shadow);
-  max-height: 168px;
-  overflow-y: auto;
-}
 
-.suggestItem {
-  appearance: none;
-  background: none;
-  border: none;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  width: 100%;
-  padding: 10px 11px;
-  border-radius: 10px;
-  cursor: pointer;
-  color: var(--ink);
-  min-height: 44px;
-}
 
-.suggestItem:hover,
-.suggestItem:focus-visible {
-  background: var(--gold-soft);
-  outline: none;
-}
 
 /* ── Le bandeau du chat ── */
 .catBanner {
@@ -1155,19 +1075,7 @@
   line-height: 1.45;
 }
 
-.catPunch {
-  display: block;
-  font-style: italic;
-  color: var(--terracotta-deep);
-  margin-top: 2px;
-}
 
-.dashLine {
-  flex: 1;
-  height: 0;
-  border-top: 2px dashed rgba(46, 42, 38, 0.25);
-  min-width: 16px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .optCard {
@@ -1232,21 +1140,7 @@
   gap: 8px;
 }
 
-.signature {
-  margin: 13px 0 0;
-  padding-top: 11px;
-  border-top: 1px dashed var(--line);
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-style: italic;
-  font-size: 12.5px;
-}
 
-.paw {
-  font-size: 20px;
-  transform: rotate(-16deg);
-}
 
 .checkButton {
   appearance: none;
@@ -1365,7 +1259,6 @@
   font-size: 15.5px;
   font-weight: 600;
   text-align: right;
-  text-transform: capitalize;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -1377,7 +1270,7 @@
   letter-spacing: 0.04em;
 }
 
-/* Le tampon rond du comité félin. */
+/* Le tampon rond du chat. */
 .stamp {
   position: absolute;
   right: 14px;
@@ -1425,5 +1318,172 @@
 @media (hover: none) {
   .keyboardOnly {
     display: none;
+  }
+}
+
+/* ── Étape 1 : le CAPTCHA impossible, puis sa version résignée ── */
+.captchaSimple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px 16px;
+}
+
+.bigVessel {
+  appearance: none;
+  border: 2px solid transparent;
+  border-radius: 22px;
+  background: #fffaf1;
+  color: var(--ink);
+  padding: 12px 30px;
+  cursor: pointer;
+  transition: background 200ms var(--ease), transform 300ms var(--spring);
+}
+
+.bigVessel:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.bigVesselOn {
+  background: var(--gold-soft);
+  border-color: rgba(201, 162, 39, 0.55);
+  transform: scale(0.97);
+}
+
+/* ── Étape 2 : le Oui grandit sans pousser la mise en page ── */
+.yesSlot {
+  /* Taille fixe : le bouton grossit en `scale` à l'intérieur, donc la carte
+     ne bouge pas d'un pixel quand il enfle. */
+  width: 132px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.btnYes {
+  transform-origin: center;
+  will-change: transform;
+  transition: transform 420ms var(--spring), background-color 600ms var(--ease),
+    color 600ms var(--ease);
+}
+
+@keyframes yesPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, 0); }
+  50%      { box-shadow: 0 0 0 12px rgba(201, 162, 39, 0.2); }
+}
+
+.yesPulse {
+  animation-name: yesPulse;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+/* ── Étape 3 : les créneaux en clair, avec leur attente ── */
+.dayToday {
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.45), 0 6px 14px -8px rgba(201, 162, 39, 0.8);
+}
+
+.slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.slot {
+  appearance: none;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px 14px;
+  min-height: 48px;
+  color: var(--ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.slot:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.slotToday {
+  background: var(--gold-soft);
+  border-color: rgba(201, 162, 39, 0.5);
+}
+
+.slotOn {
+  border-color: var(--terracotta-deep);
+  background: #fffaf1;
+  box-shadow: inset 0 0 0 1px var(--terracotta-deep);
+}
+
+.slotLabel {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.slotDate {
+  font-size: 14px;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+
+.slotCount {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--terracotta-deep);
+  font-weight: 700;
+}
+
+.slotLong {
+  font-size: 12px;
+  font-style: italic;
+  flex-basis: 100%;
+}
+
+/* ── Étape 5 : le menu déroulant ── */
+.select {
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 13px 15px;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btnYes,
+  .bigVessel,
+  .slot {
+    transition: none;
+  }
+  /* La couleur du Oui dérive toujours, mais il ne pulse pas. */
+  .yesPulse {
+    animation: none;
   }
 }

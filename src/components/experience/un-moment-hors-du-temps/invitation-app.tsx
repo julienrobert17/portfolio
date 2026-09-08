@@ -52,7 +52,7 @@ function InvitationAppInner() {
       <div className={styles.shell}>
         {screen !== 'refused' && <ProgressBar step={screen} onSecretTap={onSecretTap} />}
         <StepShell
-          stepKey={`${machine.pass}-${String(screen)}`}
+          stepKey={String(screen)}
           direction={machine.direction}
         >
           <Step machine={machine} />

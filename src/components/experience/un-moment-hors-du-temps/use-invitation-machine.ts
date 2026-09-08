@@ -29,8 +29,6 @@ export interface Answers {
 
 export interface MachineState {
   screen: Screen
-  /** 0 au premier passage, 1+ après « Recommencer » — pilote les variantes. */
-  pass: number
   answers: Answers
   /** Sens de la dernière navigation, pour orienter la transition. */
   direction: 1 | -1
@@ -51,7 +49,6 @@ const initialAnswers: Answers = {
 
 const initialState: MachineState = {
   screen: 0,
-  pass: 0,
   answers: initialAnswers,
   direction: 1,
 }
@@ -59,7 +56,6 @@ const initialState: MachineState = {
 type Action =
   | { type: 'goto'; screen: Screen; direction: 1 | -1 }
   | { type: 'answer'; patch: Partial<Answers> }
-  | { type: 'restart' }
   | { type: 'hydrate'; state: MachineState }
 
 function reducer(state: MachineState, action: Action): MachineState {
@@ -69,12 +65,6 @@ function reducer(state: MachineState, action: Action): MachineState {
       return { ...state, screen: action.screen, direction: action.direction }
     case 'answer':
       return { ...state, answers: { ...state.answers, ...action.patch } }
-    case 'restart':
-      return {
-        ...initialState,
-        pass: state.pass + 1,
-        answers: { ...initialAnswers },
-      }
     case 'hydrate':
       return action.state
   }
@@ -130,7 +120,6 @@ function readStored(): MachineState | null {
     if (!isScreen(candidate.screen)) return null
     return {
       screen: candidate.screen,
-      pass: typeof candidate.pass === 'number' ? candidate.pass : 0,
       answers: sanitizeAnswers(candidate.answers),
       direction: 1,
     }
@@ -144,7 +133,7 @@ function readStored(): MachineState | null {
  * base64url : pas de +, /, = qui casseraient une URL collée dans un DM.
  */
 export function encodeState(state: MachineState): string {
-  const payload = JSON.stringify({ p: state.pass, a: state.answers })
+  const payload = JSON.stringify({ a: state.answers })
   const bytes = new TextEncoder().encode(payload)
   let binary = ''
   bytes.forEach((byte) => {
@@ -160,11 +149,8 @@ function decodeState(encoded: string): Partial<MachineState> | null {
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
     const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes))
     if (typeof parsed !== 'object' || parsed === null) return null
-    const candidate = parsed as { p?: number; a?: Partial<Answers> }
-    return {
-      pass: typeof candidate.p === 'number' ? candidate.p : 0,
-      answers: sanitizeAnswers(candidate.a),
-    }
+    const candidate = parsed as { a?: Partial<Answers> }
+    return { answers: sanitizeAnswers(candidate.a) }
   } catch {
     return null
   }
@@ -189,7 +175,6 @@ function createInitialState(): MachineState {
     if (decoded) {
       return {
         screen: 7,
-        pass: decoded.pass ?? 0,
         answers: decoded.answers ?? initialAnswers,
         direction: 1,
       }
@@ -208,6 +193,11 @@ export function useInvitationMachine() {
 
   // L'URL doit refléter l'écran restauré, sans ajouter d'entrée d'historique.
   useEffect(() => {
+    // Sinon le navigateur restaure la position de scroll de l'écran précédent
+    // et une étape peut s'ouvrir déjà défilée en bas.
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
     const screen = firstScreenRef.current
     window.history.replaceState({ screen }, '', screenToHash(screen))
   }, [])
@@ -264,13 +254,7 @@ export function useInvitationMachine() {
     dispatch({ type: 'answer', patch })
   }, [])
 
-  const restart = useCallback(() => {
-    if (!claim()) return
-    dispatch({ type: 'restart' })
-    window.history.pushState({ screen: 0 }, '', screenToHash(0))
-  }, [claim])
-
-  return { ...state, go, next, back, setAnswers, restart }
+  return { ...state, go, next, back, setAnswers }
 }
 
 export type InvitationMachine = ReturnType<typeof useInvitationMachine>
