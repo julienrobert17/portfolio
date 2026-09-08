@@ -1,6 +1,7 @@
 'use client'
 
 import Prototaxite from './Prototaxite'
+import { sampleTerrain } from './terrain'
 
 // Repris de secondaryProtos de l'ancienne scène impérative.
 // L'original scalait un mesh unique (géométrie 0.6 / 1.1 / 8) : ici la
@@ -14,6 +15,10 @@ const SECONDARY = [
   { x: -18, z: 5, sx: 0.9, sy: 1.1 },
 ] as const
 
+// Même enfoncement que les arbres : couvre l'écart mesuré (0.2246) entre
+// sampleTerrain (bilinéaire) et la surface rendue (linéaire par triangle).
+const SINK = 0.3
+
 const BASE_HEIGHT = 8
 const BASE_RADIUS_TOP = 0.6
 const BASE_RADIUS_BOTTOM = 1.1
@@ -26,13 +31,17 @@ export default function PrototaxiteGroup({ opacity = 1 }: PrototaxiteGroupProps)
   return (
     <>
       {/* Prototaxite principal */}
-      <Prototaxite position={[0, 0, 0]} height={BASE_HEIGHT} opacity={opacity} />
+      <Prototaxite
+        position={[0, sampleTerrain(0, 0).height - SINK, 0]}
+        height={BASE_HEIGHT}
+        opacity={opacity}
+      />
 
       {/* 5 secondaires, chacun reposant au sol */}
       {SECONDARY.map(({ x, z, sx, sy }, i) => (
         <Prototaxite
           key={i}
-          position={[x, 0, z]}
+          position={[x, sampleTerrain(x, z).height - SINK, z]}
           height={BASE_HEIGHT * sy}
           radiusTop={BASE_RADIUS_TOP * sx}
           radiusBottom={BASE_RADIUS_BOTTOM * sx}

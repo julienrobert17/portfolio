@@ -53,6 +53,39 @@ async function main() {
     },
   })
 
+  await prisma.project.upsert({
+    where: { slug: 'prototaxites' },
+    update: {
+      liveUrl: '/experience/prototaxites',
+      tags: ['Three.js', 'React Three Fiber', 'WebGL'],
+    },
+    create: {
+      slug: 'prototaxites',
+      title: 'Prototaxites',
+      description: "Une expérience immersive autour du premier être vivant à dominer les terres émergées. 420 millions d'années avant nous.",
+      tags: ['Three.js', 'React Three Fiber', 'WebGL'],
+      liveUrl: '/experience/prototaxites',
+      featured: true,
+      publishedAt: new Date('2026-06-29'),
+    },
+  })
+
+  await prisma.project.upsert({
+    where: { slug: 'un-moment-hors-du-temps' },
+    update: {
+      liveUrl: '/experience/un-moment-hors-du-temps',
+    },
+    create: {
+      slug: 'un-moment-hors-du-temps',
+      title: 'Un moment hors du temps',
+      description: "Un formulaire d'invitation en huit écrans, où chaque champ cache un gag et une mécanique inattendue.",
+      tags: ['Next.js', 'TypeScript', 'Interaction', 'CSS'],
+      liveUrl: '/experience/un-moment-hors-du-temps',
+      featured: true,
+      publishedAt: new Date('2026-09-08'),
+    },
+  })
+
   await prisma.experience.upsert({
     where: { id: 'exp-current' },
     update: {},

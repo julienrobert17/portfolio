@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Instance, Instances } from '@react-three/drei'
 import * as THREE from 'three'
+import { sampleTerrain } from './terrain'
 
 interface ArthropodsProps {
   opacity?: number
@@ -13,6 +14,8 @@ interface ArthropodsProps {
 
 const BOUNDARY = 60
 const LEGS_PER_BODY = 8
+// Le corps fait 0.08 de haut : on le pose légèrement au-dessus du sol
+const BODY_CLEARANCE = 0.04
 
 interface ArthState {
   x: number
@@ -97,9 +100,11 @@ export default function Arthropods({ opacity = 0, count = 12, seed = 7 }: Arthro
       }
 
       const yaw = -s.dir + Math.PI * 0.5
+      // Resample à chaque pas : sans ça les arthropodes traversent le relief
+      const ground = sampleTerrain(s.x, s.z).height
       const body = bodies.current[i]
       if (body) {
-        body.position.set(s.x, 0.04, s.z)
+        body.position.set(s.x, ground + BODY_CLEARANCE, s.z)
         body.rotation.set(0, yaw, 0)
       }
 
@@ -110,7 +115,9 @@ export default function Arthropods({ opacity = 0, count = 12, seed = 7 }: Arthro
         const leg = legs.current[i * LEGS_PER_BODY + j]
         if (!leg) continue
         const o = LEG_OFFSETS[j]
-        leg.position.set(s.x + o.x * cos + o.z * sin, 0.04, s.z - o.x * sin + o.z * cos)
+        const lx = s.x + o.x * cos + o.z * sin
+        const lz = s.z - o.x * sin + o.z * cos
+        leg.position.set(lx, sampleTerrain(lx, lz).height + BODY_CLEARANCE, lz)
         leg.rotation.set(0, yaw, o.rotZ)
       }
     }
