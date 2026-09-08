@@ -1,111 +1,168 @@
 'use client'
 
-import { useMemo } from 'react'
-import * as THREE from 'three'
+import type * as THREE from 'three'
 
-const vertexShader = /* glsl */ `
-  uniform float uTime;
-  varying vec2 vUv;
-  varying float vHeight;
-  varying vec3 vNormal;
+import { MAX_HEIGHT, TERRAIN_RES, TERRAIN_SIZE, buildHeightmap } from './terrain'
 
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+// Le sol n'utilise plus de ShaderMaterial maison : celui-ci recalculait son
+// propre éclairage avec une lightDir en dur, donc il ignorait les lumières de
+// la scène, le fog et les ombres. On part maintenant d'un MeshStandardMaterial
+// et on n'injecte QUE le displacement + la couleur, pour que tout le pipeline
+// PBR de three (lumières, ombres, brouillard, tone mapping) reste en place.
+
+const GROUND_SEGMENTS = 384
+
+/**
+ * Un `#include` introuvable ferait un `String.replace` no-op : le patch
+ * échouerait en silence et le sol redeviendrait un plan lisse sans la moindre
+ * erreur. On rend donc l'échec bruyant.
+ */
+function patchChunk(source: string, token: string, replacement: string): string {
+  if (!source.includes(token)) {
+    throw new Error(`[DevonianGround] chunk absent du shader three : ${token}`)
   }
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(hash(i + vec2(0,0)), hash(i + vec2(1,0)), u.x),
-      mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), u.x),
-      u.y
-    );
-  }
-  float fbm(vec2 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 5; i++) {
-      v += a * noise(p);
-      p  = p * 2.1 + vec2(1.7, 9.2);
-      a *= 0.5;
-    }
-    return v;
-  }
+  return source.replace(token, replacement)
+}
 
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
+// ─── GLSL ────────────────────────────────────────────────────────────────────
 
-    // La géométrie n'est plus pré-tournée : le plan vit dans XY et le
-    // displacement se fait sur Z, c'est le mesh qui porte le rotateX.
-    float h = fbm(pos.xy * 0.04) * 4.0
-            + fbm(pos.xy * 0.12) * 1.5
-            + fbm(pos.xy * 0.35) * 0.5;
+const VERTEX_HEAD = /* glsl */ `
+uniform sampler2D uHeightmap;
+uniform float uMaxHeight;
+uniform float uSize;
+uniform float uRes;
 
-    float distFromCenter = length(pos.xy);
-    float flatFactor = smoothstep(8.0, 18.0, distFromCenter);
-    pos.z = h * flatFactor;
+varying float vGroundHeight;
+varying vec2 vGroundXY;
+varying vec3 vGroundTangent;
+varying vec3 vGroundBitangent;
 
-    vHeight = pos.z;
-
-    float eps = 0.5;
-    float hL = fbm((pos.xy - vec2(eps, 0.0)) * 0.04) * 4.0;
-    float hR = fbm((pos.xy + vec2(eps, 0.0)) * 0.04) * 4.0;
-    float hD = fbm((pos.xy - vec2(0.0, eps)) * 0.04) * 4.0;
-    float hU = fbm((pos.xy + vec2(0.0, eps)) * 0.04) * 4.0;
-
-    // Normale calculée en espace objet (hauteur sur Z), puis ramenée en
-    // espace monde : le fragment shader éclaire avec une lightDir monde.
-    vec3 objNormal = normalize(vec3(hL - hR, hD - hU, 2.0 * eps));
-    vNormal = normalize(mat3(modelMatrix) * objNormal);
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
+// Le texel i de la heightmap échantillonne la position -uSize/2 + i/(uRes-1) * uSize.
+// On vise donc le CENTRE du texel, sinon le relief GPU serait décalé d'un demi
+// texel par rapport à sampleTerrain() côté JS (placement des objets).
+// Le mesh porte rotateX(-PI/2) : objet (x,y,z) -> monde (x, z, -y). L'axe Y du
+// plan pointe donc vers le -Z monde, alors que la heightmap est indexée sur le
+// +Z monde. Sans ce miroir le relief GPU est inversé en Z par rapport à
+// sampleTerrain() (écart mesuré jusqu'à 2.59 unité).
+vec2 groundUv(vec2 xy) {
+  vec2 t = vec2(xy.x, -xy.y) / uSize + 0.5;
+  return (t * (uRes - 1.0) + 0.5) / uRes;
+}
 `
 
-const fragmentShader = /* glsl */ `
-  varying vec2 vUv;
-  varying float vHeight;
-  varying vec3 vNormal;
+// La normale stockée en RGB est déjà exprimée en espace OBJET du plan (hauteur
+// portée par Z) : three la passe en espace vue via normalMatrix dans
+// <defaultnormal_vertex>, il ne faut surtout pas refaire la transformation ici.
+const BEGINNORMAL = /* glsl */ `
+#include <beginnormal_vertex>
 
-  void main() {
-    vec3 lowColor  = vec3(0.10, 0.12, 0.06);
-    vec3 midColor  = vec3(0.28, 0.15, 0.07);
-    vec3 highColor = vec3(0.42, 0.26, 0.10);
+  // RGB stocke (-dh/dx_monde, -dh/dz_monde, 1). L'axe Y du plan étant l'opposé
+  // du Z monde, la composante G doit être inversée pour l'espace objet.
+  vec3 hmN = texture2D(uHeightmap, groundUv(position.xy)).xyz;
+  objectNormal = normalize(vec3(hmN.x, -hmN.y, hmN.z));
 
-    float t = clamp(vHeight / 4.0, 0.0, 1.0);
-    vec3 baseColor = mix(lowColor, mix(midColor, highColor, t * 1.5), t);
-
-    // Biofilm dans les creux
-    float biofilm = smoothstep(0.0, 0.8, 1.0 - t) * 0.4;
-    baseColor = mix(baseColor, vec3(0.08, 0.14, 0.06), biofilm);
-
-    vec3 lightDir = normalize(vec3(0.6, 1.0, 0.4));
-    float diff = max(dot(normalize(vNormal), lightDir), 0.0);
-    float ambient = 0.35;
-    vec3 lit = baseColor * (ambient + diff * 0.65);
-
-    float micro = fract(vUv.x * 80.0) * fract(vUv.y * 80.0);
-    lit += vec3(micro * 0.02);
-
-    gl_FragColor = vec4(lit, 1.0);
-  }
+  // Base tangente du plan transportée en espace vue, pour perturber la normale
+  // côté fragment (normalMatrix n'existe que dans le prefix vertex de three).
+  vGroundTangent = normalize(normalMatrix * vec3(1.0, 0.0, 0.0));
+  vGroundBitangent = normalize(normalMatrix * vec3(0.0, 1.0, 0.0));
 `
+
+// Le plan vit dans XY (le mesh porte le rotateX), la hauteur va donc sur Z.
+const BEGIN_VERTEX = /* glsl */ `
+#include <begin_vertex>
+
+  float groundHeight = texture2D(uHeightmap, groundUv(position.xy)).a * uMaxHeight;
+  transformed.z += groundHeight;
+
+  vGroundHeight = groundHeight;
+  vGroundXY = position.xy;
+`
+
+const FRAGMENT_HEAD = /* glsl */ `
+varying float vGroundHeight;
+varying vec2 vGroundXY;
+varying vec3 vGroundTangent;
+varying vec3 vGroundBitangent;
+
+float groundHash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float groundNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(groundHash(i + vec2(0.0, 0.0)), groundHash(i + vec2(1.0, 0.0)), u.x),
+    mix(groundHash(i + vec2(0.0, 1.0)), groundHash(i + vec2(1.0, 1.0)), u.x),
+    u.y
+  );
+}
+`
+
+// La couleur est appliquée sur diffuseColor et non sur gl_FragColor : elle
+// traverse ensuite <lights_physical_fragment> / <lights_fragment_*>, donc le
+// sol s'assombrit bien quand on baisse l'intensité des lumières.
+const COLOR_FRAGMENT = /* glsl */ `
+#include <color_fragment>
+
+  vec3 lowColor  = vec3(0.10, 0.12, 0.06);
+  vec3 midColor  = vec3(0.28, 0.15, 0.07);
+  vec3 highColor = vec3(0.42, 0.26, 0.10);
+
+  float groundT = clamp(vGroundHeight / 4.0, 0.0, 1.0);
+  vec3 groundColor = mix(lowColor, mix(midColor, highColor, groundT * 1.5), groundT);
+
+  // Biofilm dans les creux
+  float biofilm = smoothstep(0.0, 0.8, 1.0 - groundT) * 0.4;
+  groundColor = mix(groundColor, vec3(0.08, 0.14, 0.06), biofilm);
+
+  diffuseColor.rgb *= groundColor;
+`
+
+// Détail haute fréquence : gradient d'un bruit à ~0.5 unité appliqué dans le
+// plan tangent. Coût géométrique nul, mais le sol cesse d'être lisse de près.
+const NORMAL_FRAGMENT = /* glsl */ `
+#include <normal_fragment_maps>
+
+  vec2 grainP = vGroundXY / 0.5;
+  float grainX = groundNoise(grainP + vec2(0.5, 0.0)) - groundNoise(grainP - vec2(0.5, 0.0));
+  float grainY = groundNoise(grainP + vec2(0.0, 0.5)) - groundNoise(grainP - vec2(0.0, 0.5));
+
+  normal = normalize(
+    normal - 0.15 * (grainX * normalize(vGroundTangent) + grainY * normalize(vGroundBitangent))
+  );
+`
+
+// ─── Patch ───────────────────────────────────────────────────────────────────
+
+function onBeforeCompile(shader: THREE.WebGLProgramParametersWithUniforms): void {
+  shader.uniforms.uHeightmap = { value: buildHeightmap() }
+  shader.uniforms.uMaxHeight = { value: MAX_HEIGHT }
+  shader.uniforms.uSize = { value: TERRAIN_SIZE }
+  shader.uniforms.uRes = { value: TERRAIN_RES }
+
+  let vert = VERTEX_HEAD + shader.vertexShader
+  vert = patchChunk(vert, '#include <beginnormal_vertex>', BEGINNORMAL)
+  vert = patchChunk(vert, '#include <begin_vertex>', BEGIN_VERTEX)
+  shader.vertexShader = vert
+
+  let frag = FRAGMENT_HEAD + shader.fragmentShader
+  frag = patchChunk(frag, '#include <color_fragment>', COLOR_FRAGMENT)
+  frag = patchChunk(frag, '#include <normal_fragment_maps>', NORMAL_FRAGMENT)
+  shader.fragmentShader = frag
+}
+
+// ─── Composant ───────────────────────────────────────────────────────────────
 
 export default function DevonianGround() {
-  const uniforms = useMemo<Record<string, THREE.IUniform<number>>>(
-    () => ({ uTime: { value: 0 } }),
-    [],
-  )
-
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[800, 800, 200, 200]} />
-      <shaderMaterial
-        uniforms={uniforms}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[TERRAIN_SIZE, TERRAIN_SIZE, GROUND_SEGMENTS, GROUND_SEGMENTS]} />
+      <meshStandardMaterial
+        roughness={0.95}
+        metalness={0}
+        onBeforeCompile={onBeforeCompile}
       />
     </mesh>
   )

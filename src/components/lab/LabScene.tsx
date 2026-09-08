@@ -1,13 +1,15 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { Bloom, EffectComposer, SSAO, Vignette } from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
 import { Stats } from '@react-three/drei'
 import type { Beat } from '@/components/experience/prototaxites/constants/narrative'
 import Arthropods from '@/components/experience/prototaxites/scene/Arthropods'
 import CameraRig from '@/components/experience/prototaxites/scene/CameraRig'
 import DevonianAtmosphere from '@/components/experience/prototaxites/scene/DevonianAtmosphere'
-import DevonianForest from '@/components/experience/prototaxites/scene/DevonianForest'
+import DevonianForest, { getForestPositions } from '@/components/experience/prototaxites/scene/DevonianForest'
 import DevonianGround from '@/components/experience/prototaxites/scene/DevonianGround'
 import DevonianWater from '@/components/experience/prototaxites/scene/DevonianWater'
 import InternalStructure from '@/components/experience/prototaxites/scene/InternalStructure'
@@ -39,11 +41,19 @@ export default function LabScene({ phase = 'presence', progress = 0 }: LabSceneP
 
   const vis = usePhaseVisibility({ phase: activePhase, progress: activeProgress })
 
+  const smokeOrigins = useMemo(() => {
+    const all = getForestPositions({ count: 24 })
+    return [0, 6, 12, 18].map((i) => all[i % all.length])
+  }, [])
+
   return (
     <>
       <Canvas
         style={{ width: '100%', height: '100%' }}
         camera={{ position: [10, 6, 14], fov: 55, near: 0.1, far: 800 }}
+        dpr={[1, 2]}
+        gl={{ antialias: true }}
+        shadows="soft"
       >
         <Suspense fallback={null}>
           <DevonianAtmosphere />
@@ -51,16 +61,33 @@ export default function LabScene({ phase = 'presence', progress = 0 }: LabSceneP
           <DevonianGround />
           <DevonianWater />
 
-          <DevonianForest count={24} opacity={vis.forest} />
+          <DevonianForest count={24} forestSpread={vis.forestSpread} />
 
           <PrototaxiteGroup opacity={vis.prototaxites} />
           <InternalStructure opacity={vis.internal} />
 
           <Arthropods opacity={vis.arthropods} />
-          <Smoke opacity={vis.smoke} />
+          <Smoke opacity={vis.smoke} origins={smokeOrigins} />
 
           <CameraRig phase={activePhase} progress={activeProgress} />
           <Stats />
+
+          <EffectComposer enableNormalPass>
+            <SSAO
+              worldDistanceThreshold={80}
+              worldDistanceFalloff={20}
+              worldProximityThreshold={4}
+              worldProximityFalloff={2}
+              samples={31}
+              rings={7}
+              radius={2.2}
+              intensity={9}
+              luminanceInfluence={0.6}
+              depthAwareUpsampling
+            />
+            <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.2} intensity={0.5} mipmapBlur />
+            <Vignette offset={0.32} darkness={0.42} blendFunction={BlendFunction.NORMAL} />
+          </EffectComposer>
         </Suspense>
       </Canvas>
 

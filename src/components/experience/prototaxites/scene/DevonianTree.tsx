@@ -6,16 +6,21 @@ import * as THREE from 'three'
 
 interface DevonianTreeProps {
   position?: [number, number, number]
-  targetHeight?: number // hauteur voulue en unités de scène
+  targetHeight?: number // hauteur voulue en unités de scène, à pousse complète
   rotationY?: number
-  opacity?: number
+  /** Avancement de la pousse, 0 → 1. Appliqué en scale, pas en opacité. */
+  growth: number
 }
+
+// En dessous de ce seuil l'arbre n'est pas encore sorti de terre : on ne rend
+// rien du tout, plutôt qu'un modèle microscopique qui coûterait ses draw calls.
+const MIN_VISIBLE_GROWTH = 0.01
 
 export default function DevonianTree({
   position = [0, 0, 0],
   targetHeight = 8,
   rotationY = 0,
-  opacity = 1,
+  growth,
 }: DevonianTreeProps) {
   const { scene } = useGLTF('/prehistoric_tree_01.glb')
   const cloneRef = useRef<THREE.Group>(null)
@@ -38,27 +43,31 @@ export default function DevonianTree({
     return { scale: s, offset }
   }, [scene, targetHeight])
 
+  const visible = growth >= MIN_VISIBLE_GROWTH
+
   useEffect(() => {
     const root = cloneRef.current
     if (!root) return
     root.traverse((o) => {
-      if (!(o instanceof THREE.Mesh)) return
-      const mats = Array.isArray(o.material) ? o.material : [o.material]
-      for (const m of mats) {
-        // `transparent` change le programme compilé : ne le marquer qu'au
-        // moment où il bascule réellement.
-        if (!m.transparent) {
-          m.transparent = true
-          m.needsUpdate = true
-        }
-        m.opacity = opacity
-      }
+      if (o instanceof THREE.Mesh) o.castShadow = true
     })
-  }, [opacity])
+  }, [scene, visible])
+
+  if (!visible) return null
+
+  // `growth` se compose avec le scale validé : le recentrage X/Z et la pose au
+  // sol sont exprimés dans la même unité, ils suivent donc le même facteur.
+  // Nouveau tableau plutôt qu'une mutation de `offset` (react-hooks/immutability).
+  const grownScale = scale * growth
+  const grownOffset: [number, number, number] = [
+    offset[0] * growth,
+    offset[1] * growth,
+    offset[2] * growth,
+  ]
 
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <Clone ref={cloneRef} object={scene} scale={scale} position={offset} />
+      <Clone ref={cloneRef} object={scene} scale={grownScale} position={grownOffset} />
     </group>
   )
 }

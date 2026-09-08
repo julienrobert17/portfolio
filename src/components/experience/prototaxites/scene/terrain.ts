@@ -189,13 +189,13 @@ export function sampleTerrain(x: number, z: number): { height: number; normal: T
 
   const height = bilerp(3) * MAX_HEIGHT
 
-  // La normale stockée est en espace objet du plan (hauteur sur Z).
-  // On la retourne en espace monde (Y vers le haut), cohérent avec le
-  // rotateX(-PI/2) porté par le mesh : (ox, oy, oz) → (ox, oz, -oy).
+  // Les canaux stockent (-dh/dx, -dh/dz, 1) exprimés sur les axes MONDE
+  // (i indexe x, j indexe z). La normale monde est donc (r, b, g) : la
+  // composante verticale est le canal B.
   const ox = bilerp(0)
   const oy = bilerp(1)
   const oz = bilerp(2)
-  const normal = new THREE.Vector3(ox, oz, -oy).normalize()
+  const normal = new THREE.Vector3(ox, oz, oy).normalize()
 
   return { height, normal }
 }

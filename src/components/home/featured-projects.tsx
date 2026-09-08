@@ -94,6 +94,25 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   420 Ma
                 </span>
               </div>
+            ) : project.slug === 'un-moment-hors-du-temps' ? (
+              /*
+               * Photo de Mimi. La source est un portrait 2160x3840 où le chat
+               * est en diagonale : tête à ~78% en largeur / ~41% en hauteur,
+               * pieds et parquet en bas. Un `cover` centré cadrerait la queue
+               * et le carrelage. On zoome donc à 160% et on colle à droite pour
+               * garder la tête au centre de la carte, au-dessus du dégradé, et
+               * sortir les pieds du cadre.
+               */
+              <div
+                className="project-card-bg"
+                style={{
+                  backgroundColor: '#2e2a26',
+                  backgroundImage: 'url(/experience/mimi/chat-carte.jpg)',
+                  backgroundSize: '160% auto',
+                  backgroundPosition: '100% 39%',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              />
             ) : (
               <div
                 className="project-card-bg"

@@ -54,9 +54,12 @@ export function usePhaseVisibility({ phase, progress }: PhaseVisibilityInput): P
   // croissance par arbre plutôt qu'une opacité globale.
   const forestSpread = forest
 
-  // Prototaxites : présents jusqu'à l'éclipse, s'effacent sur sa 2ᵉ moitié
+  // Prototaxites : présents jusqu'à l'éclipse, s'effacent sur sa 2ᵉ moitié.
+  // Pendant 'interior' le tronc devient translucide pour que la structure
+  // interne se lise comme un intérieur et non en rayons X par-dessus.
   let prototaxites: number
-  if (step < ORDER.eclipse) prototaxites = 1
+  if (phase === 'interior') prototaxites = 0.3
+  else if (step < ORDER.eclipse) prototaxites = 1
   else if (phase === 'eclipse')
     prototaxites = p > 0.5 ? 1 - easeInOutCubic((p - 0.5) / 0.5) : 1
   else prototaxites = 0
