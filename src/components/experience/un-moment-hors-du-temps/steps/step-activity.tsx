@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PaperButton from '../ui/paper-button'
 import CatPhoto from '../ui/cat-photo'
 import styles from '../invitation.module.css'
@@ -14,7 +14,6 @@ export default function StepActivity({ machine }: StepProps) {
   const copy = COPY.step5
   const { answers, setAnswers } = machine
   const [trapMessage, setTrapMessage] = useState('')
-  const [query, setQuery] = useState(answers.activityOther)
   const trapTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -40,17 +39,9 @@ export default function StepActivity({ machine }: StepProps) {
     }, TRAP_MS)
   }
 
-  const suggestions = useMemo(() => {
-    const trimmed = query.trim().toLowerCase()
-    if (trimmed.length === 0) return []
-    const matches = copy.suggestions.filter((item) => item.toLowerCase().includes(trimmed))
-    // Dès la première lettre, on propose quelque chose, même hors sujet.
-    return (matches.length > 0 ? matches : copy.suggestions).slice(0, 4)
-  }, [query, copy.suggestions])
-
   const realActivity =
     answers.activity !== null && answers.activity !== copy.trap.id ? answers.activity : null
-  const hasOther = query.trim().length > 0
+  const hasOther = answers.activityOther.length > 0
 
   return (
     <>
@@ -101,54 +92,27 @@ export default function StepActivity({ machine }: StepProps) {
         <label className={styles.label} htmlFor="hdt-other">
           {copy.otherLabel}
         </label>
-        <div className={styles.suggestBox}>
-          <input
-            id="hdt-other"
-            className={styles.input}
-            value={query}
-            placeholder={copy.otherPlaceholder}
-            autoComplete="off"
-            role="combobox"
-            aria-expanded={suggestions.length > 0}
-            aria-controls="hdt-suggest"
-            onChange={(event) => {
-              setQuery(event.target.value)
-              setAnswers({ activityOther: event.target.value })
-            }}
-          />
-          {suggestions.length > 0 && (
-            <ul className={styles.suggestList} id="hdt-suggest" role="listbox">
-              {suggestions.map((suggestion) => (
-                <li key={suggestion} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={query === suggestion}
-                    className={styles.suggestItem}
-                    onClick={() => {
-                      setQuery(suggestion)
-                      setAnswers({ activityOther: suggestion })
-                    }}
-                  >
-                    {suggestion}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <select
+          id="hdt-other"
+          className={styles.select}
+          value={answers.activityOther}
+          onChange={(event) => setAnswers({ activityOther: event.target.value })}
+        >
+          <option value="">{copy.otherPlaceholder}</option>
+          {copy.otherOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
       </div>
 
       {realActivity && (
         <div className={styles.catBanner}>
           <span className={styles.catAvatar}>
-            <CatPhoto alt={`${PERSO.chat.nom}, resté à ${PERSO.trajet.depuis}`} sizes="64px" />
+            <CatPhoto alt={PERSO.chat.nom} sizes="64px" />
           </span>
-          <span className={styles.dashLine} aria-hidden="true" />
-          <p className={styles.catText}>
-            {copy.catBanner.text.replace('{nom}', PERSO.chat.nom)}
-            <em className={styles.catPunch}>{copy.catBanner.punch}</em>
-          </p>
+          <p className={styles.catText}>{copy.catBanner.text}</p>
         </div>
       )}
 

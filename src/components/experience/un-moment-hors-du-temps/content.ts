@@ -21,16 +21,12 @@ export const PERSO = {
      *  d'origine y réduirait le chat à quelques pixels. */
     photo: '/experience/mimi/chat-tete.jpg',
   },
-  trajet: {
-    depuis: 'Pigalle',
-    vers: 'Levallois',
-    distance: '5,8 km',
-  },
   /** Numéro WhatsApp au format international, sans + ni espaces. */
   whatsapp: '33623252069',
   /**
-   * Les créneaux réellement disponibles, en nombre de jours à partir
-   * d'aujourd'hui. Relatif exprès : le lien ne périme jamais.
+   * Les AUTRES créneaux disponibles, en nombre de jours à partir d'aujourd'hui.
+   * Le meilleur créneau — aujourd'hui — est ajouté au runtime : il n'est pas
+   * listé ici. Relatif exprès : le lien ne périme jamais.
    */
   creneauxOffsets: [4, 9, 16, 25],
   /** Heure présélectionnée, en minutes depuis minuit (19h30). */
@@ -61,19 +57,14 @@ export const COPY = {
 
   step0: {
     hint: 'Touche l’enveloppe.',
-    title: `${PERSO.elle}, tu as reçu 1 (une) demande.`,
-    titleReplay: `${PERSO.elle}, tu as reçu 1 (une) demande. Encore.`,
-    from: `Expéditeur : ${PERSO.sonSurnomPourLui}. Objet : un moment hors du temps.`,
-    fromReplay: 'Expéditeur : le même. Étonnamment insistant.',
+    title: `${PERSO.elle}, tu es l'heureuse élue, félicitations`,
+    from: `Le papa d'Oscar`,
     /** Ce qui est écrit sur la carte qui sort de l'enveloppe. */
-    letter: 'pour toi.',
+    letter: 'mon canard en sucre',
     cta: 'Commencer',
     cookies: {
-      text: 'Ce site utilise des cookies. Et des fleurs. Et beaucoup de stress.',
+      text: 'Ce site n’utilise pas de cookies, mais c’est pour faire genre.',
       accept: 'Tout accepter',
-      acceptSmall: 'Tout accepter (en plus petit)',
-      /** Affiché une seconde après le choix, quel qu'il soit. */
-      after: 'Merci. Les cookies étaient une métaphore, il n’y en a aucun.',
     },
   },
 
@@ -82,9 +73,16 @@ export const COPY = {
     subtitle: 'Formalité. On y est obligés.',
     nameLabel: 'Nom',
     nameCorrection: 'Non non, c’est bien toi.',
-    captchaPrompt: 'Sélectionnez toutes les images contenant une bonne raison de dire oui',
-    captchaError: 'Erreur : réponse statistiquement improbable.',
-    captchaSuccess: 'Toutes les réponses étaient bonnes. C’était ça, le piège.',
+    captchaPrompt: 'Sélectionnez tous les seaux.',
+    /** Les deux premiers essais échouent toujours : rien ne permet de trancher. */
+    captchaTaunts: [
+      'Raté. Un seau, Mathilde. Pas un vase.',
+      'Toujours pas. On te jure que c’était faisable.',
+    ],
+    /** 3e affichage : on abandonne le gag, tout le monde passe. */
+    captchaSimplePrompt: 'Cliquez sur le seau.',
+    captchaSimpleNote: 'On a simplifié.',
+    captchaSuccess: 'Voilà. C’était pas si dur.',
     robotLabel: 'Je ne suis pas un robot',
     robotAuto: '(on t’a fait confiance)',
     cta: 'Vérifier',
@@ -94,22 +92,26 @@ export const COPY = {
    * Les 9 vignettes du CAPTCHA. `art` est un emoji, sauf pour la tuile
    * `photo` qui utilise PERSO.chat.photo.
    */
-  captchaTiles: [
-    { art: '💍', label: 'un mariage', caption: 'la scène du crime' },
-    { art: 'photo', label: 'ton chat', caption: 'lui, il a déjà dit oui' },
-    { art: '🍷', label: 'un verre', caption: 'argument classique mais solide' },
-    { art: '🥐', label: 'un truc à manger', caption: 'toujours valable' },
-    { art: '🌙', label: 'un soir', caption: 'il en reste beaucoup' },
-    { art: '🎧', label: 'une chanson', caption: 'celle que tu vas mettre' },
-    { art: '🚕', label: 'un trajet', caption: `${PERSO.trajet.depuis} → ${PERSO.trajet.vers}` },
-    { art: '🧀', label: 'du fromage', caption: 'ne demande pas' },
-    { art: '🙂', label: 'moi', caption: 'l’argument le plus faible du lot' },
+  /**
+   * Les 9 contenants du CAPTCHA. Ils se ressemblent tous, c'est le but.
+   * Aucun libellé n'est exposé : les aria-label restent neutres
+   * (« contenant 1 »…) pour qu'un lecteur d'écran ne vende pas la mèche.
+   */
+  captchaVessels: [
+    'seau',
+    'bassine',
+    'seille',
+    'arrosoir',
+    'pot',
+    'saladier',
+    'marmite',
+    'bac',
+    'vase',
   ],
 
   step2: {
     title: 'Bon.',
-    question: 'Est-ce qu’on va boire un verre ?',
-    questionReplay: 'Est-ce qu’on y retourne ?',
+    question: 'Est-ce que tu as envie de me voir ?',
     yes: 'Oui',
     /** Un label par esquive. Le dernier reste si ça dépasse. */
     noLabels: [
@@ -147,7 +149,19 @@ export const COPY = {
     legendBusy: 'indisponible',
     asap: 'Le plus tôt possible',
     asapReaction: 'voilà quelqu’un qui sait ce qu’elle veut',
-    farReaction: 'c’est long.',
+    /** Sous chaque décompte des autres dates. */
+    countdownSuffix: 'c’est long',
+    /** Le meilleur créneau, c'est aujourd'hui. Passé 22h, on adapte. */
+    todayLabel: 'Aujourd’hui',
+    todayLateLabel: 'ce soir, là, maintenant',
+    /** Escalade quand elle choisit une autre date. {n} = nombre de jours. */
+    confirmations: [
+      'Tu es sûre ? C’est dans {n} jours.',
+      'Vraiment sûre ? J’ai recompté : {n} jours.',
+      'Dernière chance.',
+    ],
+    confirmKeep: 'Je maintiens',
+    confirmToday: 'Va pour aujourd’hui',
     cta: 'C’est noté',
     /** Piochées au hasard, mais de façon stable pour une date donnée. */
     reasons: [
@@ -173,12 +187,10 @@ export const COPY = {
     /** Commentaires par tranche, du plus tôt au plus tard. */
     zones: [
       { until: 5 * 60, label: 'ambitieux' },
-      { until: 9 * 60, label: 'on n’est pas des animaux' },
-      { until: 14 * 60, label: 'très raisonnable' },
-      { until: 18 * 60, label: 'entre deux' },
+      { until: 9 * 60, label: 'houla' },
+      { until: 18 * 60, label: 'entre deux mémos' },
       { until: 21 * 60, label: 'zone recommandée' },
-      { until: 23 * 60 + 30, label: 'intriguant' },
-      { until: 24 * 60, label: 'je note.' },
+      { until: 24 * 60, label: 'intriguant' },
     ],
   },
 
@@ -186,7 +198,14 @@ export const COPY = {
     title: 'On fait quoi ?',
     subtitle: 'Une seule réponse. Ou deux, je ne surveille pas.',
     otherLabel: 'Autre',
-    otherPlaceholder: 'propose mieux',
+    otherPlaceholder: 'Choisis…',
+    otherOptions: [
+      'aller voir la mer revenir après',
+      'regarder les 15 premières minutes d’un film et dormir',
+      'faire les mots croisés',
+      'aller au Mykonos sauna à Pigalle',
+      'tout ce qui touche de près ou de loin aux papouilles',
+    ],
     cta: 'Adjugé',
     options: [
       { id: 'restau', art: '🍝', label: 'Restau' },
@@ -201,23 +220,8 @@ export const COPY = {
       /** Affiché ~1s après la sélection, juste avant qu'elle se décoche. */
       message: 'option temporairement indisponible pour cause de maintenance émotionnelle',
     },
-    /** Suggestions absurdes, filtrées de façon très permissive. */
-    suggestions: [
-      'braquer une fromagerie',
-      'aller voir la mer et revenir tout de suite',
-      'compter les pigeons de Pigalle',
-      'apprendre le morse pour rien',
-      'refaire le mariage mais en mieux',
-      'visiter Levallois comme des touristes',
-      'monter un groupe et le dissoudre le soir même',
-      'manger des huîtres sans avoir d’avis dessus',
-      'aller au musée et ne regarder qu’un tableau',
-      'traverser un pont, puis un autre pont',
-    ],
     catBanner: {
-      /** {nom} est remplacé par PERSO.chat.nom. */
-      text: `{nom} reste à ${PERSO.trajet.depuis}. Toi tu viens à ${PERSO.trajet.vers}. ${PERSO.trajet.distance}.`,
-      punch: 'Il a dit qu’il gérait. Il ne gérait pas.',
+      text: 'Mimi approuve ce choix d’activité, et confirme que MA-HA ça marche pas sur les chats',
     },
   },
 
@@ -231,15 +235,13 @@ export const COPY = {
     termsTitle: 'Conditions générales du moment hors du temps',
     termsCheckbox: 'J’ai lu et j’accepte les conditions ci-dessus',
     termsAuto: '(cochée automatiquement, tu as assez scrollé)',
-    signedBy: `Co-signé par {nom}, en qualité de témoin.`,
     cta: 'J’accepte tout',
     clauses: [
-      `L’invitant s’engage à ne pas parler de son travail plus de 4 minutes consécutives.`,
-      `L’invitée conserve à tout moment le droit de dire « en fait je suis fatiguée », sans préavis ni justification.`,
+      `L’invitant s’engage à laisser son portable pro à la maison.`,
       `Le terme « un verre » est fourni à titre indicatif et pourra dériver vers un dîner sans avertissement préalable.`,
-      `Toute mention du mariage où les parties se sont rencontrées est autorisée, dans la limite de trois anecdotes.`,
-      `L’invitant s’interdit de vérifier son téléphone, sauf pour montrer une photo de {nom}.`,
-      `En cas de désaccord sur le choix du dessert, les parties s’engagent à en commander deux.`,
+      `Tous les sujets sont acceptés et doivent être abordés.`,
+      `En cas d’hésitation sur le choix du restaurant, les parties s’engagent à en proposer au moins 1 chacun.`,
+      `Si plusieurs desserts ont l’air bons, les parties s’engagent à partager les deux.`,
       `Le présent contrat prend fin au dernier métro, ou plus tard, selon un accord verbal à définir sur place.`,
     ],
   },
@@ -262,18 +264,12 @@ export const COPY = {
       activity: 'Programme',
       ref: 'Référence',
     },
-    stamp: 'approuvé par le comité félin',
+    stamp: 'approuvé par le chat',
     actions: {
-      calendar: 'Ajouter à mon agenda',
       share: 'Envoyer ma réponse',
-      restart: 'Recommencer',
-      restartHint: 'ah, on refait un tour ?',
     },
     /** Message pré-rempli WhatsApp. {date} {heure} {activite} sont remplacés. */
-    shareMessage: `C’est oui. {date}, {heure}, {activite}. J’ai lu les conditions générales, surtout la clause 2. — ton ${PERSO.monSurnomPourElle.replace('mon ', '')}`,
-    /** Titre de l'événement .ics. */
-    calendarTitle: `${PERSO.elle} & ${PERSO.lui}`,
-    calendarNote: 'Un moment hors du temps. Confirmé par formulaire.',
+    shareMessage: `C’est évidemment oui. {date}, {heure}, {activite}. J’ai lu et approuvé les conditions générales — hâte de te voir, ton canard en sucre`,
   },
 } as const
 

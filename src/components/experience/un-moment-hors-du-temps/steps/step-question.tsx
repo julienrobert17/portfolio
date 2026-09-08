@@ -17,6 +17,16 @@ const YES_MAX_SCALE = 1.35
  * cible de l'écran au moment précis où elle sert. */
 const NO_MIN_SCALE = 0.88
 
+type Rgb = readonly [number, number, number]
+const TERRACOTTA: Rgb = [168, 95, 66]
+const GOLD: Rgb = [201, 162, 39]
+const CREAM: Rgb = [255, 250, 241]
+const INK: Rgb = [46, 42, 38]
+
+const mix = (from: Rgb, to: Rgb, t: number) =>
+  `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t)).join(' ')})`
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+
 export default function StepQuestion({ machine }: StepProps) {
   const copy = COPY.step2
   const reduced = useReducedMotion()
@@ -28,8 +38,8 @@ export default function StepQuestion({ machine }: StepProps) {
   })
 
   const label = copy.noLabels[Math.min(dodges, copy.noLabels.length - 1)]
+  const insistence = clamp01(dodges / MAX_DODGES)
   const yesScale = Math.min(1 + dodges * 0.05, YES_MAX_SCALE)
-  // Une fois posé, le bouton retrouve sa taille pleine.
   const noScale = settled ? 1 : Math.max(1 - dodges * 0.02, NO_MIN_SCALE)
 
   const sayYes = () => {
@@ -39,18 +49,28 @@ export default function StepQuestion({ machine }: StepProps) {
 
   return (
     <>
-      <h1 className={styles.title}>
-        {machine.pass > 0 ? copy.questionReplay : copy.question}
-      </h1>
+      <h1 className={styles.title}>{copy.question}</h1>
 
       <div className={styles.duel}>
-        <PaperButton
-          className={styles.btnYes}
-          style={{ transform: `scale(${yesScale})` }}
-          onClick={sayYes}
-        >
-          {copy.yes}
-        </PaperButton>
+        {/*
+         * Le Oui grandit en `scale` dans une case de taille fixe : la carte
+         * garde ses dimensions, donc rien autour ne bouge quand il enfle.
+         */}
+        <div className={styles.yesSlot}>
+          <PaperButton
+            className={`${styles.btnYes} ${dodges > 0 ? styles.yesPulse : ''}`}
+            style={{
+              transform: `scale(${yesScale})`,
+              // Dérive terracotta → doré ; le texte passe au brun pour rester lisible.
+              backgroundColor: mix(TERRACOTTA, GOLD, insistence),
+              color: mix(CREAM, INK, clamp01((insistence - 0.2) / 0.4)),
+              animationDuration: `${2000 - dodges * 140}ms`,
+            }}
+            onClick={sayYes}
+          >
+            {copy.yes}
+          </PaperButton>
+        </div>
 
         <div ref={zoneRef} className={styles.dodgeZone}>
           <button

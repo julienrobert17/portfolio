@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import PaperButton from '../ui/paper-button'
-import CatPhoto from '../ui/cat-photo'
+import Vessel from '../ui/vessel'
 import styles from '../invitation.module.css'
 import { COPY, PERSO } from '../content'
 import type { StepProps } from './step-props'
@@ -11,6 +11,17 @@ import type { StepProps } from './step-props'
 const RETYPE_MS = 55
 /** Délai avant que la case « je ne suis pas un robot » se coche seule. */
 const ROBOT_MS = 2000
+/** Après deux échecs, on abandonne le gag et tout le monde passe. */
+const MAX_ATTEMPTS = 2
+
+function shuffled<T>(items: readonly T[]): T[] {
+  const copy = [...items]
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
 
 export default function StepIdentity({ machine }: StepProps) {
   const { answers, setAnswers } = machine
@@ -18,11 +29,16 @@ export default function StepIdentity({ machine }: StepProps) {
 
   const [name, setName] = useState<string>(PERSO.elle)
   const [corrected, setCorrected] = useState(false)
-  const [error, setError] = useState(false)
   const retypeRef = useRef<number | null>(null)
   const busyRef = useRef(false)
 
-  // La case se coche toute seule : on a fait confiance.
+  // Le CAPTCHA : deux échecs programmés, puis la version pour de vrai.
+  const [attempt, setAttempt] = useState(0)
+  const [vessels, setVessels] = useState<string[]>(() => [...COPY.captchaVessels])
+  const [taunt, setTaunt] = useState('')
+  const [solved, setSolved] = useState(false)
+  const givenUp = attempt >= MAX_ATTEMPTS
+
   useEffect(() => {
     if (answers.robot) return
     const timer = window.setTimeout(() => setAnswers({ robot: true }), ROBOT_MS)
@@ -53,23 +69,29 @@ export default function StepIdentity({ machine }: StepProps) {
     }, RETYPE_MS)
   }
 
-  const toggleTile = (index: number) => {
-    setError(false)
-    const selected = answers.captcha.includes(index)
-      ? answers.captcha.filter((i) => i !== index)
-      : [...answers.captcha, index]
-    setAnswers({ captcha: selected })
+  const toggle = (index: number) => {
+    setAnswers({
+      captcha: answers.captcha.includes(index)
+        ? answers.captcha.filter((i) => i !== index)
+        : [...answers.captcha, index],
+    })
   }
 
-  const submit = () => {
-    if (answers.captcha.length === 0) {
-      setError(true)
+  /**
+   * Les deux premiers essais échouent quoi qu'elle coche — rien ne distingue
+   * vraiment un seau d'un vase, c'est le principe. Le troisième passe toujours.
+   */
+  const verify = () => {
+    if (givenUp || solved) {
+      setSolved(true)
+      machine.next()
       return
     }
-    machine.next()
+    setTaunt(copy.captchaTaunts[attempt] ?? copy.captchaTaunts[0])
+    setAnswers({ captcha: [] })
+    setVessels(shuffled(COPY.captchaVessels))
+    setAttempt(attempt + 1)
   }
-
-  const solved = answers.captcha.length > 0
 
   return (
     <>
@@ -98,48 +120,54 @@ export default function StepIdentity({ machine }: StepProps) {
 
       <div className={styles.captchaBox}>
         <p className={styles.captchaHead} id="hdt-captcha">
-          {copy.captchaPrompt}
+          {givenUp ? copy.captchaSimplePrompt : copy.captchaPrompt}
         </p>
-        <div className={styles.captcha} role="group" aria-labelledby="hdt-captcha">
-          {COPY.captchaTiles.map((tile, index) => {
-            const isSelected = answers.captcha.includes(index)
-            return (
-              <button
-                key={tile.label}
-                type="button"
-                role="checkbox"
-                aria-checked={isSelected}
-                aria-label={`${tile.label} — ${tile.caption}`}
-                className={`${styles.tile} ${isSelected ? styles.tileSelected : ''}`}
-                onClick={() => toggleTile(index)}
-              >
-                {isSelected && (
-                  <span className={styles.tileTick} aria-hidden="true">
-                    ✓
-                  </span>
-                )}
-                {tile.art === 'photo' ? (
-                  <span className={styles.tilePhoto}>
-                    <CatPhoto alt={`${PERSO.chat.nom}, le chat de ${PERSO.elle}`} sizes="56px" />
-                  </span>
-                ) : (
-                  <span className={styles.tileArt} aria-hidden="true">
-                    {tile.art}
-                  </span>
-                )}
-                <span className={styles.tileLabel}>{tile.label}</span>
-                <span className={styles.tileCaption} aria-hidden="true">
-                  {tile.caption}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+
+        {givenUp ? (
+          <div className={styles.captchaSimple}>
+            <button
+              type="button"
+              className={`${styles.bigVessel} ${solved ? styles.bigVesselOn : ''}`}
+              aria-label="Le seau"
+              aria-pressed={solved}
+              onClick={() => setSolved(true)}
+            >
+              <Vessel kind="seau" size={104} />
+            </button>
+            <p className={styles.aside}>{copy.captchaSimpleNote}</p>
+          </div>
+        ) : (
+          <div className={styles.captcha} role="group" aria-labelledby="hdt-captcha">
+            {vessels.map((kind, index) => {
+              const isSelected = answers.captcha.includes(index)
+              return (
+                <button
+                  /* La clé inclut l'essai : la grille est bien remontée à chaque échec. */
+                  key={`${attempt}-${index}`}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  /* Libellé neutre : un lecteur d'écran ne doit pas vendre la mèche. */
+                  aria-label={`Contenant ${index + 1}`}
+                  className={`${styles.tile} ${isSelected ? styles.tileSelected : ''}`}
+                  onClick={() => toggle(index)}
+                >
+                  {isSelected && (
+                    <span className={styles.tileTick} aria-hidden="true">
+                      ✓
+                    </span>
+                  )}
+                  <Vessel kind={kind} />
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div aria-live="polite">
-        {error && <p className={styles.error}>{copy.captchaError}</p>}
-        {!error && solved && <p className={styles.ok}>{copy.captchaSuccess}</p>}
+        {taunt && !givenUp && <p className={styles.error}>{taunt}</p>}
+        {solved && <p className={styles.ok}>{copy.captchaSuccess}</p>}
       </div>
 
       <div className={styles.checkRow}>
@@ -161,7 +189,7 @@ export default function StepIdentity({ machine }: StepProps) {
       </div>
 
       <div className={styles.footer}>
-        <PaperButton onClick={submit}>{copy.cta}</PaperButton>
+        <PaperButton onClick={verify}>{copy.cta}</PaperButton>
         <PaperButton variant="quiet" onClick={machine.back}>
           {COPY.back}
         </PaperButton>
