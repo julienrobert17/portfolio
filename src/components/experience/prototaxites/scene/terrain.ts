@@ -8,7 +8,10 @@ import * as THREE from 'three'
 
 export const TERRAIN_SIZE = 800
 export const TERRAIN_RES = 512 // 1.56 unité/texel
-export const MAX_HEIGHT = 6 // borne de normalisation du canal A
+// Borne SYMÉTRIQUE de normalisation du canal A : le relief est désormais signé
+// (il descend sous zéro), et une texture Float32 stocke les négatifs sans
+// problème. Le shader du sol reconstruit h = A * uMaxHeight sans changement.
+export const MAX_HEIGHT = 10
 
 const HALF = TERRAIN_SIZE / 2
 
@@ -33,7 +36,10 @@ function noise(px: number, py: number): number {
   const c = hash(ix, iy + 1)
   const d = hash(ix + 1, iy + 1)
 
-  return (a + (b - a) * ux) + ((c + (d - c) * ux) - (a + (b - a) * ux)) * uy
+  const t = a + (b - a) * ux
+  // Bruit SIGNÉ : hash() est un fract() donc positif, un fbm bâti dessus ne
+  // pouvait produire que du relief positif. C'est la racine du relief mou.
+  return (t + ((c + (d - c) * ux) - t) * uy) * 2 - 1
 }
 
 // 5 octaves, lacunarité 2.1, gain 0.5, offset (1.7, 9.2)
@@ -58,17 +64,52 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t)
 }
 
+// ─── Composition du relief ───────────────────────────────────────────────────
+
+const BASE_FREQ = 0.012
+const BASE_AMP = 4.0
+const MID_FREQ = 0.045
+const MID_AMP = 1.6
+const FINE_FREQ = 0.15
+const FINE_AMP = 0.45
+
+// Chenaux. 1 - |bruit| culmine le long des lignes de passage par zéro, ce qui
+// donne un réseau de lignes continues. Deux points ont décidé la forme finale,
+// tous deux mesurés (voir rapport) :
+//  - le masque est bâti sur UNE octave, pas sur le fbm : |fbm 5 octaves| a un
+//    ensemble de zéros haché, donc des chenaux en chapelet.
+//  - on ne soustrait pas une profondeur, on INTERPOLE VERS UN FOND COMMUN.
+//    Soustraire laissait le fond des chenaux suivre le relief de base, donc
+//    repasser au-dessus de l'eau par endroits : 23 % de composante dominante.
+//    En creusant vers un fond constant on passe à 90 %.
+const CHANNEL_FREQ = 0.02
+const CHANNEL_FLOOR = -5.0
+const CHANNEL_SHARP = 6.0
+
+// La zone centrale reste praticable, mais en éminence au-dessus de l'eau :
+// les Prototaxites ne doivent pas baigner.
+const MOUND_HEIGHT = 2.6
+
 /**
  * Hauteur analytique du terrain au point monde (x, z).
- * Reprend la composition du shader d'origine.
+ * Relief signé + réseau de chenaux + éminence centrale.
  */
 export function terrainHeight(x: number, z: number): number {
-  const h =
-    fbm(x * 0.04, z * 0.04) * 4.0 +
-    fbm(x * 0.12, z * 0.12) * 1.5 +
-    fbm(x * 0.35, z * 0.35) * 0.5
-  const flatFactor = smoothstep(8, 18, Math.hypot(x, z))
-  return h * flatFactor
+  const base =
+    fbm(x * BASE_FREQ, z * BASE_FREQ) * BASE_AMP +
+    fbm(x * MID_FREQ, z * MID_FREQ) * MID_AMP +
+    fbm(x * FINE_FREQ, z * FINE_FREQ) * FINE_AMP
+
+  const ridge = 1 - Math.abs(noise(x * CHANNEL_FREQ + 100, z * CHANNEL_FREQ + 100))
+  const channel = Math.pow(Math.max(0, ridge), CHANNEL_SHARP)
+
+  const open = base * (1 - channel) + CHANNEL_FLOOR * channel
+
+  // Éminence centrale, légèrement modulée pour ne pas être un disque plat
+  const mound = MOUND_HEIGHT + base * 0.12
+
+  const f = smoothstep(8, 18, Math.hypot(x, z))
+  return mound * (1 - f) + open * f
 }
 
 // ─── Heightmap ───────────────────────────────────────────────────────────────
@@ -130,6 +171,47 @@ function ensureData(): Float32Array {
   if (!cachedData) cachedData = buildData()
   return cachedData
 }
+
+// ─── Statistiques du relief, calculées une fois sur la heightmap ─────────────
+
+interface TerrainStats {
+  min: number
+  max: number
+  waterLevel: number
+}
+
+let cachedStats: TerrainStats | null = null
+
+function computeStats(): TerrainStats {
+  const data = ensureData()
+  const n = TERRAIN_RES * TERRAIN_RES
+  const heights = new Float64Array(n)
+  let min = Infinity
+  let max = -Infinity
+  for (let k = 0; k < n; k++) {
+    const h = data[k * 4 + 3] * MAX_HEIGHT
+    heights[k] = h
+    if (h < min) min = h
+    if (h > max) max = h
+  }
+  // Niveau d'eau par PERCENTILE (jamais codé en dur) : la fraction visée de
+  // surface immergée définit le niveau, pas l'inverse.
+  const sorted = Array.from(heights).sort((a, b) => a - b)
+  const waterLevel = sorted[Math.floor(n * WATER_COVERAGE_TARGET)]
+  return { min, max, waterLevel }
+}
+
+/** Fraction de la surface totale que l'on veut sous l'eau (cible 20–30 %). */
+export const WATER_COVERAGE_TARGET = 0.25
+
+function stats(): TerrainStats {
+  if (!cachedStats) cachedStats = computeStats()
+  return cachedStats
+}
+
+export const TERRAIN_MIN = (): number => stats().min
+export const TERRAIN_MAX = (): number => stats().max
+export const WATER_LEVEL = (): number => stats().waterLevel
 
 /**
  * DataTexture RGBA Float32 512×512 sur [-400, 400]².
