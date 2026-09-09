@@ -49,7 +49,9 @@ const BANK_MARGIN = 0.35
 const ANGLE_SPREAD = 0.5
 
 // Largeur de la rampe de pousse d'un arbre, en unités de forestSpread.
-const GROWTH_BAND = 0.25
+// Fenêtre de croissance individuelle. Élargie de 0.25 à 0.35 : la pousse de
+// chaque arbre est plus douce et les paliers entre arbres se recouvrent.
+const GROWTH_BAND = 0.35
 
 // Amplitude du bruit ajouté au seuil, pour casser le front circulaire parfait.
 const THRESHOLD_JITTER = 0.15
@@ -171,9 +173,17 @@ function buildForest(opts: Required<ForestOptions>): ForestTree[] {
   byDistance.forEach((t, index) => rank.set(t.key, index))
   const lastRank = Math.max(1, placed.length - 1)
 
-  return placed.map((t) => {
-    const ratio = (rank.get(t.key) ?? 0) / lastRank
-    const threshold = clamp01(ratio + t.jitter) * (1 - GROWTH_BAND)
+  // Le jitter puis le clamp tassaient les seuils : rien ne garantissait qu'un
+  // arbre atteigne le seuil maximal, donc la colonisation se terminait avant la
+  // fin de la phase. On renormalise la distribution jitterée pour qu'elle
+  // occupe EXACTEMENT [0, 1 - GROWTH_BAND].
+  const raw = placed.map((t) => (rank.get(t.key) ?? 0) / lastRank + t.jitter)
+  const rawMin = Math.min(...raw)
+  const rawMax = Math.max(...raw)
+  const rawSpan = Math.max(1e-6, rawMax - rawMin)
+
+  return placed.map((t, i) => {
+    const threshold = ((raw[i] - rawMin) / rawSpan) * (1 - GROWTH_BAND)
     return {
       key: t.key,
       position: [t.x, t.y - TRUNK_SINK, t.z] as [number, number, number],
@@ -210,6 +220,14 @@ function getForest(opts: Required<ForestOptions>): ForestTree[] {
 export function getForestPositions(opts?: ForestOptions): [number, number][] {
   return getForest(resolve(opts)).map((t) => [t.position[0], t.position[2]])
 }
+
+/** Seuils de colonisation, exposés pour vérification numérique. */
+export function getForestThresholds(opts?: ForestOptions): number[] {
+  return getForest(resolve(opts)).map((t) => t.threshold)
+}
+
+/** Largeur de la fenêtre de croissance individuelle. */
+export const FOREST_GROWTH_BAND = GROWTH_BAND
 
 export default function DevonianForest({
   count = DEFAULTS.count,

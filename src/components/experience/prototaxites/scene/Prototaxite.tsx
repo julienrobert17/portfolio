@@ -4,6 +4,13 @@ import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
+// En dessous de ce seuil le tronc ne projette plus d'ombre, et il sort
+// complètement du rendu sous VISIBILITY_EPS.
+// Bas volontairement : couper l'ombre trop tôt ferait un « pop » alors que le
+// tronc est encore bien visible. À 0.2 il est déjà très effacé.
+const SHADOW_EPS = 0.2
+const VISIBILITY_EPS = 0.01
+
 interface PrototaxiteProps {
   position?: [number, number, number]
   height?: number
@@ -80,7 +87,15 @@ export default function Prototaxite({
   const [x, y, z] = position
 
   return (
-    <mesh position={[x, y + height / 2, z]} castShadow receiveShadow>
+    // Un matériau transparent ne fait pas disparaître son ombre : la shadow
+    // map ignore l'alpha d'un matériau opaque. Sans ces deux gardes, les
+    // Prototaxites laissent leur ombre au sol après s'être effacés en eclipse.
+    <mesh
+      position={[x, y + height / 2, z]}
+      visible={opacity > VISIBILITY_EPS}
+      castShadow={opacity > SHADOW_EPS}
+      receiveShadow
+    >
       <cylinderGeometry args={[radiusTop, radiusBottom, height, 16, 48]} />
       <meshStandardMaterial
         ref={matRef}
