@@ -1,112 +1,51 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import type React from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { sampleTerrain } from './terrain'
+import { MeshReflectorMaterial } from '@react-three/drei'
+import { WATER_LEVEL } from './terrain'
 
-// Zone humide d'arrière-plan : les fossiles de Prototaxites proviennent de
-// plaines fluviales et de zones humides côtières.
-const vertexShader = /* glsl */ `
-  uniform float uTime;
-  varying vec3 vWorldPos;
-  varying vec3 vWorldNormal;
+// Plan large posé exactement au niveau d'eau : c'est le terrain qui émerge qui
+// découpe les chenaux, on n'a pas à modéliser leur forme. 500 unités suffisent,
+// le FogExp2 masque le reste bien avant le bord.
+const WATER_SIZE = 500
 
-  void main() {
-    vec3 pos = position;
-
-    // Le plan vit dans XY (le mesh porte le rotateX) : ondulations sur Z.
-    float ripple = sin(pos.x * 0.15 + uTime * 0.6) * 0.12
-                 + sin(pos.y * 0.23 - uTime * 0.4) * 0.09
-                 + sin((pos.x + pos.y) * 0.31 + uTime * 0.9) * 0.05;
-    pos.z += ripple;
-
-    // Normale perturbée par la pente des ondulations, calculée en espace
-    // objet (hauteur sur Z) puis ramenée en monde pour le fresnel.
-    float dx = cos(pos.x * 0.15 + uTime * 0.6) * 0.15 * 0.12
-             + cos((pos.x + pos.y) * 0.31 + uTime * 0.9) * 0.31 * 0.05;
-    float dy = cos(pos.y * 0.23 - uTime * 0.4) * 0.23 * 0.09
-             + cos((pos.x + pos.y) * 0.31 + uTime * 0.9) * 0.31 * 0.05;
-    vec3 objNormal = normalize(vec3(-dx, -dy, 1.0));
-    vWorldNormal = normalize(mat3(modelMatrix) * objNormal);
-
-    vec4 worldPos = modelMatrix * vec4(pos, 1.0);
-    vWorldPos = worldPos.xyz;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`
-
-const fragmentShader = /* glsl */ `
-  varying vec3 vWorldPos;
-  varying vec3 vWorldNormal;
-
-  void main() {
-    vec3 deepColor = vec3(0.08, 0.12, 0.10);
-    vec3 skyColor  = vec3(0.28, 0.38, 0.45);
-
-    // Fresnel : rasant vers l'horizon → reflet du ciel
-    vec3 viewDir = normalize(cameraPosition - vWorldPos);
-    float fresnel = pow(1.0 - clamp(dot(viewDir, normalize(vWorldNormal)), 0.0, 1.0), 3.0);
-
-    vec3 color = mix(deepColor, skyColor, fresnel);
-    gl_FragColor = vec4(color, 0.75);
-  }
-`
-
-const CENTER_X = -25
-const CENTER_Z = -55
-const WIDTH = 160
-const DEPTH = 60
-// Fraction de l'emprise que l'on veut effectivement sous l'eau. Le terrain
-// n'ayant pas de vraie cuvette (voir RAPPORT_GRAPHISME.md), le niveau est
-// pris comme un percentile des hauteurs réelles sous l'emprise : la zone
-// humide se lit alors comme des mares entre les bosses, et le niveau suit
-// le relief si celui-ci change.
-const SUBMERGED_FRACTION = 0.35
-
-function computeWaterLevel(): number {
-  const heights: number[] = []
-  for (let i = 0; i <= 60; i++) {
-    for (let j = 0; j <= 30; j++) {
-      const x = CENTER_X - WIDTH / 2 + (i / 60) * WIDTH
-      const z = CENTER_Z - DEPTH / 2 + (j / 30) * DEPTH
-      heights.push(sampleTerrain(x, z).height)
-    }
-  }
-  heights.sort((a, b) => a - b)
-  const idx = Math.min(heights.length - 1, Math.floor(heights.length * SUBMERGED_FRACTION))
-  return heights[idx]
+interface DevonianWaterProps {
+  /** Permet de couper le reflet si le coût devient un problème. */
+  reflections?: boolean
 }
 
-let cachedLevel: number | null = null
-function waterLevel(): number {
-  if (cachedLevel === null) cachedLevel = computeWaterLevel()
-  return cachedLevel
-}
+export default function DevonianWater({ reflections = true }: DevonianWaterProps) {
+  const matRef = useRef<React.ComponentRef<typeof MeshReflectorMaterial>>(null)
+  const level = WATER_LEVEL()
 
-export default function DevonianWater() {
-  const matRef = useRef<THREE.ShaderMaterial>(null)
-  const level = useMemo(() => waterLevel(), [])
-
-  const uniforms = useMemo<Record<string, THREE.IUniform<number>>>(
-    () => ({ uTime: { value: 0 } }),
-    [],
-  )
-
+  // Distorsion lentement animée : sans ça la surface est un miroir figé.
   useFrame((state) => {
-    if (matRef.current) matRef.current.uniforms.uTime.value = state.clock.elapsedTime
+    const m = matRef.current
+    if (m) m.distortion = 0.22 + Math.sin(state.clock.elapsedTime * 0.18) * 0.06
   })
 
   return (
-    <mesh position={[CENTER_X, level, CENTER_Z]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[WIDTH, DEPTH]} />
-      <shaderMaterial
+    <mesh position={[0, level, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[WATER_SIZE, WATER_SIZE]} />
+      <MeshReflectorMaterial
         ref={matRef}
+        resolution={reflections ? 512 : 128}
+        mirror={reflections ? 0.62 : 0}
+        mixStrength={1.5}
+        mixBlur={0.8}
+        blur={[220, 60]}
+        depthScale={1.1}
+        depthToBlurRatioBias={0.28}
+        minDepthThreshold={0.3}
+        maxDepthThreshold={1.2}
+        distortion={0.22}
+        color="#1b2a20"
+        roughness={0.72}
+        metalness={0.08}
         transparent
-        uniforms={uniforms}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
+        opacity={0.92}
       />
     </mesh>
   )

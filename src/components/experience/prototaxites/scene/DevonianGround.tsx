@@ -2,7 +2,15 @@
 
 import type * as THREE from 'three'
 
-import { MAX_HEIGHT, TERRAIN_RES, TERRAIN_SIZE, buildHeightmap } from './terrain'
+import {
+  MAX_HEIGHT,
+  TERRAIN_MAX,
+  TERRAIN_MIN,
+  TERRAIN_RES,
+  TERRAIN_SIZE,
+  WATER_LEVEL,
+  buildHeightmap,
+} from './terrain'
 
 // Le sol n'utilise plus de ShaderMaterial maison : celui-ci recalculait son
 // propre éclairage avec une lightDir en dur, donc il ignorait les lumières de
@@ -79,10 +87,20 @@ const BEGIN_VERTEX = /* glsl */ `
 `
 
 const FRAGMENT_HEAD = /* glsl */ `
+uniform float uWaterLevel;
+uniform float uTerrainMin;
+uniform float uTerrainMax;
+
 varying float vGroundHeight;
 varying vec2 vGroundXY;
 varying vec3 vGroundTangent;
 varying vec3 vGroundBitangent;
+
+// Frange humide : 1 sous le niveau d'eau, retombe à 0 quarante centimètres
+// plus haut. Coût nul, mais c'est ce qui vend la transition eau/terre.
+float groundWetness(float h) {
+  return 1.0 - smoothstep(uWaterLevel, uWaterLevel + 0.4, h);
+}
 
 float groundHash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -110,12 +128,21 @@ const COLOR_FRAGMENT = /* glsl */ `
   vec3 midColor  = vec3(0.28, 0.15, 0.07);
   vec3 highColor = vec3(0.42, 0.26, 0.10);
 
-  float groundT = clamp(vGroundHeight / 4.0, 0.0, 1.0);
+  // Rampe recalée sur la plage RÉELLE du relief : avec un terrain qui descend
+  // sous zéro, un simple /4.0 tassait tout sur la couleur basse.
+  float groundT = clamp(
+    (vGroundHeight - uTerrainMin) / max(0.001, uTerrainMax - uTerrainMin),
+    0.0, 1.0
+  );
   vec3 groundColor = mix(lowColor, mix(midColor, highColor, groundT * 1.5), groundT);
 
   // Biofilm dans les creux
   float biofilm = smoothstep(0.0, 0.8, 1.0 - groundT) * 0.4;
   groundColor = mix(groundColor, vec3(0.08, 0.14, 0.06), biofilm);
+
+  // Berge détrempée : plus sombre et plus saturée
+  float wet = groundWetness(vGroundHeight);
+  groundColor = mix(groundColor, groundColor * vec3(0.42, 0.48, 0.40), wet);
 
   diffuseColor.rgb *= groundColor;
 `
@@ -134,6 +161,12 @@ const NORMAL_FRAGMENT = /* glsl */ `
   );
 `
 
+const ROUGHNESS_FRAGMENT = /* glsl */ `
+#include <roughnessmap_fragment>
+
+  roughnessFactor = mix(roughnessFactor, 0.22, groundWetness(vGroundHeight));
+`
+
 // ─── Patch ───────────────────────────────────────────────────────────────────
 
 function onBeforeCompile(shader: THREE.WebGLProgramParametersWithUniforms): void {
@@ -141,6 +174,9 @@ function onBeforeCompile(shader: THREE.WebGLProgramParametersWithUniforms): void
   shader.uniforms.uMaxHeight = { value: MAX_HEIGHT }
   shader.uniforms.uSize = { value: TERRAIN_SIZE }
   shader.uniforms.uRes = { value: TERRAIN_RES }
+  shader.uniforms.uWaterLevel = { value: WATER_LEVEL() }
+  shader.uniforms.uTerrainMin = { value: TERRAIN_MIN() }
+  shader.uniforms.uTerrainMax = { value: TERRAIN_MAX() }
 
   let vert = VERTEX_HEAD + shader.vertexShader
   vert = patchChunk(vert, '#include <beginnormal_vertex>', BEGINNORMAL)
@@ -150,6 +186,7 @@ function onBeforeCompile(shader: THREE.WebGLProgramParametersWithUniforms): void
   let frag = FRAGMENT_HEAD + shader.fragmentShader
   frag = patchChunk(frag, '#include <color_fragment>', COLOR_FRAGMENT)
   frag = patchChunk(frag, '#include <normal_fragment_maps>', NORMAL_FRAGMENT)
+  frag = patchChunk(frag, '#include <roughnessmap_fragment>', ROUGHNESS_FRAGMENT)
   shader.fragmentShader = frag
 }
 

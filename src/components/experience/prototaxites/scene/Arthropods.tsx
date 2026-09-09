@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Instance, Instances } from '@react-three/drei'
 import * as THREE from 'three'
-import { sampleTerrain } from './terrain'
+import { WATER_LEVEL, sampleTerrain } from './terrain'
 
 interface ArthropodsProps {
   opacity?: number
@@ -16,6 +16,8 @@ const BOUNDARY = 60
 const LEGS_PER_BODY = 8
 // Le corps fait 0.08 de haut : on le pose légèrement au-dessus du sol
 const BODY_CLEARANCE = 0.04
+// Les arthropodes ne pataugent pas : ils font demi-tour au bord des chenaux.
+const WATER_MARGIN = 0.15
 
 interface ArthState {
   x: number
@@ -68,6 +70,7 @@ export default function Arthropods({ opacity = 0, count = 12, seed = 7 }: Arthro
 
   useFrame((frame, delta) => {
     const time = frame.clock.elapsedTime
+    const waterEdge = WATER_LEVEL() + WATER_MARGIN
 
     if (state.current.length !== initial.length) {
       state.current = initial.map((l) => ({
@@ -94,9 +97,14 @@ export default function Arthropods({ opacity = 0, count = 12, seed = 7 }: Arthro
       s.x += Math.cos(s.dir) * step
       s.z += Math.sin(s.dir) * step
 
-      // Demi-tour si on s'éloigne trop du centre
+      // Demi-tour si on s'éloigne trop du centre, ou si on entre dans l'eau
       if (s.x * s.x + s.z * s.z > BOUNDARY * BOUNDARY) {
         s.dir += Math.PI + (Math.random() - 0.5) * 0.4
+      } else if (sampleTerrain(s.x, s.z).height < waterEdge) {
+        // On recule d'un pas avant de repartir, sinon on reste bloqué dedans
+        s.x -= Math.cos(s.dir) * step
+        s.z -= Math.sin(s.dir) * step
+        s.dir += Math.PI + (Math.random() - 0.5) * 0.8
       }
 
       const yaw = -s.dir + Math.PI * 0.5

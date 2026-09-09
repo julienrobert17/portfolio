@@ -239,3 +239,175 @@ créé `feat/rendu-graphique` plutôt que de committer sur `main`. Fusion trivia
    vérifié visuellement, faute de navigateur.
 6. **Le halo solaire n'a pas de god rays.** Il est purement dans le shader de ciel,
    donc il ne réagit pas aux occlusions du terrain ni des troncs.
+
+---
+---
+
+# Lot relief & eau — 9 septembre 2026
+
+Branche `feat/relief-eau`, partie de `feat/rendu-graphique`. `npx tsc --noEmit`
+vert, `npm run build` vert, ESLint propre sur les fichiers touchés (les 5 erreurs
+de `NarrativeOverlay.tsx` / `useNarrativeEngine.ts` restent hors périmètre).
+
+Cible : le point 1 de la section 6 précédente — relief trop mou, racine de l'eau
+en flaques, du rejet de pente inerte et de l'horizon monotone.
+
+## 1. Fichiers touchés
+
+- `scene/terrain.ts` — bruit signé, réseau de chenaux, `TERRAIN_MIN/MAX`, `WATER_LEVEL`
+- `scene/DevonianWater.tsx` — réécriture : plan 500² au niveau d'eau, `MeshReflectorMaterial`
+- `scene/DevonianGround.tsx` — frange humide sur la berge, rampe de couleur recalée
+- `scene/DevonianForest.tsx` — rejet sous l'eau, fenêtre angulaire élargie, repli au plus sec
+- `scene/PrototaxiteGroup.tsx` — décalage vers le point sec le plus proche
+- `scene/Arthropods.tsx` — demi-tour au bord des chenaux
+- `RAPPORT_GRAPHISME.md` — cette section
+
+## 2. Mesures
+
+### Contrôle 1.5 (relief)
+
+| Contrôle | Résultat | Cible |
+|---|---|---|
+| (a) surface sous `WATER_LEVEL` | **25,1 %** | 20–30 % ✅ |
+| (b) minimum zone centrale `r < 10` | **1,79** contre eau à −2,13 | au-dessus ✅ |
+| (c) composante immergée dominante | **89,0 %** en 45 composantes | > 60 % ✅ |
+
+`TERRAIN_MIN = −5,00`  `TERRAIN_MAX = 3,09`  `WATER_LEVEL = −2,128`
+Creux à 5 unités sous zéro, contre la consigne d'au moins 3.
+
+### Coût isolé du reflet
+
+`MeshReflectorMaterial` à `resolution 512`, mesuré en masquant le plan d'eau :
+**0,80 ms** (1,40 ms avec, 0,60 ms sans). Seuil de bascule à 6 ms — très en
+dessous, **résolution 512 conservée**, pas de repli à 256.
+
+### Ancrage après changement de relief
+
+24 arbres : pire flottement **−0,244**, enfoncement max 0,458, **0 sous l'eau**,
+rayon max 32,6. Aucun clipping. **L'enfoncement de 0,30 reste suffisant** : le
+relief est plus profond mais pas plus accidenté à l'échelle du quad de 2,08.
+Prototaxites : pire flottement −0,234, 0 sous l'eau après décalage.
+
+## 3. Décisions face à une spec ambiguë ou fausse
+
+### 3.1 Soustraire une profondeur de chenal ne marche pas — il faut creuser vers un fond commun
+
+La spec proposait `1 - abs(noise)` composé « par un min() ou un mélange
+pondéré ». Appliqué tel quel, le résultat échoue au contrôle de connectivité :
+**23,1 % de composante dominante sur 214 composantes**, soit exactement les
+flaques qu'on voulait éviter.
+
+Cause : en soustrayant une profondeur, le **fond du chenal suit le relief de
+base**. Là où la base remonte, le fond repasse au-dessus du niveau d'eau et coupe
+le chenal en chapelet. J'ai remplacé la soustraction par une **interpolation vers
+un fond constant** (`base * (1 - masque) + FOND * masque`) : le fond des chenaux
+devient plat, donc continûment sous l'eau. Résultat : **89 %**.
+
+Deuxième correction dans la même veine : le masque est bâti sur **une seule
+octave**, pas sur le fbm à 5 octaves. `|fbm|` a un ensemble de zéros haché, donc
+des chenaux hachés. Mesuré : 5 octaves → 214 composantes, 1 octave → 118, avant
+même le changement de composition.
+
+Réglage retenu après balayage : fréquence 0,020 et exposant 6 — j'ai ajouté une
+mesure de **finesse (périmètre/aire)** pour distinguer un vrai réseau d'un lac,
+que le seul critère de connectivité ne sépare pas. Un lac compact et un réseau
+ramifié donnent tous deux une composante dominante élevée. Finesse 0,33 à
+fréquence 0,010 (lac) contre **0,64** à 0,020 (rubans), à connectivité
+équivalente.
+
+### 3.2 Le rejet de pente est TOUJOURS inerte, et les 66 % de rejet ne sont pas un seuil à assouplir
+
+La spec anticipait que le rejet `normal.y < 0.75` se déclencherait sur le nouveau
+relief et demandait d'assouplir le seuil au-delà de 40 % de rejet. Mesuré :
+
+- **pente seule : 0,0 %** — `normal.y` percentile 10 = **0,909**, très au-dessus
+  de 0,75. Le relief est plus profond mais toujours doux en pente, parce que les
+  chenaux sont larges par rapport à leur profondeur et que la heightmap lisse à
+  1,56 unité/texel.
+- **eau seule : 66,7 %** — la totalité du rejet.
+
+Assouplir le seuil n'aurait donc **rien changé** (le critère de pente ne se
+déclenche jamais), et assouplir le critère d'eau aurait remis des arbres dans les
+chenaux, ce que le lot cherchait précisément à éviter. Le vrai problème était
+ailleurs : la fenêtre angulaire de recherche était de ±0,25 rad autour du secteur
+attribué à chaque arbre, donc un arbre dont le secteur tombait sur un chenal ne
+pouvait pas s'en extraire — 4 arbres finissaient dans l'eau malgré 16 tentatives.
+
+J'ai **élargi progressivement la fenêtre angulaire** avec le numéro de tentative
+(±0,25 rad au premier essai, jusqu'à ±π au dernier) et ajouté un **repli sur le
+candidat le plus sec** plutôt que sur le dernier tiré. La répartition régulière en
+anneau est préservée pour la majorité des arbres, et on ne s'en éloigne qu'au
+besoin. Résultat : 0 arbre dans l'eau.
+
+Le taux de rejet par tirage reste 66,6 %, mais **ce n'est pas un défaut** : c'est
+la mesure de la fraction de l'anneau 14–34 désormais occupée par les chenaux. Je
+l'ai laissé tel quel et documenté plutôt que de le maquiller.
+
+### 3.3 Les Prototaxites sont composés, pas tirés au sort
+
+La spec dit « rien ne doit être placé sous `WATER_LEVEL` (rejette et retire un
+autre point) ». Applicable aux arbres, pas aux Prototaxites : leurs positions sont
+un choix de composition. Un Prototaxite se retrouvait sous l'eau après le
+changement de relief.
+
+Plutôt que de les retirer au sort (ce qui casserait la composition) ou de les
+soulever (ce qui les ferait flotter), j'ai ajouté une **recherche en spirale
+courte** vers le point sec le plus proche. Deux des six ont bougé, de 1,5 et 6,0
+unités ; les quatre autres n'ont pas bougé. La composition est préservée à peu
+près.
+
+### 3.4 La rampe de couleur du sol était calée sur l'ancienne plage — corrigé
+
+Effet de bord non prévu par la spec, repéré sur capture : le shader du sol
+calculait `t = clamp(hauteur / 4.0, 0, 1)`. Avec un relief passé de [0 ; 4,67] à
+[−5,00 ; 3,09], presque tout le terrain tombait sur `t ≈ 0`, donc sur la couleur
+basse — un aplat vert olive uniforme. J'ai recalé la rampe sur
+`TERRAIN_MIN`/`TERRAIN_MAX` passés en uniforms. Sans ça, tout le travail de
+relief aurait été invisible faute de contraste.
+
+### 3.5 `WATER_LEVEL` exposé comme fonction, pas comme constante
+
+`TERRAIN_MIN`, `TERRAIN_MAX` et `WATER_LEVEL` sont des **fonctions** et non des
+`const` exportées, parce qu'elles dépendent de la heightmap : les évaluer au
+chargement du module forcerait la construction de la texture 512² à l'import,
+donc côté serveur au build de Next. Sous forme de fonctions mémoïsées, le calcul
+n'a lieu qu'au premier appel réel, côté client.
+
+### 3.6 Le frustum d'ombre n'a pas eu besoin de changer
+
+Vérifié comme demandé (3.3) : le rayon maximal effectivement occupé après les
+rejets est de **32,6** pour les arbres et 21,6 pour les Prototaxites, largement
+dans les ±60 du frustum. Aucune modification.
+
+## 4. Ce qui n'a pas pu être vérifié
+
+La vérification visuelle a été **partielle**. J'ai obtenu **une capture
+exploitable** avant la correction de la rampe de couleur (3.4) : elle montre le
+relief en place, l'éminence centrale, l'ombre portée du Prototaxite, l'horizon
+qui ondule enfin, et les nappes d'eau réfléchissantes de part et d'autre. Après
+la correction de rampe, le blocage de mesure R3F connu (canvas figé à 300×150) est
+revenu et a résisté à la seconde tentative — je n'ai pas insisté, conformément à
+la consigne. **La rampe de couleur recalée n'est donc pas confirmée
+visuellement** : c'est une remise à l'échelle arithmétique, sûre en soi, mais le
+choix des trois couleurs `lowColor`/`midColor`/`highColor` mérite ton œil
+maintenant qu'elles se répartissent sur toute la plage. **À regarder en premier
+sur `/lab`.**
+
+## 5. Ce qui reste faible visuellement, par ordre d'impact
+
+1. **Les trois couleurs du sol n'ont pas été rechoisies après le recalage.** Elles
+   avaient été réglées pour une plage [0 ; 4,67] tassée vers le bas ; elles
+   s'étalent maintenant sur [−5 ; 3,09]. Le dégradé fonctionne, mais les teintes
+   elles-mêmes n'ont pas été retravaillées pour le nouveau contraste.
+2. **Les stries des Prototaxites sont trop régulières.** Le `sin(uv.y * 220)`
+   ajouté au lot précédent donne un effet velours côtelé bien visible de près sur
+   la capture. Un bruit remplacerait avantageusement la sinusoïde.
+3. **La berge humide n'est qu'un assombrissement.** La bande entre `WATER_LEVEL`
+   et `+0,4` fonctionne, mais il manque le vrai marqueur de rive : dépôt clair,
+   ligne de laisse, végétation basse. Le lot végétation le traitera mieux.
+4. **L'eau n'a ni transparence de profondeur ni écume.** `MeshReflectorMaterial`
+   donne le reflet, qui est l'essentiel, mais le fond n'est pas visible en eau
+   peu profonde et le contact eau/terre est net au pixel près.
+5. **Le réseau de chenaux n'a pas de sens d'écoulement.** Le fond est à niveau
+   constant (−5), ce qui garantit la connectivité mais interdit tout ruissellement
+   crédible. Un léger gradient général donnerait une direction à la plaine.

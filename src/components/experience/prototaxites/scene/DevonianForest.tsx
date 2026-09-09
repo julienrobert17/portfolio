@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import DevonianTree from './DevonianTree'
-import { sampleTerrain } from './terrain'
+import { WATER_LEVEL, sampleTerrain } from './terrain'
 
 export interface ForestOptions {
   count?: number
@@ -40,6 +40,13 @@ const MIN_NORMAL_Y = 0.75
 // Bornes d'itérations : si aucun point plat n'est trouvé, on garde le dernier
 // candidat plutôt que de boucler indéfiniment.
 const MAX_ATTEMPTS = 16
+
+// Marge au-dessus du niveau d'eau : un arbre pile sur la berge aurait le pied
+// dans l'eau dès la moindre ondulation de la nappe.
+const BANK_MARGIN = 0.35
+
+// Fenêtre angulaire initiale autour du secteur attribué à chaque arbre.
+const ANGLE_SPREAD = 0.5
 
 // Largeur de la rampe de pousse d'un arbre, en unités de forestSpread.
 const GROWTH_BAND = 0.25
@@ -92,22 +99,49 @@ function buildForest(opts: Required<ForestOptions>): ForestTree[] {
     let y = 0
     let dist = 0
 
-    // Rejet des pentes fortes : on retire angle + distance tant que le point
-    // tombe à flanc de butte, dans la limite de MAX_ATTEMPTS.
+    // Deux rejets : pente trop forte, et pied sous le niveau d'eau (rien ne
+    // doit pousser dans un chenal). On retire angle + distance, dans la limite
+    // de MAX_ATTEMPTS ; le dernier candidat est conservé sinon.
+    const minGround = WATER_LEVEL() + BANK_MARGIN
+    let bestScore = -Infinity
+    let bestX = 0
+    let bestZ = 0
+    let bestY = 0
+
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       s = next(s)
       const rAng = s / 233280
       s = next(s)
       const rDist = s / 233280
 
-      const ang = (i / count) * Math.PI * 2 + (rAng - 0.5) * 0.5
+      // La fenêtre angulaire s'ÉLARGIT à chaque tentative. Avec une fenêtre
+      // fixe de ±0.25 rad, un arbre dont le secteur tombe sur un chenal ne
+      // pouvait pas s'en extraire et finissait dans l'eau. On part de la
+      // répartition régulière en anneau, et on ne s'en éloigne qu'au besoin.
+      const spread = ANGLE_SPREAD + (attempt / (MAX_ATTEMPTS - 1)) * (Math.PI * 2 - ANGLE_SPREAD)
+      const ang = (i / count) * Math.PI * 2 + (rAng - 0.5) * spread
       dist = innerRadius + rDist * (outerRadius - innerRadius)
       x = Math.cos(ang) * dist
       z = Math.sin(ang) * dist
 
       const ground = sampleTerrain(x, z)
       y = ground.height
-      if (ground.normal.y >= MIN_NORMAL_Y) break
+
+      // Meilleur candidat = le plus au sec, gardé en repli si aucun ne passe
+      if (y > bestScore) {
+        bestScore = y
+        bestX = x
+        bestZ = z
+        bestY = y
+      }
+
+      if (ground.normal.y >= MIN_NORMAL_Y && y >= minGround) break
+    }
+
+    if (bestScore > -Infinity && (y < minGround)) {
+      x = bestX
+      z = bestZ
+      y = bestY
     }
 
     s = next(s)
