@@ -64,6 +64,7 @@ export default function PrototaxiteGroup({ opacity = 1 }: PrototaxiteGroupProps)
         })()}
         height={BASE_HEIGHT}
         opacity={opacity}
+        seed={0}
       />
 
       {/* 5 secondaires, chacun reposant au sol */}
@@ -78,6 +79,7 @@ export default function PrototaxiteGroup({ opacity = 1 }: PrototaxiteGroupProps)
           radiusTop={BASE_RADIUS_TOP * sx}
           radiusBottom={BASE_RADIUS_BOTTOM * sx}
           opacity={opacity}
+          seed={i + 1}
         />
       ))}
     </>

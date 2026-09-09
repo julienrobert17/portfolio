@@ -18,7 +18,12 @@ import {
 // et on n'injecte QUE le displacement + la couleur, pour que tout le pipeline
 // PBR de three (lumières, ombres, brouillard, tone mapping) reste en place.
 
-const GROUND_SEGMENTS = 384
+/**
+ * Tessellation du sol. Exportée : la flore reconstruit la surface réellement
+ * rasterisée (linéaire par triangle) pour se poser dessus au millimètre, et
+ * doit donc connaître le pas exact du maillage.
+ */
+export const GROUND_SEGMENTS = 384
 
 /**
  * Un `#include` introuvable ferait un `String.replace` no-op : le patch
@@ -91,6 +96,13 @@ uniform float uWaterLevel;
 uniform float uTerrainMin;
 uniform float uTerrainMax;
 
+// Relus côté fragment pour le test de planéité : la normale interpolée depuis
+// le vertex est en espace VUE une fois arrivée ici, elle ne dit donc rien de
+// l'horizontalité réelle. On relit la normale OBJET dans la heightmap.
+uniform sampler2D uHeightmap;
+uniform float uSize;
+uniform float uRes;
+
 varying float vGroundHeight;
 varying vec2 vGroundXY;
 varying vec3 vGroundTangent;
@@ -115,6 +127,43 @@ float groundNoise(vec2 p) {
     mix(groundHash(i + vec2(0.0, 1.0)), groundHash(i + vec2(1.0, 1.0)), u.x),
     u.y
   );
+}
+
+// Même ciblage de centre de texel que côté vertex (dupliqué : les deux shaders
+// sont des unités de compilation séparées, une fonction ne traverse pas).
+vec2 groundUvFrag(vec2 xy) {
+  vec2 t = vec2(xy.x, -xy.y) / uSize + 0.5;
+  return (t * (uRes - 1.0) + 0.5) / uRes;
+}
+
+// ─── Tapis cryptogamique ─────────────────────────────────────────────────────
+// Dévonien inférieur : mousses, lichens et croûtes biologiques, pas d'herbe ni
+// de feuille. D'où une palette volontairement désaturée — un vert franc serait
+// un anachronisme de 100 Ma.
+
+// Horizontalité en espace MONDE. RGB de la heightmap = normale en espace OBJET
+// du plan, qui porte rotateX(-PI/2) : le « haut » y est donc Z, pas Y. Le
+// canal B est déjà normalisé côté JS, il vaut cos(pente) tel quel.
+float groundFlatness(vec2 xy) {
+  return texture2D(uHeightmap, groundUvFrag(xy)).z;
+}
+
+// Deux octaves : la grande donne la taille de plaque, la petite déchiquette
+// les contours. Décorrélé de la hauteur, sinon les plaques suivraient les
+// courbes de niveau.
+float cryptoPatch(vec2 p, float scale, vec2 offset) {
+  float coarse = groundNoise(p / scale + offset);
+  float fine = groundNoise(p / (scale * 0.38) + offset.yx * 1.7);
+  return coarse * 0.62 + fine * 0.38;
+}
+
+// Bords NETS : c'est le SEUIL qui suit la densité (la plaque s'étend ou se
+// rétracte), pas l'opacité. Fondre le masque redonnerait le dégradé mou qu'on
+// cherche justement à casser.
+// (« patch » est un mot réservé en GLSL ES 3.00, d'où le nom du paramètre.)
+float cryptoMask(float value, float density, float rare, float dense, float edge) {
+  float t = mix(rare, dense, clamp(density, 0.0, 1.0));
+  return smoothstep(t - edge, t + edge, value);
 }
 `
 
@@ -144,6 +193,45 @@ const COLOR_FRAGMENT = /* glsl */ `
   float wet = groundWetness(vGroundHeight);
   groundColor = mix(groundColor, groundColor * vec3(0.42, 0.48, 0.40), wet);
 
+  // ── Tapis cryptogamique ────────────────────────────────────────────────────
+  // Règle de proximité de l'eau PARTAGÉE avec la flore : 1 au niveau de l'eau,
+  // 0 six unités plus haut. Ne pas la faire diverger, mousse et plantes doivent
+  // coloniser les mêmes berges.
+  float wetProximity = 1.0 - smoothstep(uWaterLevel, uWaterLevel + 6.0, vGroundHeight);
+  float flatness = groundFlatness(vGroundXY);
+
+  // La mousse tient à l'horizontale et lâche sur les parois de chenal. Le
+  // relief est plat presque partout (cos(pente) médian mesuré 0.992), le seuil
+  // doit donc être haut pour que le test morde ailleurs que sur les berges.
+  // Seuils calibrés sur la heightmap réelle : ~40 % de la surface émergée en
+  // mousse, ~3 % en lichen, et 0.4 % de recouvrement entre les deux.
+  float mossFlat = smoothstep(0.82, 0.94, flatness);
+  float mossDensity = wetProximity * mossFlat;
+  float mossMask = cryptoMask(
+    cryptoPatch(vGroundXY, 14.0, vec2(11.3, 4.7)),
+    mossDensity, 0.80, 0.46, 0.045
+  );
+
+  // Lichen : zones hautes et sèches, l'exact complément. Autre échelle et autre
+  // décalage pour que les deux masques ne se superposent pas. Pas de test de
+  // planéité : un lichen crustacé colonise aussi la roche inclinée.
+  float dryness = 1.0 - wetProximity;
+  float lichenDensity = smoothstep(0.30, 0.65, dryness);
+  float lichenMask = cryptoMask(
+    cryptoPatch(vGroundXY, 9.0, vec2(-27.9, 63.1)),
+    lichenDensity, 0.92, 0.55, 0.05
+  );
+
+  // Vert-jaune olive désaturé, nuancé pour que la plaque ne soit pas un aplat.
+  vec3 mossColor = vec3(0.17, 0.20, 0.10)
+    * (0.82 + 0.36 * groundNoise(vGroundXY / 2.3 + vec2(7.0)));
+  groundColor = mix(groundColor, mossColor, mossMask * 0.85);
+
+  // Gris-vert pâle, presque minéral.
+  vec3 lichenColor = vec3(0.34, 0.36, 0.30)
+    * (0.88 + 0.24 * groundNoise(vGroundXY / 1.6 - vec2(3.0)));
+  groundColor = mix(groundColor, lichenColor, lichenMask * 0.70);
+
   diffuseColor.rgb *= groundColor;
 `
 
@@ -161,10 +249,20 @@ const NORMAL_FRAGMENT = /* glsl */ `
   );
 `
 
+// mossMask / lichenMask viennent de COLOR_FRAGMENT : dans meshphysical_frag,
+// <color_fragment> précède <roughnessmap_fragment> dans le MÊME scope de main,
+// les variables sont donc encore vivantes ici. On les réutilise plutôt que de
+// repayer huit fetches de bruit par pixel.
 const ROUGHNESS_FRAGMENT = /* glsl */ `
 #include <roughnessmap_fragment>
 
   roughnessFactor = mix(roughnessFactor, 0.22, groundWetness(vGroundHeight));
+
+  // Appliqué APRÈS la berge, et c'est tout l'intérêt : un tapis de mousse au
+  // ras de l'eau ne doit pas prendre le vernis mouillé de la vase nue.
+  roughnessFactor = mix(roughnessFactor, 0.99, mossMask * 0.85);
+  // Croûte de lichen : mate aussi, mais un cran en dessous de la mousse.
+  roughnessFactor = mix(roughnessFactor, 0.90, lichenMask * 0.5);
 `
 
 // ─── Patch ───────────────────────────────────────────────────────────────────

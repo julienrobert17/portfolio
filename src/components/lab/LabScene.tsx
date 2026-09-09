@@ -12,6 +12,7 @@ import DevonianAtmosphere from '@/components/experience/prototaxites/scene/Devon
 import DevonianForest, { getForestPositions } from '@/components/experience/prototaxites/scene/DevonianForest'
 import DevonianGround from '@/components/experience/prototaxites/scene/DevonianGround'
 import DevonianWater from '@/components/experience/prototaxites/scene/DevonianWater'
+import GroundFlora from '@/components/experience/prototaxites/scene/GroundFlora'
 import InternalStructure from '@/components/experience/prototaxites/scene/InternalStructure'
 import PrototaxiteGroup from '@/components/experience/prototaxites/scene/PrototaxiteGroup'
 import Smoke from '@/components/experience/prototaxites/scene/Smoke'
@@ -60,6 +61,7 @@ export default function LabScene({ phase = 'presence', progress = 0 }: LabSceneP
 
           <DevonianGround />
           <DevonianWater />
+          <GroundFlora />
 
           <DevonianForest count={24} forestSpread={vis.forestSpread} />
 

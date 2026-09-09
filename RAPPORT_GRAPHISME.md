@@ -411,3 +411,160 @@ sur `/lab`.**
 5. **Le réseau de chenaux n'a pas de sens d'écoulement.** Le fond est à niveau
    constant (−5), ce qui garantit la connectivité mais interdit tout ruissellement
    crédible. Un léger gradient général donnerait une direction à la plaine.
+
+---
+---
+
+# Lot végétation & troncs — 9 septembre 2026
+
+Branche `feat/vegetation-troncs`, partie de `feat/relief-eau`. `npx tsc --noEmit`
+vert, `npm run build` vert, ESLint propre sur les fichiers touchés (les 5 erreurs
+de `NarrativeOverlay.tsx` / `useNarrativeEngine.ts` restent hors périmètre).
+
+## 1. Fichiers touchés
+
+- `scene/GroundFlora.tsx` — **créé** : ~400 Cooksonia instanciées, 1 draw call
+- `scene/DevonianGround.tsx` — tapis cryptogamique (mousse + lichen), `GROUND_SEGMENTS` exporté
+- `scene/Prototaxite.tsx` — écorce à bruit deux échelles, normale perturbée, pied lichéneux, graine par instance ; gardes `visible`/`castShadow` sur l'opacité
+- `scene/DevonianForest.tsx` — seuils de colonisation renormalisés, `GROWTH_BAND` 0.25 → 0.35, exports `getForestThresholds` / `FOREST_GROWTH_BAND`
+- `scene/PrototaxiteGroup.tsx` — graines distinctes 0 à 5
+- `PrototaxitesScene.tsx` et `lab/LabScene.tsx` — câblage de `<GroundFlora />`
+- `RAPPORT_GRAPHISME.md` — cette section
+
+## 2. Vérification du lot 1.2 (colonisation)
+
+Seuils désormais étalés sur **exactement [0.000, 0.650]** = `[0, 1 − GROWTH_BAND]`.
+
+| forestSpread | 0.50 | 0.75 | 0.90 | 0.95 | 1.00 |
+|---|---|---|---|---|---|
+| arbres à `growth = 1` | 7 | 17 | 21 | 23 | **24 / 24** |
+
+- **Le dernier arbre atteint `growth = 1` à `forestSpread = 1.000`** — donc bien
+  au-delà du seuil de 0.95 demandé.
+- Premier arbre plein à 0.350, plus grand palier entre deux achèvements
+  consécutifs : **0.078**. Le front progresse continûment.
+
+## 3. Coût du lot 3 (Cooksonia)
+
+Mesuré en masquant l'`InstancedMesh`, phase `presence`, rendu 2940×1594 :
+
+| | avec flore | sans flore |
+|---|---|---|
+| temps de rendu | 0.70 ms | 0.70 ms |
+| draw calls | **15** | 14 |
+| triangles | 353 922 | 313 122 |
+
+**Coût isolé : 0.00 ms**, sous la résolution de mesure. 400 instances pour
+**+1 draw call** et +40 800 triangles. Budget de 2 ms très largement respecté,
+aucune raison de réduire la densité.
+
+## 4. Décisions face à une spec ambiguë ou fausse
+
+### 4.1 « Aucun arbre n'atteint growth = 1 avant 0.95 » est incompatible avec un front progressif
+
+Pris au pied de la lettre, ce critère imposerait que **tous** les arbres finissent
+leur croissance après 0.95, donc qu'ils poussent tous en bloc à la toute fin —
+exactement le « fondu global » que le lot cherche à supprimer. J'ai retenu la
+lecture cohérente avec la phrase précédente de la spec (« le **dernier** arbre
+finit au tout dernier moment ») : c'est le maximum qui doit dépasser 0.95, pas
+l'ensemble. Mesuré à 1.000. Si tu voulais vraiment la lecture littérale, dis-le,
+mais elle annule l'effet de colonisation.
+
+### 4.2 La cause du velours côtelé n'était pas celle indiquée
+
+La spec attribuait l'effet à « `sin(uv.y * 220)` », en le décrivant comme des
+stries verticales. Sur une `CylinderGeometry`, **`uv.y` est la coordonnée
+axiale** : cette ligne empilait donc ~220 **anneaux horizontaux** le long du
+tronc. C'était précisément ça, l'effet corduroy. Les cannelures verticales
+viennent de `uv.x`. Le commentaire « stries verticales fines » du fichier était
+faux, et il a été corrigé en même temps que le code.
+
+Corollaire non prévu : `uv.x` reboucle de 1 à 0 autour du tronc, donc un bruit de
+valeur écrit pour un plan y laisse une **couture verticale nette**. Le bruit
+d'écorce prend un paramètre de bouclage, et l'offset de graine doit rester entier
+sous peine de désaligner ce bouclage.
+
+### 4.3 `wetProximity + 6.0` est plus large que tout le relief émergé
+
+La règle de densité que j'ai imposée aux deux lots
+(`1 - smoothstep(WATER_LEVEL, WATER_LEVEL + 6, h)`) suppose 6 unités d'émergé.
+Le terrain n'en a que **5.21** (−5.00 à +3.09, eau à −2.128). `wetProximity` ne
+tombe donc jamais à 0 : minimum ~0.05 au point le plus haut, et encore 0.82 à
+l'altitude médiane. Conséquence directe : sans compensation, **le lichen sec
+n'apparaissait nulle part**. Il a fallu remapper la sécheresse. J'ai gardé la
+formule inchangée parce que c'était le contrat partagé entre mousse et flore —
+mais elle est mal calibrée pour ce relief, et la vraie correction serait
+`WATER_LEVEL + 4.0`.
+
+### 4.4 `sampleTerrain` ne suffit pas pour poser des plantes de 15 cm
+
+Écart connu entre la heightmap bilinéaire et la surface réellement rasterisée
+(linéaire par triangle) : médiane 0.005, mais **max 0.139** sur les zones de
+semis. Négligeable pour un arbre de 8 unités, pas pour une Cooksonia de 0.15 —
+jusqu'à 90 % de sa hauteur. Le lot 3 reconstruit donc la hauteur du triangle
+effectivement rendu à partir de quatre `sampleTerrain` aux coins du quad, ce qui
+ramène l'enfoncement nécessaire à 0.02. Cela imposait de connaître le pas exact
+du maillage : **j'ai exporté `GROUND_SEGMENTS` depuis `DevonianGround.tsx`** pour
+supprimer la constante dupliquée que le lot avait dû recopier.
+
+### 4.5 Le test de planéité de la mousse doit être très serré
+
+Les normales de la heightmap sont des différences finies au pas de 1.57 unité :
+cos(pente) médian **0.992**, 0.778 au 1ᵉʳ percentile. Un `smoothstep(0.5, 0.9)`
+« naturel » aurait été un no-op complet. Il faut `[0.82, 0.94]` pour que la mousse
+lâche effectivement sur les parois de chenal. Même remarque que pour le rejet de
+pente des arbres au lot précédent : ce relief est profond mais doux.
+
+### 4.6 Le seuil de coupure des ombres est un compromis, pas une solution
+
+Une shadow map ignore l'alpha d'un matériau opaque : il n'existe pas de moyen
+simple de faire *fondre* une ombre. J'ai donc coupé `castShadow` sous une opacité
+de **0.2** — bas volontairement, pour que le « pop » de l'ombre survienne quand le
+tronc est déjà très effacé. Vérifié : à `eclipse@1`, 0/6 `castShadow` et 0/6
+visibles ; à `eclipse@0.75` (opacité 0.5) les six projettent encore. Une
+disparition vraiment continue demanderait des ombres dithered, hors budget ici.
+
+### 4.7 Sporanges volontairement surdimensionnés
+
+À l'échelle réelle (~2 mm) les sporanges passeraient sous le pixel et la plante se
+lirait comme un simple fil. Ils font ~2 cm. C'est le seul écart assumé au
+réalisme morphologique — la structure (axe nu, dichotomie unique, aucune feuille)
+est elle strictement dévonienne.
+
+### 4.8 Semis en touffes plutôt que point à point
+
+Ajout du lot 3 par rapport à la spec : la règle `wetProximity` seule donne un
+semis régulier de type gazon. Les points tirés servent de graines, et cinq plantes
+s'y accrochent dans un rayon de 1.1. Distance médiane au plus proche voisin 0.45 :
+ça lit comme des tapis de berge plutôt qu'un gazon. Réversible en une constante.
+
+### 4.9 `<Instances frames={1}>` et un piège de mesure
+
+La flore est statique, donc drei n'a pas besoin de recomposer 400 matrices par
+frame. Attention pour toute mesure future : **drei ne renseigne `count` que dans
+son `useFrame`**. Tant qu'aucune frame n'a tourné, tous les `InstancedMesh` de la
+scène ont `count = 0` et ne rendent rien — j'ai d'abord cru la flore absente avant
+de comprendre que c'était l'environnement de mesure figé, pas un bug.
+
+## 5. Ce qui reste faible visuellement, par ordre d'impact
+
+1. **La palette du sol est trop pâle et trop sableuse.** Sur la capture, le
+   dominant est un beige clair ; les plaques de mousse et de lichen se lisent,
+   mais l'ensemble est loin du « tapis vert-jaune » de la référence. C'est la
+   suite directe du point 1 de la section précédente : les trois couleurs de base
+   n'ont toujours pas été rechoisies depuis le recalage sur `TERRAIN_MIN/MAX`, et
+   elles dominent les deux nouvelles couches. C'est le réglage à faire en premier.
+2. **`wetProximity` est mal calibré** (4.3) : à `+6.0` sur 5.21 unités d'émergé,
+   la mousse est presque partout et le lichen presque nulle part. Passer à `+4.0`
+   redonnerait du contraste entre berge et hauteur — un seul chiffre à changer,
+   dans les deux fichiers.
+3. **Les cannelures n'affectent pas la silhouette des troncs.** Elles agissent sur
+   la normale et la couleur, pas sur le contour : le déplacement radial était hors
+   périmètre du lot. De profil sur ciel clair, le bord du tronc reste lisse.
+4. **La flore s'arrête net à 45 unités.** Le rayon borné coûte zéro, mais la
+   limite est visible en vue aérienne (`resonance`, `zoomout`) où le tapis de
+   berge disparaît d'un coup. Un fade en scale sur les 10 dernières unités
+   suffirait.
+5. **Le grain d'écorce est en coordonnée UV, donc constant en angle.** Sur les
+   troncs à `sx = 0.5` il est deux fois plus dense en unités monde que sur le
+   principal. Peu visible, mais incohérent si on compare deux troncs voisins.

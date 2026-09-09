@@ -11,6 +11,7 @@ import DevonianAtmosphere from './scene/DevonianAtmosphere'
 import DevonianForest, { getForestPositions } from './scene/DevonianForest'
 import DevonianGround from './scene/DevonianGround'
 import DevonianWater from './scene/DevonianWater'
+import GroundFlora from './scene/GroundFlora'
 import InternalStructure from './scene/InternalStructure'
 import PrototaxiteGroup from './scene/PrototaxiteGroup'
 import Smoke from './scene/Smoke'
@@ -47,6 +48,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
           <DevonianGround />
           <DevonianWater />
+          <GroundFlora />
 
           <DevonianForest count={FOREST_COUNT} forestSpread={vis.forestSpread} />
 
