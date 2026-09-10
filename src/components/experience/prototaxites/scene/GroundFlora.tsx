@@ -139,7 +139,7 @@ const MIN_RADIUS = 6
 /** Marge au-dessus de l'eau : rien ne pousse dans un chenal ni sur sa lèvre. */
 const WATER_MARGIN = 0.2
 /** Hauteur au-dessus de l'eau où la proximité humide retombe à zéro. */
-const WET_FALLOFF = 6.0
+const WET_FALLOFF = 4.0
 /** normal.y sous lequel la paroi est trop raide pour retenir un tapis. */
 const MIN_NORMAL_Y = 0.6
 /** Nombre de plantes tirées autour d'un même point accepté. */

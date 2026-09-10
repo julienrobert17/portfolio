@@ -173,9 +173,11 @@ float cryptoMask(float value, float density, float rare, float dense, float edge
 const COLOR_FRAGMENT = /* glsl */ `
 #include <color_fragment>
 
-  vec3 lowColor  = vec3(0.10, 0.12, 0.06);
-  vec3 midColor  = vec3(0.28, 0.15, 0.07);
-  vec3 highColor = vec3(0.42, 0.26, 0.10);
+  // Plaine humide à tapis cryptogamique : brun-vert sombre au ras de l'eau,
+  // olive dominant sur la plaine, roche gris-brun désaturée sur les hauteurs.
+  vec3 lowColor  = vec3(0.075, 0.095, 0.055);
+  vec3 midColor  = vec3(0.190, 0.205, 0.100);
+  vec3 highColor = vec3(0.300, 0.280, 0.235);
 
   // Rampe recalée sur la plage RÉELLE du relief : avec un terrain qui descend
   // sous zéro, un simple /4.0 tassait tout sur la couleur basse.
@@ -197,7 +199,7 @@ const COLOR_FRAGMENT = /* glsl */ `
   // Règle de proximité de l'eau PARTAGÉE avec la flore : 1 au niveau de l'eau,
   // 0 six unités plus haut. Ne pas la faire diverger, mousse et plantes doivent
   // coloniser les mêmes berges.
-  float wetProximity = 1.0 - smoothstep(uWaterLevel, uWaterLevel + 6.0, vGroundHeight);
+  float wetProximity = 1.0 - smoothstep(uWaterLevel, uWaterLevel + 4.0, vGroundHeight);
   float flatness = groundFlatness(vGroundXY);
 
   // La mousse tient à l'horizontale et lâche sur les parois de chenal. Le
@@ -205,11 +207,11 @@ const COLOR_FRAGMENT = /* glsl */ `
   // doit donc être haut pour que le test morde ailleurs que sur les berges.
   // Seuils calibrés sur la heightmap réelle : ~40 % de la surface émergée en
   // mousse, ~3 % en lichen, et 0.4 % de recouvrement entre les deux.
-  float mossFlat = smoothstep(0.82, 0.94, flatness);
+  float mossFlat = smoothstep(0.74, 0.90, flatness);
   float mossDensity = wetProximity * mossFlat;
   float mossMask = cryptoMask(
     cryptoPatch(vGroundXY, 14.0, vec2(11.3, 4.7)),
-    mossDensity, 0.80, 0.46, 0.045
+    mossDensity, 0.66, 0.30, 0.05
   );
 
   // Lichen : zones hautes et sèches, l'exact complément. Autre échelle et autre
@@ -225,7 +227,7 @@ const COLOR_FRAGMENT = /* glsl */ `
   // Vert-jaune olive désaturé, nuancé pour que la plaque ne soit pas un aplat.
   vec3 mossColor = vec3(0.17, 0.20, 0.10)
     * (0.82 + 0.36 * groundNoise(vGroundXY / 2.3 + vec2(7.0)));
-  groundColor = mix(groundColor, mossColor, mossMask * 0.85);
+  groundColor = mix(groundColor, mossColor, mossMask * 0.95);
 
   // Gris-vert pâle, presque minéral.
   vec3 lichenColor = vec3(0.34, 0.36, 0.30)

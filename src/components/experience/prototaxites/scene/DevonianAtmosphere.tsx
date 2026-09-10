@@ -104,7 +104,11 @@ export default function DevonianAtmosphere({
   return (
     <>
       {/* Densité montée vs l'original pour masquer les bords du sol */}
-      <fogExp2 attach="fog" args={['#b8956a', 0.012]} />
+      {/* Densité descendue de 0.012 : elle avait été montée pour masquer les bords
+          d'un sol de 400 unités, qui en fait 800 depuis. À 0.0065 on lit encore les
+          plans du relief vers 200-300 unités, et le bord du sol reste noyé. Teinte
+          rapprochée de la bande d'horizon du shader de ciel. */}
+      <fogExp2 attach="fog" args={['#c2a276', 0.0065]} />
       <color attach="background" args={['#4a6fa0']} />
 
       {/* Lumière principale — alignée sur le disque solaire et le halo */}

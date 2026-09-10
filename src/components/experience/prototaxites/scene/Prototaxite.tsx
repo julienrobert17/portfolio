@@ -155,7 +155,9 @@ const COLOR_FRAGMENT = /* glsl */ `
   vec2 protoBark = protoBarkLayers(vProtoUv.x, protoH);
 
   // Cannelures : creux sombres, crêtes plus claires et plus chaudes.
-  vec3 protoColor = mix(vec3(0.19, 0.085, 0.028), vec3(0.38, 0.21, 0.075), protoBark.x);
+  // Colonnes gris-brun cendré : le contraste avec le sol doit être un contraste
+  // de VALEUR, pas seulement de teinte. L'ancienne écorce dorée se confondait.
+  vec3 protoColor = mix(vec3(0.055, 0.048, 0.042), vec3(0.155, 0.140, 0.120), protoBark.x);
   // Grain fibreux : modulation fine par-dessus, franchement irrégulière.
   protoColor *= 0.86 + protoBark.y * 0.28;
 
@@ -174,7 +176,7 @@ const COLOR_FRAGMENT = /* glsl */ `
     PROTO_MOTTLE_CELLS
   );
   lichen *= 0.3 + 0.7 * smoothstep(0.34, 0.78, lichenMottle);
-  protoColor = mix(protoColor, vec3(0.26, 0.31, 0.21), lichen * 0.7);
+  protoColor = mix(protoColor, vec3(0.30, 0.36, 0.24), lichen * 0.85);
 
   float pulse = sin(uTime * 0.4) * 0.5 + 0.5;
   protoColor += vec3(0.10, 0.04, 0.01) * pulse * 0.06;

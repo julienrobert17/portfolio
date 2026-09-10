@@ -568,3 +568,165 @@ de comprendre que c'était l'environnement de mesure figé, pas un bug.
 5. **Le grain d'écorce est en coordonnée UV, donc constant en angle.** Sur les
    troncs à `sx = 0.5` il est deux fois plus dense en unités monde que sur le
    principal. Peu visible, mais incohérent si on compare deux troncs voisins.
+
+---
+---
+
+# Lot palette & performance — 10 septembre 2026
+
+Branche `fix/palette-perf`, partie de `feat/vegetation-troncs`. `npx tsc --noEmit`
+vert, `npm run build` vert, ESLint propre sur les fichiers touchés.
+
+## 1. Priorité 1 — régression de performance
+
+### D'abord : ma mesure précédente était fausse
+
+Le rapport du lot relief annonçait « frame complète 2.8 ms, ~357 fps ». **C'est
+faux.** Ces chiffres venaient d'un `gl.render()` encadré par `ctx.finish()` — or
+`finish()` sur un contexte WebGL ne bloque pas jusqu'à la fin du travail GPU sous
+Chrome/ANGLE, il se comporte en gros comme un `flush()`. Toutes les mesures des
+lots précédents sous-estimaient donc massivement le coût GPU.
+
+J'ai refait les mesures avec `EXT_disjoint_timer_query_webgl2`, qui donne le vrai
+temps GPU écoulé. **Les 19 fps que tu observes sont réels ; mes 60 fps ne
+l'étaient pas.**
+
+Deuxième correctif de méthode : `rAF` est complètement gelé dans la fenêtre
+automatisée (0 frame en 3.4 s), donc le compteur `<Stats />` y est inexploitable —
+ce qui explique les « 0 FPS » et les « 60 FPS » erratiques des sessions
+précédentes.
+
+### Mesure par élimination (temps GPU réel, phase `presence`, 2940×1594, dpr 2)
+
+Décomposition de la scène (hors composer), base 14.65 ms :
+
+| Élément | Coût isolé |
+|---|---|
+| Sol 384² + shader | **7.06 ms** |
+| Reflector (eau) | 0.84 ms |
+| GroundFlora (400 instances) | 0.78 ms |
+| Reste (troncs, ciel, shadow map) | ~6 ms |
+
+Élimination sur la frame complète :
+
+| Configuration | Frame GPU | fps (cette machine) |
+|---|---|---|
+| Départ (SSAO 31/7, multisampling 8) | **114.68 ms** | 8.7 |
+| SSAO ramené à 8 samples / 3 rings | 70.69 ms | 14.1 |
+| SSAO retiré | 51.96 ms | 19.2 |
+| `multisampling={0}` | 25.76 ms | 38.8 |
+| + SMAA en compensation | 43.72 ms | 22.9 |
+| **Configuration retenue** (sans SSAO, sans SMAA, multisampling 0) | **25.5 ms** | **39.2** |
+
+### Ce qui a été coupé, et le gain de chaque coupe
+
+1. **`multisampling={0}` sur `<EffectComposer>` — gain ~26 ms.** C'est la coupe la
+   plus rentable de tout le lot, et elle n'était pas dans la liste des suspects.
+   drei crée par défaut une cible de rendu **MSAA ×8** ; à 2940×1594 la résolution
+   du framebuffer multi-échantillonné coûtait à elle seule plus que toute la scène.
+2. **SSAO retiré — gain ~26 ms supplémentaires** (38.7 ms mesurés à 8/3, après
+   passage à multisampling 0). Réduire les samples de 31/7 à 8/3 ne suffisait pas :
+   l'essentiel du coût vient de `enableNormalPass`, qui impose **un rendu complet
+   de la scène en plus** pour la passe de normales. Conforme à l'ordre d'arbitrage
+   de la spec (samples réduits, puis retrait).
+3. **SMAA testé puis abandonné** — 18 ms pour compenser la perte du MSAA, hors
+   budget. À dpr 2 le suréchantillonnage limite déjà l'aliasing.
+
+**Non coupés, mesures à l'appui** : le reflector reste à `resolution 512` (0.84 ms,
+soit 0.7 % de la frame de départ) et le sol reste à 384² (7.06 ms mais c'est lui
+qui porte le relief et supprime le facettage). La spec plaçait le reflector en
+tête de l'ordre d'arbitrage — la mesure dit l'inverse, je ne l'ai donc pas touché.
+
+**Bilan : 114.68 ms → 25.5 ms, soit 4.5× plus rapide.**
+
+### Ce que je ne peux pas garantir
+
+Je ne peux pas mesurer le fps sur ta machine, seulement sur ce contexte
+automatisé, qui est plus lent : j'y mesure 114.68 ms sur la configuration de
+départ là où tu observes 52 ms (19 fps), soit un facteur **~2.2**. Au même
+rapport, les 25.5 ms retenus donneraient **~11.6 ms chez toi, soit ~85 fps**. La
+cible de 60 fps devrait donc être atteinte avec de la marge, mais c'est une
+extrapolation, pas une mesure. **À confirmer sur ton Chrome.**
+
+Si c'est encore court, le levier suivant, dans l'ordre : `dpr={[1, 1.5]}` sur les
+deux `<Canvas>` (−44 % de pixels, gain proportionnel sur composer et fill rate),
+puis le sol à 256² (~3 ms), puis Bloom (~6 ms).
+
+## 2. Valeurs retenues — palette, fog, écorce
+
+| | avant | après |
+|---|---|---|
+| `lowColor` (près de l'eau) | `0.10, 0.12, 0.06` | **`0.075, 0.095, 0.055`** brun-vert sombre humide |
+| `midColor` (plaine) | `0.28, 0.15, 0.07` | **`0.190, 0.205, 0.100`** olive dominant |
+| `highColor` (hauteurs) | `0.42, 0.26, 0.10` | **`0.300, 0.280, 0.235`** gris-brun désaturé |
+| `wetProximity` | `WATER_LEVEL + 6.0` | **`+ 4.0`** (les deux fichiers) |
+| mousse — seuil de pente | `smoothstep(0.82, 0.94)` | **`(0.74, 0.90)`** |
+| mousse — seuils de plaque | `0.80 → 0.46` | **`0.66 → 0.30`** |
+| mousse — force du mélange | `0.85` | **`0.95`** |
+| fog | `#b8956a`, densité `0.012` | **`#c2a276`, densité `0.0065`** |
+| écorce | `0.19,0.085,0.028 → 0.38,0.21,0.075` | **`0.055,0.048,0.042 → 0.155,0.140,0.120`** |
+| lichen de pied | `0.26,0.31,0.21` à 0.7 | **`0.30,0.36,0.24` à 0.85** |
+
+Densité de fog choisie par le calcul plutôt qu'à tâtons : à 0.0065, le facteur
+`FogExp2` vaut 0.81 à 200 unités et 0.93 à 250 — la profondeur se lit — mais 0.999
+à 400 unités, donc le bord du sol (demi-largeur 400) reste noyé. Le plan d'eau,
+lui, a une demi-largeur de 250 où le fog n'est qu'à 0.93 : son bord est le point
+limite, à surveiller.
+
+## 3. Décisions face à une spec ambiguë ou fausse
+
+### 3.1 L'hypothèse principale de la spec est infirmée
+
+La spec désignait l'interaction `MeshReflectorMaterial × SSAO` comme suspect
+numéro un, à vérifier en premier. Vérifié : **le reflector coûte 0.84 ms**, soit
+moins de 1 % de la frame. Le vrai coupable était ailleurs — un réglage par défaut
+de drei (`multisampling: 8`) que personne n'avait choisi explicitement. J'ai suivi
+l'ordre demandé pour la vérification, mais pas pour les coupes : couper le
+reflector en premier, comme le prescrivait l'ordre d'arbitrage, aurait dégradé
+l'image pour 0.7 % de gain.
+
+### 3.2 Les modifications GLSL ne survivent pas au hot reload
+
+Piège coûteux, à connaître pour la suite : three met en cache le programme
+compilé, et changer une chaîne GLSL dans `onBeforeCompile` **ne recompile pas** le
+matériau existant. Après HMR, j'ai vu le fog changer (c'est une prop three) mais
+ni la palette ni l'écorce (ce sont des shaders). J'ai d'abord cru que mes valeurs
+étaient mauvaises. **Toute vérification visuelle d'un changement de shader exige
+un rechargement complet de la page.**
+
+### 3.3 Le fps mesurable ici ne vaut rien, le temps GPU si
+
+Détaillé en 1. Conséquence pratique : j'ai abandonné `<Stats />` et `rAF` comme
+instruments dans cet environnement, au profit des requêtes de timer GPU. C'est la
+seule mesure fiable dont je dispose, et elle est en temps absolu, pas en fps.
+
+### 3.4 L'éminence centrale ne reçoit plus de mousse — c'est voulu mais discutable
+
+Avec `wetProximity` à `+4.0`, le monticule central (hauteur ~2.2, eau à −2.13) est
+à `wetProximity = 0` : **aucune mousse**. Physiquement cohérent — c'est le point
+sec — mais c'est aussi la plus grande surface du cadre en phase `presence`, et
+elle se lit maintenant comme une roche pâle assez nue. Le `+4.0` demandé résout
+bien le problème du lichen invisible, mais crée celui-ci. Je l'ai appliqué comme
+demandé et je le signale plutôt que d'arbitrer seul : la correction serait soit de
+monter la couverture du lichen sec sur les hauteurs, soit d'accepter `+5.0` comme
+compromis.
+
+## 4. Ce qui reste faible, par ordre d'impact
+
+1. **L'éminence centrale est nue et pâle** (3.4). C'est le premier plan de la
+   phase `presence`, donc le défaut le plus exposé. Monter la présence du lichen
+   sec plutôt que celle de la mousse est la piste la plus directe.
+2. **Aucun anti-aliasing.** Le MSAA est parti, SMAA est trop cher. À dpr 2 ça
+   passe, mais sur un écran non-Retina les silhouettes de troncs sur ciel clair
+   crèneleront. `FXAA` (bien moins cher que SMAA) n'a pas été testé, faute de
+   budget — c'est le premier essai à faire si l'aliasing gêne.
+3. **L'occlusion ambiante a disparu avec SSAO.** Les objets sont moins ancrés au
+   sol : le contact tronc/terrain repose désormais uniquement sur la shadow map.
+   Un AO moins cher (N8AO, ou SSAO sans `enableNormalPass`) mériterait un essai
+   maintenant que le budget est dégagé.
+4. **Le bord du plan d'eau est le point limite du nouveau fog** (250 unités, fog à
+   0.93). Non observé en pratique, mais c'est là que ça cassera si tu baisses
+   encore la densité.
+5. **Le contraste de valeur troncs/sol reste moyen** en plein soleil. Les colonnes
+   se détachent bien mieux qu'avant, mais la lumière clé chaude à intensité 2.8
+   les ramène vers le ton du terrain sur les faces éclairées.

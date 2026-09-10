@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Bloom, EffectComposer, SSAO, Vignette } from '@react-three/postprocessing'
+import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import type { Beat } from './constants/narrative'
 import Arthropods from './scene/Arthropods'
@@ -60,19 +60,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
           <CameraRig phase={currentPhase} progress={progress} />
 
-          <EffectComposer enableNormalPass>
-            <SSAO
-              worldDistanceThreshold={80}
-              worldDistanceFalloff={20}
-              worldProximityThreshold={4}
-              worldProximityFalloff={2}
-              samples={31}
-              rings={7}
-              radius={2.2}
-              intensity={9}
-              luminanceInfluence={0.6}
-              depthAwareUpsampling
-            />
+          <EffectComposer multisampling={0}>
             <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.2} intensity={0.5} mipmapBlur />
             <Vignette offset={0.32} darkness={0.42} blendFunction={BlendFunction.NORMAL} />
           </EffectComposer>
