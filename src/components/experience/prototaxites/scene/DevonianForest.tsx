@@ -1,7 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
-import DevonianTree from './DevonianTree'
+import { useMemo, useRef } from 'react'
+import * as THREE from 'three'
+import { useGLTF } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import { WATER_LEVEL, sampleTerrain } from './terrain'
 
 export interface ForestOptions {
@@ -19,9 +21,9 @@ interface DevonianForestProps extends ForestOptions {
 }
 
 const DEFAULTS = {
-  count: 24,
+  count: 300,
   innerRadius: 14,
-  outerRadius: 34,
+  outerRadius: 180,
   minHeight: 6,
   maxHeight: 11,
   seed: 1,
@@ -51,10 +53,52 @@ const ANGLE_SPREAD = 0.5
 // Largeur de la rampe de pousse d'un arbre, en unités de forestSpread.
 // Fenêtre de croissance individuelle. Élargie de 0.25 à 0.35 : la pousse de
 // chaque arbre est plus douce et les paliers entre arbres se recouvrent.
-const GROWTH_BAND = 0.35
+// Fenêtre de croissance individuelle. À 0.30 avec des seuils étalés sur
+// [0, 0.70], on a en permanence ~30 % d'arbres adultes, ~43 % en cours de
+// pousse et ~27 % pas encore levés : c'est cette coexistence qui fait lire une
+// colonisation plutôt qu'une poussée simultanée.
+const GLB_URL = '/prehistoric_tree_01.glb'
+
+// Objets de travail réutilisés : recomposer 300 matrices par frame ne doit pas
+// allouer.
+const SCRATCH_MATRIX = new THREE.Matrix4()
+const SCRATCH_QUAT = new THREE.Quaternion()
+const SCRATCH_POS = new THREE.Vector3()
+const SCRATCH_SCALE = new THREE.Vector3()
+const UP = new THREE.Vector3(0, 1, 0)
+
+// Au-delà de ce rayon les arbres passent en géométrie allégée et cessent de
+// projeter une ombre : le frustum de la directionnelle ne couvre que ±60, ils
+// alimentaient la shadow map sans rien pouvoir y inscrire.
+const LOD_RADIUS = 60
+// Fraction de triangles conservée sur le feuillage lointain. Le feuillage fait
+// 8056 triangles contre 223 pour le tronc : c'est lui, et lui seul, qu'il faut
+// alléger.
+const FAR_KEEP = 0.34
+const HEAVY_TRI_THRESHOLD = 1000
+
+/** Décime une géométrie indexée par paires de triangles (les cartes de
+ *  feuillage sont des quads : retirer un triangle sur deux les trouerait). */
+function decimate(geometry: THREE.BufferGeometry, keep: number): THREE.BufferGeometry {
+  const index = geometry.index
+  if (!index) return geometry
+  const pairs = Math.floor(index.count / 6)
+  const stride = Math.max(1, Math.round(1 / keep))
+  const kept: number[] = []
+  for (let p = 0; p < pairs; p += stride) {
+    for (let k = 0; k < 6; k++) kept.push(index.getX(p * 6 + k))
+  }
+  const out = geometry.clone()
+  out.setIndex(kept)
+  return out
+}
+
+const GROWTH_BAND = 0.3
 
 // Amplitude du bruit ajouté au seuil, pour casser le front circulaire parfait.
-const THRESHOLD_JITTER = 0.15
+// Élargi : le rang purement radial faisait apparaître les arbres par anneaux
+// concentriques nettement visibles.
+const THRESHOLD_JITTER = 0.22
 
 interface ForestTree {
   key: number
@@ -238,22 +282,155 @@ export default function DevonianForest({
   seed = DEFAULTS.seed,
   forestSpread,
 }: DevonianForestProps) {
-  const trees = useMemo(
-    () => getForest({ count, innerRadius, outerRadius, minHeight, maxHeight, seed }),
-    [count, innerRadius, outerRadius, minHeight, maxHeight, seed],
+  const { scene } = useGLTF(GLB_URL)
+  const trees = getForest({ count, innerRadius, outerRadius, minHeight, maxHeight, seed })
+
+  // Les 24 clones tenaient ; plusieurs centaines ne tiendraient pas. On extrait
+  // les géométries du GLB une fois, matrice locale cuite dedans, et on les rend
+  // en InstancedMesh — deux draw calls quel que soit le nombre d'arbres.
+  const sources = useMemo(() => {
+    scene.updateMatrixWorld(true)
+    const out: { geometry: THREE.BufferGeometry; material: THREE.Material }[] = []
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      const geometry = mesh.geometry.clone()
+      geometry.applyMatrix4(mesh.matrixWorld)
+      out.push({
+        geometry,
+        material: Array.isArray(mesh.material) ? mesh.material[0] : mesh.material,
+      })
+    })
+    return out
+  }, [scene])
+
+  // Normalisation reprise de l'ancien DevonianTree : la géométrie du GLB est
+  // bakée loin de son origine, le recentrage X/Z est indispensable.
+  const norm = useMemo(() => {
+    const box = new THREE.Box3()
+    for (const src of sources) {
+      src.geometry.computeBoundingBox()
+      const bb = src.geometry.boundingBox
+      if (bb) box.union(bb)
+    }
+    const size = box.getSize(new THREE.Vector3())
+    const center = box.getCenter(new THREE.Vector3())
+    return { sizeY: size.y || 1, cx: center.x, cz: center.z, minY: box.min.y }
+  }, [sources])
+
+  // Géométries allégées pour le lointain
+  const farSources = useMemo(
+    () =>
+      sources.map((src) => {
+        const tris = src.geometry.index
+          ? src.geometry.index.count / 3
+          : src.geometry.attributes.position.count / 3
+        return tris > HEAVY_TRI_THRESHOLD
+          ? { ...src, geometry: decimate(src.geometry, FAR_KEEP) }
+          : src
+      }),
+    [sources],
   )
+
+  const split = useMemo(() => {
+    const near: number[] = []
+    const far: number[] = []
+    trees.forEach((t, i) => {
+      const r = Math.hypot(t.position[0], t.position[2])
+      ;(r <= LOD_RADIUS ? near : far).push(i)
+    })
+    // Triés par seuil : les arbres déjà levés occupent toujours les premiers
+    // slots, ce qui permet de ne dessiner qu'eux via InstancedMesh.count.
+    const byThreshold = (a: number, b: number) => trees[a].threshold - trees[b].threshold
+    near.sort(byThreshold)
+    far.sort(byThreshold)
+    return { near, far }
+  }, [trees])
+
+  const nearRefs = useRef<(THREE.InstancedMesh | null)[]>([])
+  const farRefs = useRef<(THREE.InstancedMesh | null)[]>([])
+  const lastSpread = useRef(-1)
+
+  useFrame(() => {
+    if (Math.abs(lastSpread.current - forestSpread) < 0.0005) return
+    lastSpread.current = forestSpread
+
+    const m = SCRATCH_MATRIX
+    const q = SCRATCH_QUAT
+    const pos = SCRATCH_POS
+    const scl = SCRATCH_SCALE
+
+    const write = (indices: number[], refs: (THREE.InstancedMesh | null)[]) => {
+    let drawn = 0
+    for (let slot = 0; slot < indices.length; slot++) {
+      const t = trees[indices[slot]]
+      const growth = smoothstep(t.threshold, t.threshold + GROWTH_BAND, forestSpread)
+      const s = (t.height / norm.sizeY) * growth
+
+      // T(position) · Ry(rotation) · T(offset · growth) · S(scale)
+      // L'offset suit growth pour que la base reste collée au sol pendant la pousse.
+      const ox = -norm.cx * s
+      const oy = -norm.minY * s
+      const oz = -norm.cz * s
+      const cos = Math.cos(t.rotationY)
+      const sin = Math.sin(t.rotationY)
+
+      pos.set(
+        t.position[0] + ox * cos + oz * sin,
+        t.position[1] + oy,
+        t.position[2] - ox * sin + oz * cos,
+      )
+      q.setFromAxisAngle(UP, t.rotationY)
+      scl.setScalar(s)
+      m.compose(pos, q, scl)
+
+      // Les seuils sont triés : dès qu'un arbre n'est pas levé, aucun des
+      // suivants ne l'est. Un InstancedMesh dessine TOUTES ses instances même à
+      // échelle nulle — sans cette coupe, la forêt coûtait 1.9 M de triangles
+      // en phase presence alors qu'aucun arbre n'est visible.
+      if (growth < 0.004) break
+      for (const ref of refs) ref?.setMatrixAt(drawn, m)
+      drawn++
+    }
+    for (const ref of refs) {
+      if (!ref) continue
+      ref.count = drawn
+      ref.instanceMatrix.needsUpdate = true
+    }
+    }
+
+    write(split.near, nearRefs.current)
+    write(split.far, farRefs.current)
+  })
 
   return (
     <>
-      {trees.map((t) => (
-        <DevonianTree
-          key={t.key}
-          position={t.position}
-          targetHeight={t.height}
-          rotationY={t.rotationY}
-          growth={smoothstep(t.threshold, t.threshold + GROWTH_BAND, forestSpread)}
+      {sources.map((src, i) => (
+        <instancedMesh
+          key={`near-${i}`}
+          ref={(el) => {
+            nearRefs.current[i] = el
+          }}
+          args={[src.geometry, src.material, Math.max(1, split.near.length)]}
+          castShadow
+          // La bounding sphere d'un InstancedMesh est calculée sur la géométrie
+          // source, pas sur les instances : le culling ferait disparaître la
+          // forêt entière selon l'angle.
+          frustumCulled={false}
+        />
+      ))}
+      {farSources.map((src, i) => (
+        <instancedMesh
+          key={`far-${i}`}
+          ref={(el) => {
+            farRefs.current[i] = el
+          }}
+          args={[src.geometry, src.material, Math.max(1, split.far.length)]}
+          frustumCulled={false}
         />
       ))}
     </>
   )
 }
+
+useGLTF.preload(GLB_URL)

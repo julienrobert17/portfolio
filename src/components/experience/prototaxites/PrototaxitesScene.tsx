@@ -22,7 +22,7 @@ interface PrototaxiteSceneProps {
   progress: number
 }
 
-const FOREST_COUNT = 24
+const FOREST_COUNT = 300
 
 export default function PrototaxitesScene({ currentPhase, progress }: PrototaxiteSceneProps) {
   const vis = usePhaseVisibility({ phase: currentPhase, progress })
