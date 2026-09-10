@@ -255,7 +255,9 @@ const COLOR_FRAGMENT = /* glsl */ `
   ) * rockMask;
 
   // Vert-jaune olive désaturé, nuancé pour que la plaque ne soit pas un aplat.
-  vec3 mossColor = vec3(0.145, 0.180, 0.070)
+  // Nettement assombrie et resaturée : le contraste doit tenir en niveaux de
+  // gris, pas seulement en teinte, sinon la mosaïque lit comme du camouflage.
+  vec3 mossColor = vec3(0.080, 0.108, 0.034)
     * (0.80 + 0.40 * groundNoise(vGroundXY / 2.3 + vec2(7.0)));
   groundColor = mix(groundColor, mossColor, mossMask);
 
@@ -342,9 +344,9 @@ const ROUGHNESS_FRAGMENT = /* glsl */ `
 
   // Rugosité par état de surface. C'est ce qui rend les plaques lisibles même
   // quand les teintes sont proches : la mousse absorbe, la boue renvoie.
-  roughnessFactor = mix(roughnessFactor, 0.70, rockMask);   // roche : spéculaire
+  roughnessFactor = mix(roughnessFactor, 0.42, rockMask);   // roche : franchement spéculaire
   roughnessFactor = mix(roughnessFactor, 1.00, mossMask);   // mousse : mate
-  roughnessFactor = mix(roughnessFactor, 0.20, mudMask);    // boue : vernie
+  roughnessFactor = mix(roughnessFactor, 0.10, mudMask);    // boue : vernie, réfléchit en rasant
   roughnessFactor = mix(roughnessFactor, 0.90, lichenMask * 0.5);
 `
 

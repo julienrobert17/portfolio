@@ -899,3 +899,157 @@ resserré de 0.05 à 0.02).
    l'élargissement du fondu.
 5. **Toujours aucun anti-aliasing** (hérité du lot précédent) : les silhouettes de
    troncs sur ciel clair crènelent sur écran non-Retina.
+
+---
+---
+
+# Lot colonisation & cadrage — 10 septembre 2026
+
+Branche `feat/coloniser-cadrer`, partie de `feat/sol-plaques`. `npx tsc --noEmit`
+vert, `npm run build` vert, ESLint propre sur les fichiers touchés.
+
+## 1. Fichiers touchés
+
+- `scene/DevonianForest.tsx` — rendu instancié, LOD, count dynamique, 300 arbres à 180 u
+- `scene/DevonianTree.tsx` — **supprimé** (remplacé par l'instanciation)
+- `scene/usePhaseVisibility.ts` — colonisation démarrée en `ecosystem`, poursuivie en `zoomout`
+- `scene/CameraRig.tsx` — cadrages `context`/`presence` et `ecosystem`
+- `scene/DevonianGround.tsx` — contraste mousse/roche, rugosité par état
+- `lab/LabScene.tsx`, `PrototaxitesScene.tsx` — 300 arbres
+
+## 2. Courbe de colonisation mesurée
+
+| Phase | progress | forestSpread | growth > 0.5 | adultes | en pousse | absents |
+|---|---|---|---|---|---|---|
+| ecosystem | 0.80 | 0.018 | 0 | 0 | 1 | 299 |
+| ecosystem | 1.00 | 0.120 | 0 | 0 | 17 | 283 |
+| eclipse | 0.25 | 0.147 | 0 | 0 | 28 | 272 |
+| eclipse | 0.50 | 0.335 | 67 | 4 | 120 | 176 |
+| eclipse | 0.75 | 0.523 | 162 | 86 | 151 | 63 |
+| eclipse | 1.00 | 0.550 | 177 | 99 | 155 | 46 |
+| zoomout | 0.50 | 0.775 | 290 | 221 | 79 | 0 |
+| zoomout | 1.00 | 1.000 | 300 | 300 | 0 | 0 |
+| resonance | — | 1.000 | 300 | 300 | 0 | 0 |
+
+La courbe n'est jamais saturée avant la toute fin, et à mi-eclipse la coexistence
+demandée est là : **4 adultes, 120 en pousse, 176 zones encore vides** dans le
+même cadre.
+
+## 3. Arbres, coût GPU, technique
+
+**300 arbres** (contre 24), rayon **14 → 180 unités**.
+
+| | triangles | draw calls |
+|---|---|---|
+| `presence` avant ce lot | 353 922 | 15 |
+| `resonance`, instanciation naïve | **5 305 754** | 10 |
+| `resonance`, après LOD | **1 907 153** | 12 |
+| `presence`, après count dynamique | **353 922** | 15 |
+
+Technique retenue : **`InstancedMesh`**, deux géométries extraites du GLB avec
+leur matrice locale cuite dedans, matrices d'instance recomposées en `useFrame`
+uniquement quand `forestSpread` bouge. `DevonianTree` et son `<Clone>` par arbre
+ont disparu.
+
+Trois optimisations, chacune mesurée :
+
+1. **LOD à 60 unités.** Le feuillage fait 8056 triangles contre 223 pour le
+   tronc : c'est lui seul qu'il faut alléger. Au-delà de 60 u, feuillage décimé à
+   34 % **par paires de triangles** (les cartes de feuillage sont des quads, en
+   retirer un triangle sur deux les trouerait). Répartition obtenue : 51 arbres
+   proches en pleine géométrie, 249 lointains allégés.
+2. **Plus d'ombre portée au-delà de 60 u.** Le frustum de la directionnelle ne
+   couvre que ±60 : ces arbres alimentaient la shadow map sans pouvoir rien y
+   inscrire. Coût de l'ombre de la forêt mesuré à 5.73 ms avant.
+3. **`count` dynamique sur l'`InstancedMesh`.** Un `InstancedMesh` dessine
+   **toutes** ses instances même à échelle nulle : la forêt coûtait 1 922 721
+   triangles en phase `presence`, où aucun arbre n'est levé. Les seuils étant
+   triés, la boucle s'arrête au premier arbre non levé et `count` est ajusté.
+   Retour exact au coût d'avant le lot.
+
+## 4. Coordonnées de caméra retenues
+
+Recherche numérique par marche de rayons sur le vrai terrain (28 × 16 rayons par
+cadrage, balayage azimut × rayon × hauteur), et non par tâtonnement.
+
+| Phase | avant | après | eau dans le cadre | berge | eau la plus proche |
+|---|---|---|---|---|---|
+| `context` / `presence` | `[8, 5, 14]` | **`[22, 5, 0]`** | 6.3 → **6.5 %** | 6.7 → **8.9 %** | 34 → **26 u** |
+| `ecosystem` | `[18, 8, 22]` | **`[28, 8, -4.9]`** | 13.8 → **15.2 %** | 24.8 → **29.0 %** | 19 → **18 u** |
+| `eclipse` | `[14, 6, 18]` | **inchangé** | 9.2 % | 10.7 % | 23 u |
+
+`presence` gagne en **reculant** (16 → 22 u), pas en tournant : à rayon constant,
+tous les azimuts testés perdaient de l'eau (3.3 % au mieux) pour gagner de la
+berge. Le Prototaxite principal passe de 46 % à 34 % de la hauteur d'écran — il
+reste très largement le sujet dominant.
+
+`eclipse` n'a pas été touchée : ses 9.2 % d'eau sont la **meilleure part d'eau de
+tous les azimuts testés** à ce rayon ; les alternatives gagnaient de la berge
+(jusqu'à 16.3 %) en perdant de l'eau, sans gain net. Je préfère ne pas bouger un
+cadrage plutôt que de le changer pour un échange nul.
+
+`interior` et `resonance` non touchées, comme demandé. Les Prototaxites n'ont pas
+été déplacés : le point 2.3 n'a pas eu à être utilisé.
+
+## 5. Décisions face à une spec ambiguë ou fausse
+
+### 5.1 Faire lever les premiers arbres pendant `ecosystem`
+
+La spec décrit le récit — « les premiers arbres apparaissent alors que les
+Prototaxites dominent encore » — mais `forestSpread` valait 0 jusqu'au début
+d'`eclipse`, or c'est justement pendant `eclipse` que les Prototaxites s'effacent.
+Le croisement des deux règnes était donc impossible à montrer. J'ai fait démarrer
+la colonisation sur les 30 derniers pour cent d'`ecosystem` : 17 arbres lèvent
+alors que `prototaxites` vaut encore 1.00. C'est ce que dit le texte de la spec,
+même si ce n'est pas ce que disait sa consigne technique.
+
+### 5.2 La rampe d'`eclipse` avait une demi-phase morte
+
+`easeInOutCubic(clamp01(p * 1.5))` atteint 1 dès **p = 0.667** : de 0.667 à 1.0,
+`forestSpread` ne bougeait plus. Le facteur 1.5, hérité d'un lot antérieur,
+annulait la moitié de la phase la plus importante du récit. Retiré.
+
+### 5.3 L'instanciation crée un coût que les clones n'avaient pas
+
+Piège non anticipé par la spec : passer de `<Clone>` à `InstancedMesh` fait
+**perdre** l'optimisation « un arbre non levé ne coûte rien ». Les clones
+retournaient `null` sous `growth < 0.01` ; un `InstancedMesh` dessine tout son
+buffer. Sans le `count` dynamique, ce lot aurait ajouté 1.9 M de triangles à
+`presence`, une phase où la forêt n'existe pas. C'est le genre de régression qui
+ne se voit pas à l'écran.
+
+### 5.4 Les mesures de temps de frame de cette session sont inexploitables
+
+Les triangles et les draw calls sont fiables et reproductibles ; les temps GPU en
+millisecondes ont dérivé de 26.7 ms à 49 ms sur une phase **inchangée** au fil de
+la session, à mesure que les rechargements s'accumulaient. Pire, `resonance`
+(1.9 M triangles) mesure plus **rapide** que `presence` (354 k) — cohérent avec
+un coût dominé par le fill rate du sol vu de près, pas par la géométrie, mais
+cela rend tout delta en millisecondes ininterprétable ici. **Je rapporte donc les
+compteurs de géométrie, pas des fps.** À vérifier sur ta machine.
+
+### 5.5 Un incident de commit à signaler
+
+Ton travail en cours sur `un-moment-hors-du-temps` et `entre-nous` était présent
+dans l'arbre, dont un renommage déjà indexé vers `src/lib/use-reduced-motion.ts`.
+Mon premier `git add -A` l'a embarqué dans mon commit. J'ai défait et recommité
+en listant explicitement mes cinq fichiers. **Ton travail est intact et toujours
+non commité**, renommage compris. À vérifier tout de même de ton côté.
+
+## 6. Ce qui reste faible, par ordre d'impact
+
+1. **Le contraste de la mosaïque est peut-être passé de trop faible à trop fort.**
+   Les plaques de roche claire sur mousse sombre lisent maintenant très
+   nettement, au risque du filet de camouflage. C'est la direction demandée et
+   c'était nécessaire, mais c'est le premier réglage à revoir à l'œil.
+2. **La frontière du LOD est visible en `zoomout`.** À 60 unités le feuillage
+   passe de 8056 à 2686 triangles d'un coup ; sur une vue qui traverse cette
+   distance, la transition peut s'apercevoir. Un LOD à trois niveaux, ou une
+   décimation progressive, l'adoucirait.
+3. **Les arbres lointains ne projettent plus d'ombre du tout.** Correct tant que
+   le frustum reste à ±60, mais si tu l'élargis un jour, la forêt lointaine
+   restera sans ombre sans que rien ne le signale.
+4. **La forêt ne colonise pas au-delà de 180 unités**, alors que le fog porte à
+   300. Le dernier plan de `resonance` montre donc une lisière, noyée dans la
+   brume mais présente.
+5. **Toujours aucun anti-aliasing**, hérité du lot palette-perf.
