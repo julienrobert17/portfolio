@@ -1053,3 +1053,211 @@ non commité**, renommage compris. À vérifier tout de même de ton côté.
    300. Le dernier plan de `resonance` montre donc une lisière, noyée dans la
    brume mais présente.
 5. **Toujours aucun anti-aliasing**, hérité du lot palette-perf.
+
+# Lot dôme & densité — 10 septembre 2026
+
+Branche `feat/dome-densite`, partie de `feat/coloniser-cadrer`. `npx tsc --noEmit`
+vert, `npm run build` vert, ESLint propre sur les fichiers touchés.
+
+## 1. Fichiers touchés
+
+- `scene/Prototaxite.tsx` — sommet en dôme, normales redérivées, 64 anneaux
+- `scene/DevonianForest.tsx` — loi de densité, placement, 4 paliers de LOD
+- `lab/LabScene.tsx`, `PrototaxitesScene.tsx` — effectif et rayon pris des `DEFAULTS`
+
+`PrototaxiteGroup.tsx` n'a pas eu à bouger : le dôme mange le haut du fût au
+lieu de s'y ajouter, donc la hauteur totale et l'ancrage au sol sont inchangés.
+
+## 2. Le dôme : paramétré par l'angle, pas par la hauteur
+
+La spec proposait de « resserrer le rayon sur la dernière fraction de hauteur
+selon une courbe lisse ». Fait littéralement, ça ne marche pas : sur un dôme, la
+pente `dr/dy` est **infinie à l'apex**. Échantillonné à pas de hauteur constant,
+le dernier anneau porte à lui seul toute la pointe et laisse une facette plate.
+Mesuré, profil hémisphérique, 64 anneaux : le rayon passait de **0.43 à 0 en un
+seul segment**.
+
+Le dôme est donc paramétré par l'**angle polaire** : `r = cos(φ)^e`,
+`y = s + (1−s)·sin(φ)`, φ de 0 à π/2. Les anneaux se répartissent le long de
+l'arc. Derniers anneaux mesurés (graine 0) :
+
+| anneau | 58 | 59 | 60 | 61 | 62 | 63 | 64 |
+|---|---|---|---|---|---|---|---|
+| rayon (u) | 0.371 | 0.325 | 0.276 | 0.224 | 0.167 | 0.102 | 0.000 |
+
+Le couvercle du cylindre se referme sur l'apex en triangles dégénérés : pas de
+géométrie composée, pas de cas particulier.
+
+**Variation par instance** (1.3), depuis `uSeed` :
+
+| graine | 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|---|
+| début du dôme | 0.700 | 0.753 | 0.782 | 0.729 | 0.794 | 0.796 |
+| exposant | 0.70 | 1.20 | 0.89 | 1.38 | 1.08 | 0.77 |
+| hauteur du dôme | 2.40 u | 1.97 u | 1.74 u | 2.17 u | 1.65 u | 1.63 u |
+
+**Irrégularité** (1.2) : l'épaule n'est pas un cercle. Elle ondule de
+**0.50 u** autour du tronc, sur trois sinusoïdes de périodes entières — bouclage
+vérifié à 8.7 × 10⁻¹⁰ entre `uv.x = 0` et `uv.x = 1`, donc pas de couture. Le
+displacement radial d'écorce continue de s'appliquer sur le dôme, son amplitude
+ne s'éteint que sur le dernier dixième où le rayon ne pourrait plus l'absorber.
+
+**Normales** (1.4) : redérivées analytiquement du profil, pas laissées telles
+quelles. Sur une surface de révolution `(r(t), y(t))` la normale sortante vaut
+`(y'·dir, −r')`, obtenue par différences centrées — le même calcul couvre le fût
+conique et le dôme, donc aucune discontinuité au raccord. Élévation mesurée :
+
+| t | 0.20 | 0.50 | 0.75 | 0.85 | 0.95 | 0.99 | 1.00 |
+|---|---|---|---|---|---|---|---|
+| normale | 3.6° | 3.6° | 6.2° | 15.2° | 47.7° | 84.1° | 87.6° |
+
+Continuité au passage de l'épaule : Δrayon 1.0 × 10⁻⁴ pour un pas de 1 × 10⁻⁴.
+
+## 3. Densité surfacique par tranche de rayon
+
+**1 200 arbres** (contre 300), rayon **14 → 240 unités** (contre 14 → 180).
+
+| tranche | avant (n / densité) | après (n / densité) | densité ×|
+|---|---|---|---|
+| 0–25 | 17 / 0.00866 | 11 / **0.00560** | ×0.65 |
+| 25–60 | 34 / 0.00364 | 46 / **0.00492** | ×1.35 |
+| 60–120 | 123 / 0.00363 | 203 / **0.00598** | ×1.65 |
+| 120–180 | 126 / 0.00223 | 350 / **0.00619** | ×2.78 |
+| 180–240 | 0 / 0 | 590 / **0.00745** | — |
+
+La densité **croît** désormais avec la distance au lieu de s'effondrer. C'est le
+chiffre qui compte : occlusion d'un rayon rasant depuis 100 u jusqu'au bord de la
+forêt, **64.8 % avant → 99.1 % après**. L'horizon se referme.
+
+Le centre reste aéré, et **structurellement** : le premier plan a son effectif
+fixé en absolu (`NEAR_COUNT = 55` sur `[14, 70]`), hors loi de densité. Vérifié
+par balayage — de 800 à 2 000 arbres au total, la densité de la tranche 0–25 ne
+bouge pas d'un chiffre : 0.00560 partout.
+
+**Placement** (2.4) : **0 arbre dans l'eau** sur 1 200, **0** sur une pente
+au-delà du seuil, tirage déterministe. Deux corrections ont été nécessaires :
+
+- Le rayon cible est tiré **une fois** et tenu pendant tout le balayage
+  angulaire. Le code redessinait le rayon à chaque tentative, si bien que les
+  anneaux traversés par un chenal exportaient leurs rejets vers les anneaux secs.
+- Une spirale déterministe vers le point sec le plus proche a été ajoutée en
+  dernier recours. L'ancien repli gardait « le candidat le plus sec » même s'il
+  était encore sous l'eau : tolérable à 300 tirages, statistiquement certain à
+  1 200.
+
+## 4. Coût géométrique
+
+Mesuré dans un vrai Chrome, en comptant les triangles **au niveau WebGL** et en
+ventilant par framebuffer. Le baseline mesuré avec le même instrument reproduit
+**exactement** les chiffres du lot précédent (353 922 et 1 907 153), ce qui a au
+passage établi leur convention : passe de scène **+ shadow map**.
+
+| phase | avant | après | delta |
+|---|---|---|---|
+| `presence` | 353 922 | **359 554** | +5 632 (+1.6 %) |
+| `resonance` | 1 907 153 | **2 795 659** | +888 506 (+46.6 %) |
+
+`presence` ne bouge que du dôme : le `count` dynamique tient, la forêt y coûte
+toujours zéro. Draw calls de la passe de scène : `presence` 9 → 9,
+`resonance` 10 → 14 (quatre paliers de LOD au lieu de deux).
+
+Forêt seule : 1 146 570 → **1 985 402** triangles pour **4× plus d'arbres**.
+
+| palier | rayon | feuillage gardé | tris/arbre | arbres | total |
+|---|---|---|---|---|---|
+| 0 | ≤ 60 | 100 % | 8 279 | 57 | 471 903 |
+| 1 | 60–110 | 34 % | 2 909 | 153 | 445 077 |
+| 2 | 110–170 | 17 % | 1 567 | 323 | 506 141 |
+| 3 | > 170 | 8 % | 843 | 667 | 562 281 |
+
+Quatre paliers plutôt que le troisième palier demandé : les marches passent d'un
+facteur 3 unique à ~2.3 réparti sur quatre distances, ce qui traite au passage la
+frontière de LOD visible signalée au point 2 du lot précédent.
+
+**Lisière** (2.5) : la forêt va maintenant à 240 u, où la brume ne laisse passer
+que **8.8 %**. À 180 u elle en laissait passer 25 %, une lisière y était donc
+bien perceptible — le rapport précédent avait raison de la signaler. À 300 u on
+serait à 2 %, mais l'anneau 240–300 coûterait 900 arbres de plus pour un gain
+invisible.
+
+## 5. Décisions face à une spec ambiguë ou fausse
+
+### 5.1 Le diagnostic de densité était juste en principe, mais pas dominant
+
+La spec attribue le problème à la loi en 1/r. Mesuré : un tirage uniforme en
+rayon prédisait **63 arbres** entre 25 et 60 u, il y en avait **34**. Le déficit
+ne venait pas de la loi mais de la boucle de rejet, qui redessinait le rayon à
+chaque tentative et déplaçait ainsi la population des anneaux mouillés vers les
+anneaux secs. Il y avait donc **deux** causes ; la seconde n'était pas dans la
+spec et pesait autant que la première sur le plan moyen.
+
+### 5.2 « À cette distance un arbre couvre quelques pixels » est faux
+
+Le point 2.3 justifie une décimation agressive au-delà de 120 u par la taille à
+l'écran. Calculé : à 120 u, un arbre de 8.5 u sous un fov de 55° occupe **73 px**
+sur un canvas de 673 px de haut, et la brume en laisse passer **60 %**. Il reste
+parfaitement lisible. J'ai donc **gardé le tronc entier à toutes les distances** —
+223 triangles, mais le décimer par paires perce le tube. Les ~90 000 triangles
+que ça aurait rendus (4 % du budget) ne valaient pas ce risque. Seul le feuillage
+est allégé.
+
+### 5.3 Une loi de densité unique affame le centre
+
+Appliquer une seule loi sur `[14, 240]` était intenable : l'anneau extérieur pèse
+97 % de la surface, donc monter l'effectif pour boiser l'horizon n'aurait ajouté
+qu'une poignée d'arbres au centre — et le tirer vers le centre aurait vidé
+l'horizon. D'où deux populations : un premier plan à effectif **absolu**, et le
+reste sous la loi de densité. C'est ce qui rend la contrainte de composition
+structurelle plutôt que dépendante d'un réglage.
+
+### 5.4 Un bug latent dans le rang de colonisation
+
+Le rayon mémorisé pour classer les arbres était celui **tiré**, pas celui
+**retenu**. Un arbre déplacé par le rejet prenait donc le rang de sa position
+d'origine et pouvait lever hors de son tour. Corrigé (`Math.hypot` sur la
+position finale). Courbe après correction, à 1 200 arbres :
+
+| phase | progress | spread | adultes | en pousse | absents |
+|---|---|---|---|---|---|
+| ecosystem | 1.00 | 0.120 | 0 | 78 | 1122 |
+| eclipse | 0.50 | 0.335 | 22 | 505 | 673 |
+| eclipse | 1.00 | 0.550 | 381 | 653 | 166 |
+| zoomout | 0.50 | 0.775 | 929 | 271 | 0 |
+| zoomout | 1.00 | 1.000 | 1200 | 0 | 0 |
+
+### 5.5 Le « blocage R3F » n'en était pas un, et il cachait une erreur GLSL
+
+Diagnostic corrigé : dans la fenêtre automatisée, le canvas fait **1470 × 797**
+(pas 300 × 150) et `document.hasFocus()` vaut `true`, mais **0 frame de `rAF` en
+500 ms** parce que `document.visibilityState` vaut `hidden`. Ce n'est pas la
+mesure de R3F qui bloque, c'est Chrome qui suspend `requestAnimationFrame` pour
+un document non visible. Rien ne compile, rien ne rend, aucune erreur.
+
+Contourné en pilotant un vrai Chrome `--headless=new` via le protocole DevTools
+(WebSocket intégré à Node, aucune dépendance ajoutée), avec les triangles comptés
+au niveau WebGL. **Ce dispositif a immédiatement attrapé une erreur de
+compilation GLSL** — `protoT` redéfini, le patch de normale déclarait déjà ce nom
+dans le même `main()` — qui serait partie en production sous la forme d'un
+matériau silencieusement non compilé. Le garde-fou `patchChunk()` ne couvre que
+les `#include` manquants, pas les collisions de noms entre deux patchs.
+
+## 6. Ce qui reste faible, par ordre d'impact
+
+1. **`resonance` coûte 46.6 % de triangles en plus.** C'est l'arbitrage demandé
+   — la densité avant le compte — et les quatre paliers l'ont contenu à +888 k
+   pour 4× plus d'arbres. Mais c'est une hausse réelle et **je ne peux pas la
+   valider en fps** : le rendu logiciel du Chrome headless tourne à 2 fps, ce qui
+   ne dit rien d'une vraie carte. À vérifier sur ta machine, c'est le premier
+   point à contrôler.
+2. **Le feuillage au-delà de 170 u ne garde que 8 % de ses cartes.** Pris
+   isolément un de ces arbres est squelettique ; il ne tient que par la densité et
+   par les 91 % de brume. Si tu baisses un jour `fogExp2`, ce palier se verra en
+   premier.
+3. **Le centre est passé de 17 à 11 arbres entre 0 et 25 u.** C'est la consigne
+   « aéré » appliquée, mais c'est une réduction que j'ai choisie. Si ça lit trop
+   vide, `NEAR_COUNT` est le seul bouton à tourner, sans effet sur le reste.
+4. **Les arbres lointains ne projettent toujours aucune ombre** — inchangé, le
+   frustum de la directionnelle reste à ±60.
+5. **Le contraste de la mosaïque du sol** reste le point signalé au lot
+   précédent, non retouché ici.
+6. **Toujours aucun anti-aliasing.**

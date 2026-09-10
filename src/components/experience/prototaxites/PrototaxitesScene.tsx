@@ -22,15 +22,13 @@ interface PrototaxiteSceneProps {
   progress: number
 }
 
-const FOREST_COUNT = 300
-
 export default function PrototaxitesScene({ currentPhase, progress }: PrototaxiteSceneProps) {
   const vis = usePhaseVisibility({ phase: currentPhase, progress })
 
   // Les foyers naissent dans la forêt : on reprend des positions d'arbres
   // réellement générées, pas des coordonnées codées en dur.
   const smokeOrigins = useMemo(() => {
-    const all = getForestPositions({ count: FOREST_COUNT })
+    const all = getForestPositions()
     return [0, 6, 12, 18].map((i) => all[i % all.length])
   }, [])
 
@@ -50,7 +48,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
           <DevonianWater />
           <GroundFlora />
 
-          <DevonianForest count={FOREST_COUNT} forestSpread={vis.forestSpread} />
+          <DevonianForest forestSpread={vis.forestSpread} />
 
           <PrototaxiteGroup opacity={vis.prototaxites} />
           <InternalStructure opacity={vis.internal} />

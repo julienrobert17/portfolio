@@ -35,9 +35,54 @@ function patch(src: string, token: string, repl: string): string {
 }
 
 const VERT_HEAD = /* glsl */ `
+uniform float uSeed;
+uniform float uHeight;
+// (rayon du pied, rayon du sommet) du fût, avant dôme.
+uniform vec2 uRadii;
+
 varying vec2 vProtoUv;
 varying vec3 vProtoTangent;
 varying vec3 vProtoBitangent;
+
+// ── Sommet en dôme ──────────────────────────────────────────────────────────
+// Les reconstructions montrent un sommet arrondi, pas une coupe nette. Plutôt
+// que de composer une géométrie, on referme le cylindre dans le vertex shader :
+// le displacement radial y est déjà en place et continue donc de s'appliquer
+// sur le dôme, ce qui évite une couture au raccord.
+//
+// Le dôme est paramétré par l'ANGLE POLAIRE, pas par la hauteur. Un profil
+// r(y) échantillonné à pas de hauteur constant s'effondre en un seul segment
+// à l'apex (la pente dr/dy y est infinie) et laisse une facette plate au
+// sommet ; à pas d'angle constant les anneaux se répartissent le long de l'arc.
+
+// Début du dôme et galbe, dérivés de la graine : certains sommets sont
+// coniques, d'autres presque plats.
+float protoDomeExp() { return 0.70 + fract(uSeed * 0.6183) * 0.80; }
+
+// La ligne d'épaule n'est pas un cercle : elle ondule autour du tronc. Des
+// multiples entiers de 2π, donc pas de couture là où uv.x repasse de 1 à 0.
+float protoDomeStart(float u) {
+  float a = u * 6.2831853;
+  float wobble = sin(a * 3.0 + uSeed * 2.1) * 0.55
+               + sin(a * 5.0 - uSeed * 1.3) * 0.30
+               + sin(a * 2.0 + uSeed * 4.7) * 0.15;
+  return clamp(0.70 + fract(uSeed * 0.3721) * 0.14 + wobble * 0.035, 0.55, 0.94);
+}
+
+// Profil du tronc en fonction de la hauteur normalisée t (0 au pied, 1 au
+// sommet) : .x = rayon, .y = hauteur normalisée effective. Sous l'épaule c'est
+// le cône d'origine ; au-dessus, le rayon suit cos(φ)^e et la hauteur sin(φ),
+// donc la hauteur totale du tronc ne change pas — le dôme mange le haut du
+// fût, il ne s'y ajoute pas, et l'ancrage au sol reste valable.
+vec2 protoProfile(float t, float u) {
+  float tc = clamp(t, 0.0, 1.0);
+  float radius = mix(uRadii.x, uRadii.y, tc);
+  float s = protoDomeStart(u);
+  if (tc <= s) return vec2(radius, tc);
+  float k = clamp((tc - s) / (1.0 - s), 0.0, 1.0);
+  float phi = k * 1.5707963;
+  return vec2(radius * pow(max(cos(phi), 0.0), protoDomeExp()), s + (1.0 - s) * sin(phi));
+}
 `
 
 // Base tangente du cylindre transportée en espace vue : c'est le seul endroit
@@ -46,6 +91,24 @@ varying vec3 vProtoBitangent;
 // lesquelles on perturbera la normale côté fragment.
 const BEGINNORMAL_VERTEX = /* glsl */ `
 #include <beginnormal_vertex>
+
+  // Déplacer des vertices n'ajuste pas les normales. Sur une surface de
+  // révolution paramétrée (r(t), y(t)), la normale sortante vaut
+  // (y'·dir, -r'), qu'on obtient par différences centrées sur le profil. Le
+  // même calcul couvre le fût conique et le dôme, donc pas de discontinuité au
+  // raccord. Les couvercles du cylindre (normale colinéaire à l'axe) sont
+  // laissés tels quels : celui du haut se referme sur l'apex en triangles
+  // dégénérés, sa normale n'éclaire plus rien.
+  if (abs(objectNormal.y) < 0.9) {
+    float protoNT = clamp((position.y + uHeight * 0.5) / uHeight, 0.0, 1.0);
+    vec2 protoNDir = normalize(position.xz + vec2(0.0001));
+    float protoNE = 0.01;
+    vec2 protoPA = protoProfile(protoNT - protoNE, uv.x);
+    vec2 protoPB = protoProfile(protoNT + protoNE, uv.x);
+    float protoDR = protoPB.x - protoPA.x;
+    float protoDY = (protoPB.y - protoPA.y) * uHeight;
+    objectNormal = normalize(vec3(protoDY * protoNDir.x, -protoDR, protoDY * protoNDir.y));
+  }
 
   vec3 protoAxis = vec3(0.0, 1.0, 0.0);
   vec3 protoT = cross(protoAxis, objectNormal);
@@ -61,9 +124,25 @@ const BEGINNORMAL_VERTEX = /* glsl */ `
 const BEGIN_VERTEX = /* glsl */ `
 #include <begin_vertex>
 
+  // Direction radiale prise AVANT le resserrement : près de l'apex le rayon
+  // tend vers zéro et normalize() n'y aurait plus de sens.
+  vec2 xzDir = normalize(transformed.xz + vec2(0.0001));
+
+  // Préfixe protoV : les deux patchs vivent dans le même main(), et protoT y
+  // désigne déjà la tangente posée par le patch de normale.
+  float protoVT = clamp((transformed.y + uHeight * 0.5) / uHeight, 0.0, 1.0);
+  vec2 protoVProf = protoProfile(protoVT, uv.x);
+  float protoVBase = mix(uRadii.x, uRadii.y, protoVT);
+  float protoShrink = protoVBase > 1e-4 ? protoVProf.x / protoVBase : 0.0;
+  transformed.xz *= protoShrink;
+  transformed.y = (protoVProf.y - 0.5) * uHeight;
+
   float radialDisp = sin(transformed.y * 3.0 + uv.x * 6.28318) * 0.08
                    + sin(transformed.y * 7.0) * 0.04;
-  vec2 xzDir = normalize(transformed.xz + vec2(0.0001));
+  // L'écorce sculpte aussi le dôme — sans quoi le raccord fût/sommet se lirait
+  // comme une couture — mais son amplitude s'éteint sur le dernier dixième, où
+  // le rayon devient trop petit pour l'absorber sans faire éclater l'apex.
+  radialDisp *= smoothstep(0.0, 0.22, protoShrink);
   transformed.x += xzDir.x * radialDisp;
   transformed.z += xzDir.y * radialDisp;
 
@@ -219,6 +298,9 @@ export default function Prototaxite({
   const timeRef = useRef<THREE.IUniform<number>>({ value: 0 })
   const seedRef = useRef<THREE.IUniform<number>>({ value: seed })
   const heightRef = useRef<THREE.IUniform<number>>({ value: height })
+  const radiiRef = useRef<THREE.IUniform<THREE.Vector2>>({
+    value: new THREE.Vector2(radiusBottom, radiusTop),
+  })
 
   useEffect(() => {
     const m = matRef.current
@@ -232,6 +314,10 @@ export default function Prototaxite({
   useEffect(() => {
     heightRef.current.value = height
   }, [height])
+
+  useEffect(() => {
+    radiiRef.current.value.set(radiusBottom, radiusTop)
+  }, [radiusBottom, radiusTop])
 
   useFrame((state) => {
     timeRef.current.value = state.clock.elapsedTime
@@ -249,7 +335,10 @@ export default function Prototaxite({
       castShadow={opacity > SHADOW_EPS}
       receiveShadow
     >
-      <cylinderGeometry args={[radiusTop, radiusBottom, height, 16, 48]} />
+      {/* 64 anneaux au lieu de 48 : le dôme n'en occupe que le dernier quart,
+          il lui en faut assez pour que son arc ne se lise pas en facettes.
+          +512 triangles par tronc, soit +3 072 sur les six. */}
+      <cylinderGeometry args={[radiusTop, radiusBottom, height, 16, 64]} />
       <meshStandardMaterial
         ref={matRef}
         transparent
@@ -260,6 +349,7 @@ export default function Prototaxite({
           shader.uniforms.uTime = timeRef.current
           shader.uniforms.uSeed = seedRef.current
           shader.uniforms.uHeight = heightRef.current
+          shader.uniforms.uRadii = radiiRef.current
 
           let vert = VERT_HEAD + shader.vertexShader
           vert = patch(vert, '#include <beginnormal_vertex>', BEGINNORMAL_VERTEX)

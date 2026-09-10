@@ -43,7 +43,7 @@ export default function LabScene({ phase = 'presence', progress = 0 }: LabSceneP
   const vis = usePhaseVisibility({ phase: activePhase, progress: activeProgress })
 
   const smokeOrigins = useMemo(() => {
-    const all = getForestPositions({ count: 300 })
+    const all = getForestPositions()
     return [0, 6, 12, 18].map((i) => all[i % all.length])
   }, [])
 
@@ -63,7 +63,7 @@ export default function LabScene({ phase = 'presence', progress = 0 }: LabSceneP
           <DevonianWater />
           <GroundFlora />
 
-          <DevonianForest count={300} forestSpread={vis.forestSpread} />
+          <DevonianForest forestSpread={vis.forestSpread} />
 
           <PrototaxiteGroup opacity={vis.prototaxites} />
           <InternalStructure opacity={vis.internal} />

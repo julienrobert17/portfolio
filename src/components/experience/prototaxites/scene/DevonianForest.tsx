@@ -21,13 +21,33 @@ interface DevonianForestProps extends ForestOptions {
 }
 
 const DEFAULTS = {
-  count: 300,
+  count: 1200,
   innerRadius: 14,
-  outerRadius: 180,
+  outerRadius: 240,
   minHeight: 6,
   maxHeight: 11,
   seed: 1,
 } as const
+
+// ── Loi de densité ──────────────────────────────────────────────────────────
+// Tirer le rayon uniformément donne une densité SURFACIQUE en 1/r : la surface
+// croît en r² pendant que le nombre d'arbres reste constant, donc le lointain
+// se vide. La réciproque de la CDF d'une densité σ(r) ∝ r^g est
+//   r = (r0^k + u (r1^k − r0^k))^(1/k)  avec k = 2 + g.
+// g = 0 donne une densité surfacique constante ; on va légèrement au-delà pour
+// que l'horizon se referme plus vite que la perspective ne l'écarte.
+const DENSITY_GRADIENT = 0.35
+
+// Le premier plan est régi à part. Une loi unique sur [14, 240] affamerait le
+// centre : l'anneau extérieur pèse 97 % de la surface, et monter le total pour
+// boiser l'horizon y aurait ajouté une poignée d'arbres au mieux. La population
+// du premier plan est donc fixée en ABSOLU — augmenter le total densifie le
+// lointain sans jamais peupler la zone des Prototaxites.
+const NEAR_COUNT = 55
+const NEAR_OUTER = 70
+// Les deux lois se recouvrent sur 15 unités : sans ce chevauchement, la
+// jonction se lirait comme un anneau.
+const FAR_INNER = 55
 
 // Enfoncement du tronc dans le sol. Le sol rendu est linéaire par triangle
 // alors que sampleTerrain interpole la heightmap en bilinéaire : un arbre posé
@@ -42,6 +62,20 @@ const MIN_NORMAL_Y = 0.75
 // Bornes d'itérations : si aucun point plat n'est trouvé, on garde le dernier
 // candidat plutôt que de boucler indéfiniment.
 const MAX_ATTEMPTS = 16
+
+// Les premières tentatives balaient l'ANGLE à rayon constant. Redraw complet du
+// rayon à chaque essai, comme avant, la loi de densité se serait fait réécrire
+// par le terrain : les anneaux traversés par un chenal exportaient leurs
+// rejets vers les anneaux secs, ce qui creusait un trou mesuré entre 25 et 60
+// unités. Passé ce balayage, on tolère un décalage radial pour ne pas coincer
+// un arbre dont tout l'anneau est sous l'eau.
+const ANGLE_ATTEMPTS = 11
+const RADIAL_NUDGE = 0.18
+
+// Dernier filet : aucun arbre ne doit finir dans l'eau. Spirale déterministe
+// vers le point sec le plus proche, même principe que PrototaxiteGroup.
+const DRY_RINGS = 8
+const DRY_STEP = 2.0
 
 // Marge au-dessus du niveau d'eau : un arbre pile sur la berge aurait le pied
 // dans l'eau dès la moindre ondulation de la nappe.
@@ -67,14 +101,30 @@ const SCRATCH_POS = new THREE.Vector3()
 const SCRATCH_SCALE = new THREE.Vector3()
 const UP = new THREE.Vector3(0, 1, 0)
 
-// Au-delà de ce rayon les arbres passent en géométrie allégée et cessent de
-// projeter une ombre : le frustum de la directionnelle ne couvre que ±60, ils
-// alimentaient la shadow map sans rien pouvoir y inscrire.
-const LOD_RADIUS = 60
-// Fraction de triangles conservée sur le feuillage lointain. Le feuillage fait
-// 8056 triangles contre 223 pour le tronc : c'est lui, et lui seul, qu'il faut
-// alléger.
-const FAR_KEEP = 0.34
+// Au-delà de ce rayon les arbres cessent de projeter une ombre : le frustum de
+// la directionnelle ne couvre que ±60, ils alimentaient la shadow map sans rien
+// pouvoir y inscrire.
+const SHADOW_RADIUS = 60
+
+// Paliers de détail. `until` est le rayon jusqu'auquel le palier s'applique,
+// `keep` la fraction de triangles gardée sur le FEUILLAGE (8056 triangles
+// contre 223 pour le tronc : c'est lui, et lui seul, qu'il faut alléger).
+//
+// Le tronc n'est jamais décimé, à aucune distance. Il ne pèse que 223
+// triangles, et le décimer par paires perce le tube — un arbre à 200 unités
+// reste haut d'une quarantaine de pixels, la brume l'estompe mais ne l'efface
+// pas. Les 90 000 triangles que ça aurait rendus ne valaient pas ce risque.
+//
+// Quatre paliers plutôt que deux : le rapport du lot précédent signalait la
+// frontière de LOD visible à 60 unités, où le feuillage tombait de 8056 à 2686
+// d'un coup. Un facteur ~2.3 par palier au lieu d'un facteur 3 unique, réparti
+// sur quatre distances, adoucit chaque marche.
+const LOD_TIERS: readonly { until: number; keep: number }[] = [
+  { until: SHADOW_RADIUS, keep: 1 },
+  { until: 110, keep: 0.34 },
+  { until: 170, keep: 0.17 },
+  { until: Number.POSITIVE_INFINITY, keep: 0.08 },
+]
 const HEAVY_TRI_THRESHOLD = 1000
 
 /** Décime une géométrie indexée par paires de triangles (les cartes de
@@ -116,6 +166,39 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
 }
 
 /**
+ * Rayon tiré pour que la densité surfacique suive r^DENSITY_GRADIENT sur
+ * l'anneau [r0, r1]. Réciproque de la CDF ; g = 0 rendrait le classique
+ * sqrt(u), qui donne une densité constante.
+ */
+function radiusFor(u: number, r0: number, r1: number): number {
+  const k = 2 + DENSITY_GRADIENT
+  const a = Math.pow(r0, k)
+  const b = Math.pow(r1, k)
+  return Math.pow(a + u * (b - a), 1 / k)
+}
+
+/**
+ * Point sec le plus proche, par spirale déterministe. N'est atteint que si
+ * MAX_ATTEMPTS tirages ont tous échoué — sans lui, un arbre finissait dans un
+ * chenal, ce qui devient statistiquement certain à mille tirages.
+ */
+function dryNearby(x: number, z: number, minGround: number) {
+  let best = { x, z, y: sampleTerrain(x, z).height }
+  if (best.y >= minGround) return best
+  for (let ring = 1; ring <= DRY_RINGS; ring++) {
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2
+      const nx = x + Math.cos(a) * ring * DRY_STEP
+      const nz = z + Math.sin(a) * ring * DRY_STEP
+      const h = sampleTerrain(nx, nz).height
+      if (h > best.y) best = { x: nx, z: nz, y: h }
+      if (h >= minGround) return best
+    }
+  }
+  return best
+}
+
+/**
  * Génération déterministe de la forêt.
  *
  * LCG déroulé en boucle explicite (tirages dans un ordre fixe) plutôt qu'une
@@ -139,34 +222,57 @@ function buildForest(opts: Required<ForestOptions>): ForestTree[] {
     dist: number
   }[] = []
 
+  // Deux populations : le premier plan, dont l'effectif est fixe, et le reste
+  // qui suit la loi de densité. Chacune répartit ses propres secteurs sur le
+  // tour complet — indexer les angles sur le total tasserait les 55 arbres du
+  // premier plan dans les vingt premiers degrés.
+  const nearCount = Math.min(NEAR_COUNT, count)
+  const farCount = Math.max(0, count - nearCount)
+
   for (let i = 0; i < count; i++) {
     let x = 0
     let z = 0
     let y = 0
-    let dist = 0
+
+    const isNear = i < nearCount
+    const sector = isNear
+      ? (i / Math.max(1, nearCount)) * Math.PI * 2
+      : ((i - nearCount) / Math.max(1, farCount)) * Math.PI * 2
+
+    // Le rayon cible est tiré UNE fois et tenu pendant tout le balayage
+    // angulaire : c'est ce qui garde la loi de densité intacte face au terrain.
+    s = next(s)
+    const rTarget = s / 233280
+    const targetDist = isNear
+      ? innerRadius + rTarget * (NEAR_OUTER - innerRadius)
+      : radiusFor(rTarget, FAR_INNER, outerRadius)
 
     // Deux rejets : pente trop forte, et pied sous le niveau d'eau (rien ne
-    // doit pousser dans un chenal). On retire angle + distance, dans la limite
-    // de MAX_ATTEMPTS ; le dernier candidat est conservé sinon.
+    // doit pousser dans un chenal). On balaie l'angle, puis on tolère un
+    // décalage radial, dans la limite de MAX_ATTEMPTS.
     const minGround = WATER_LEVEL() + BANK_MARGIN
+    // Le plus au sec des candidats, point de départ de la spirale si tous
+    // échouent. Sa hauteur est relue par dryNearby, inutile de la garder.
     let bestScore = -Infinity
     let bestX = 0
     let bestZ = 0
-    let bestY = 0
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       s = next(s)
       const rAng = s / 233280
       s = next(s)
-      const rDist = s / 233280
+      const rNudge = s / 233280
 
       // La fenêtre angulaire s'ÉLARGIT à chaque tentative. Avec une fenêtre
       // fixe de ±0.25 rad, un arbre dont le secteur tombe sur un chenal ne
       // pouvait pas s'en extraire et finissait dans l'eau. On part de la
       // répartition régulière en anneau, et on ne s'en éloigne qu'au besoin.
       const spread = ANGLE_SPREAD + (attempt / (MAX_ATTEMPTS - 1)) * (Math.PI * 2 - ANGLE_SPREAD)
-      const ang = (i / count) * Math.PI * 2 + (rAng - 0.5) * spread
-      dist = innerRadius + rDist * (outerRadius - innerRadius)
+      const ang = sector + (rAng - 0.5) * spread
+      const dist =
+        attempt < ANGLE_ATTEMPTS
+          ? targetDist
+          : targetDist * (1 + (rNudge - 0.5) * 2 * RADIAL_NUDGE)
       x = Math.cos(ang) * dist
       z = Math.sin(ang) * dist
 
@@ -178,16 +284,17 @@ function buildForest(opts: Required<ForestOptions>): ForestTree[] {
         bestScore = y
         bestX = x
         bestZ = z
-        bestY = y
       }
 
       if (ground.normal.y >= MIN_NORMAL_Y && y >= minGround) break
     }
 
-    if (bestScore > -Infinity && (y < minGround)) {
-      x = bestX
-      z = bestZ
-      y = bestY
+    if (y < minGround) {
+      // Le meilleur des tirages est encore mouillé : on marche vers le sec.
+      const dry = dryNearby(bestX, bestZ, minGround)
+      x = dry.x
+      z = dry.z
+      y = dry.y
     }
 
     s = next(s)
@@ -205,7 +312,10 @@ function buildForest(opts: Required<ForestOptions>): ForestTree[] {
       height: minHeight + rHeight * (maxHeight - minHeight),
       rotationY: rRot * Math.PI * 2,
       jitter: (rJitter - 0.5) * 2 * THRESHOLD_JITTER,
-      dist,
+      // Rayon RETENU, pas rayon tiré : un arbre déplacé par le rejet ou par la
+      // spirale sèche prenait jusqu'ici le rang de colonisation de sa position
+      // d'origine, et pouvait donc lever hors de son tour.
+      dist: Math.hypot(x, z),
     })
   }
 
@@ -318,37 +428,37 @@ export default function DevonianForest({
     return { sizeY: size.y || 1, cx: center.x, cz: center.z, minY: box.min.y }
   }, [sources])
 
-  // Géométries allégées pour le lointain
-  const farSources = useMemo(
+  // Un jeu de géométries par palier de détail. Seul le feuillage est décimé.
+  const tierSources = useMemo(
     () =>
-      sources.map((src) => {
-        const tris = src.geometry.index
-          ? src.geometry.index.count / 3
-          : src.geometry.attributes.position.count / 3
-        return tris > HEAVY_TRI_THRESHOLD
-          ? { ...src, geometry: decimate(src.geometry, FAR_KEEP) }
-          : src
-      }),
+      LOD_TIERS.map((tier) =>
+        tier.keep >= 1
+          ? sources
+          : sources.map((src) => {
+              const tris = src.geometry.index
+                ? src.geometry.index.count / 3
+                : src.geometry.attributes.position.count / 3
+              return tris > HEAVY_TRI_THRESHOLD
+                ? { ...src, geometry: decimate(src.geometry, tier.keep) }
+                : src
+            }),
+      ),
     [sources],
   )
 
-  const split = useMemo(() => {
-    const near: number[] = []
-    const far: number[] = []
+  const tiers = useMemo(() => {
+    const out: number[][] = LOD_TIERS.map(() => [])
     trees.forEach((t, i) => {
       const r = Math.hypot(t.position[0], t.position[2])
-      ;(r <= LOD_RADIUS ? near : far).push(i)
+      out[LOD_TIERS.findIndex((tier) => r <= tier.until)].push(i)
     })
     // Triés par seuil : les arbres déjà levés occupent toujours les premiers
     // slots, ce qui permet de ne dessiner qu'eux via InstancedMesh.count.
-    const byThreshold = (a: number, b: number) => trees[a].threshold - trees[b].threshold
-    near.sort(byThreshold)
-    far.sort(byThreshold)
-    return { near, far }
+    for (const list of out) list.sort((a, b) => trees[a].threshold - trees[b].threshold)
+    return out
   }, [trees])
 
-  const nearRefs = useRef<(THREE.InstancedMesh | null)[]>([])
-  const farRefs = useRef<(THREE.InstancedMesh | null)[]>([])
+  const tierRefs = useRef<(THREE.InstancedMesh | null)[][]>([])
   const lastSpread = useRef(-1)
 
   useFrame(() => {
@@ -399,36 +509,31 @@ export default function DevonianForest({
     }
     }
 
-    write(split.near, nearRefs.current)
-    write(split.far, farRefs.current)
+    for (let t = 0; t < tiers.length; t++) write(tiers[t], tierRefs.current[t] ?? [])
   })
 
   return (
     <>
-      {sources.map((src, i) => (
-        <instancedMesh
-          key={`near-${i}`}
-          ref={(el) => {
-            nearRefs.current[i] = el
-          }}
-          args={[src.geometry, src.material, Math.max(1, split.near.length)]}
-          castShadow
-          // La bounding sphere d'un InstancedMesh est calculée sur la géométrie
-          // source, pas sur les instances : le culling ferait disparaître la
-          // forêt entière selon l'angle.
-          frustumCulled={false}
-        />
-      ))}
-      {farSources.map((src, i) => (
-        <instancedMesh
-          key={`far-${i}`}
-          ref={(el) => {
-            farRefs.current[i] = el
-          }}
-          args={[src.geometry, src.material, Math.max(1, split.far.length)]}
-          frustumCulled={false}
-        />
-      ))}
+      {tierSources.map((srcs, t) =>
+        srcs.map((src, i) => (
+          <instancedMesh
+            key={`t${t}-${i}`}
+            ref={(el) => {
+              const list = tierRefs.current[t] ?? []
+              list[i] = el
+              tierRefs.current[t] = list
+            }}
+            args={[src.geometry, src.material, Math.max(1, tiers[t].length)]}
+            // Le frustum de la directionnelle ne couvre que ±60 : au-delà, un
+            // arbre alimente la shadow map sans rien pouvoir y inscrire.
+            castShadow={LOD_TIERS[t].until <= SHADOW_RADIUS}
+            // La bounding sphere d'un InstancedMesh est calculée sur la
+            // géométrie source, pas sur les instances : le culling ferait
+            // disparaître la forêt entière selon l'angle.
+            frustumCulled={false}
+          />
+        )),
+      )}
     </>
   )
 }
