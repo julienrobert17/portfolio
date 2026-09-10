@@ -185,7 +185,9 @@ const COLOR_FRAGMENT = /* glsl */ `
     (vGroundHeight - uTerrainMin) / max(0.001, uTerrainMax - uTerrainMin),
     0.0, 1.0
   );
-  vec3 groundColor = mix(lowColor, mix(midColor, highColor, groundT * 1.5), groundT);
+  // clamp indispensable : groundT * 1.5 dépasse 1 au sommet de l'éminence et
+  // mix() EXTRAPOLE au-delà de highColor, ce qui blanchissait la roche.
+  vec3 groundColor = mix(lowColor, mix(midColor, highColor, clamp(groundT * 1.5, 0.0, 1.0)), groundT);
 
   // Biofilm dans les creux
   float biofilm = smoothstep(0.0, 0.8, 1.0 - groundT) * 0.4;
@@ -202,17 +204,45 @@ const COLOR_FRAGMENT = /* glsl */ `
   float wetProximity = 1.0 - smoothstep(uWaterLevel, uWaterLevel + 4.0, vGroundHeight);
   float flatness = groundFlatness(vGroundXY);
 
+  // Brise-bord haute fréquence : sans lui, le contour d'une plaque suit
+  // exactement une isoligne de bruit basse fréquence et se lit comme une tache
+  // d'aquarelle. Ajouté AVANT le smoothstep, il granule la frontière.
+  float edgeBreak = (groundNoise(vGroundXY * 1.7 + vec2(19.0)) - 0.5) * 0.17
+                  + (groundNoise(vGroundXY * 5.3 - vec2(3.0)) - 0.5) * 0.07;
+
   // La mousse tient à l'horizontale et lâche sur les parois de chenal. Le
   // relief est plat presque partout (cos(pente) médian mesuré 0.992), le seuil
   // doit donc être haut pour que le test morde ailleurs que sur les berges.
   // Seuils calibrés sur la heightmap réelle : ~40 % de la surface émergée en
   // mousse, ~3 % en lichen, et 0.4 % de recouvrement entre les deux.
-  float mossFlat = smoothstep(0.74, 0.90, flatness);
-  float mossDensity = wetProximity * mossFlat;
-  float mossMask = cryptoMask(
-    cryptoPatch(vGroundXY, 14.0, vec2(11.3, 4.7)),
-    mossDensity, 0.66, 0.30, 0.05
+  // Boue humide : bande basse au contact de l'eau, frontière brisée.
+  // L'humidité CONDITIONNE la boue, elle ne s'y ajoute pas : en additif, le
+  // bruit seul suffisait à franchir le seuil et de la boue apparaissait au
+  // sommet de l'éminence sèche (31 % de sa surface, mesuré).
+  // wetProximity vaut encore ~0.9 sur la majorité du terrain émergé (sa médiane
+  // est à 0.6 unité au-dessus de l'eau) : s'en servir pour la boue en couvrait
+  // les deux tiers. La boue se définit donc sur une vraie bande de RIVE.
+  float mudBand = 1.0 - smoothstep(uWaterLevel, uWaterLevel + 1.2, vGroundHeight);
+  float mudMask = smoothstep(
+    0.40, 0.60,
+    mudBand + (cryptoPatch(vGroundXY, 6.0, vec2(41.0, -13.0)) - 0.5) * 0.38 + edgeBreak
   );
+
+  // Mousse. Plancher de densité à 0.25 : sans lui, wetProximity tombe à 0 sur
+  // l'éminence centrale et la mousse en disparaît entièrement — c'est
+  // précisément ce que cadre la caméra presence.
+  // Échelle 10 : mesuré comme donnant le plus de plaques DISTINCTES dans ce
+  // cadre (10 contre 5 à l'échelle 14, et 4 à l'échelle 5 où elles percolent).
+  float mossFlat = smoothstep(0.70, 0.90, flatness);
+  float mossDensity = mix(0.25, 1.0, wetProximity) * mossFlat;
+  float mossMask = cryptoMask(
+    cryptoPatch(vGroundXY, 10.0, vec2(11.3, 4.7)) + edgeBreak,
+    mossDensity, 0.72, 0.28, 0.02
+  );
+  mossMask *= 1.0 - mudMask;
+
+  // Roche nue = ce qui reste. Les trois états sont exclusifs.
+  float rockMask = 1.0 - max(mossMask, mudMask);
 
   // Lichen : zones hautes et sèches, l'exact complément. Autre échelle et autre
   // décalage pour que les deux masques ne se superposent pas. Pas de test de
@@ -220,14 +250,47 @@ const COLOR_FRAGMENT = /* glsl */ `
   float dryness = 1.0 - wetProximity;
   float lichenDensity = smoothstep(0.30, 0.65, dryness);
   float lichenMask = cryptoMask(
-    cryptoPatch(vGroundXY, 9.0, vec2(-27.9, 63.1)),
-    lichenDensity, 0.92, 0.55, 0.05
-  );
+    cryptoPatch(vGroundXY, 9.0, vec2(-27.9, 63.1)) + edgeBreak,
+    lichenDensity, 0.88, 0.50, 0.025
+  ) * rockMask;
 
   // Vert-jaune olive désaturé, nuancé pour que la plaque ne soit pas un aplat.
-  vec3 mossColor = vec3(0.17, 0.20, 0.10)
-    * (0.82 + 0.36 * groundNoise(vGroundXY / 2.3 + vec2(7.0)));
-  groundColor = mix(groundColor, mossColor, mossMask * 0.95);
+  vec3 mossColor = vec3(0.145, 0.180, 0.070)
+    * (0.80 + 0.40 * groundNoise(vGroundXY / 2.3 + vec2(7.0)));
+  groundColor = mix(groundColor, mossColor, mossMask);
+
+  // Boue : brun très sombre, elle doit trancher en VALEUR avec la mousse.
+  vec3 mudColor = vec3(0.052, 0.044, 0.032)
+    * (0.85 + 0.30 * groundNoise(vGroundXY / 1.4 - vec2(11.0)));
+  groundColor = mix(groundColor, mudColor, mudMask);
+
+  // Cailloux : assombrissement ponctuel, sur roche et berge seulement.
+  // Voronoï F1 calculé UNE SEULE FOIS ici : color_fragment précède
+  // normal_fragment_maps dans meshphysical, les deux partagent le scope de
+  // main(). Le recalculer doublait 36 appels de hash par pixel.
+  float stoneZone = clamp(rockMask + mudMask, 0.0, 1.0) * (1.0 - mossMask);
+  vec2 spC = vGroundXY / 0.85;
+  vec2 cellC = floor(spC);
+  vec2 fracC = fract(spC);
+  float f1 = 8.0;
+  vec2 f1Dir = vec2(0.0);
+  float pebble = 0.0;
+  // 18 appels de hash par pixel : on ne les paye QUE sur roche et berge. Les
+  // zones sont spatialement cohérentes, la branche est donc efficace sur GPU.
+  if (stoneZone > 0.01) {
+    for (int oy = -1; oy <= 1; oy++) {
+      for (int ox = -1; ox <= 1; ox++) {
+        vec2 nb = vec2(float(ox), float(oy));
+        vec2 jitter = vec2(groundHash(cellC + nb), groundHash(cellC + nb + vec2(37.1, 11.7)));
+        vec2 diff = nb + jitter - fracC;
+        float d = dot(diff, diff);
+        if (d < f1) { f1 = d; f1Dir = diff; }
+      }
+    }
+    f1 = sqrt(f1);
+    pebble = (1.0 - smoothstep(0.16, 0.42, f1)) * stoneZone;
+    groundColor *= 1.0 - 0.34 * (1.0 - smoothstep(0.10, 0.34, f1)) * stoneZone;
+  }
 
   // Gris-vert pâle, presque minéral.
   vec3 lichenColor = vec3(0.34, 0.36, 0.30)
@@ -242,12 +305,29 @@ const COLOR_FRAGMENT = /* glsl */ `
 const NORMAL_FRAGMENT = /* glsl */ `
 #include <normal_fragment_maps>
 
-  vec2 grainP = vGroundXY / 0.5;
-  float grainX = groundNoise(grainP + vec2(0.5, 0.0)) - groundNoise(grainP - vec2(0.5, 0.0));
-  float grainY = groundNoise(grainP + vec2(0.0, 0.5)) - groundNoise(grainP - vec2(0.0, 0.5));
+  vec3 gT = normalize(vGroundTangent);
+  vec3 gB = normalize(vGroundBitangent);
 
+  // Grain fin (~0.5 u) : visible de près uniquement.
+  vec2 grainP = vGroundXY / 0.5;
+  float grain0 = groundNoise(grainP);
+  float grainX = groundNoise(grainP + vec2(0.6, 0.0)) - grain0;
+  float grainY = groundNoise(grainP + vec2(0.0, 0.6)) - grain0;
+
+  // Octave intermédiaire (~3 u) : ondulations, ravines, bosses. C'est elle qui
+  // reste lisible à moyenne distance, là où le grain fin a disparu.
+  vec2 midP = vGroundXY / 3.0;
+  float mid0 = groundNoise(midP);
+  float midX = groundNoise(midP + vec2(0.6, 0.0)) - mid0;
+  float midY = groundNoise(midP + vec2(0.0, 0.6)) - mid0;
+
+  // stoneZone, f1Dir et pebble viennent de color_fragment (même scope).
+  float mid = mix(0.30, 1.0, stoneZone); // la mousse atténue le relief moyen
   normal = normalize(
-    normal - 0.15 * (grainX * normalize(vGroundTangent) + grainY * normalize(vGroundBitangent))
+    normal
+      - 0.30 * (grainX * gT + grainY * gB)
+      - 1.10 * mid * (midX * gT + midY * gB)
+      - 1.30 * pebble * (f1Dir.x * gT + f1Dir.y * gB)
   );
 `
 
@@ -260,10 +340,11 @@ const ROUGHNESS_FRAGMENT = /* glsl */ `
 
   roughnessFactor = mix(roughnessFactor, 0.22, groundWetness(vGroundHeight));
 
-  // Appliqué APRÈS la berge, et c'est tout l'intérêt : un tapis de mousse au
-  // ras de l'eau ne doit pas prendre le vernis mouillé de la vase nue.
-  roughnessFactor = mix(roughnessFactor, 0.99, mossMask * 0.85);
-  // Croûte de lichen : mate aussi, mais un cran en dessous de la mousse.
+  // Rugosité par état de surface. C'est ce qui rend les plaques lisibles même
+  // quand les teintes sont proches : la mousse absorbe, la boue renvoie.
+  roughnessFactor = mix(roughnessFactor, 0.70, rockMask);   // roche : spéculaire
+  roughnessFactor = mix(roughnessFactor, 1.00, mossMask);   // mousse : mate
+  roughnessFactor = mix(roughnessFactor, 0.20, mudMask);    // boue : vernie
   roughnessFactor = mix(roughnessFactor, 0.90, lichenMask * 0.5);
 `
 

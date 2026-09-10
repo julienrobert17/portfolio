@@ -730,3 +730,172 @@ compromis.
 5. **Le contraste de valeur troncs/sol reste moyen** en plein soleil. Les colonnes
    se détachent bien mieux qu'avant, mais la lumière clé chaude à intensité 2.8
    les ramène vers le ton du terrain sur les faces éclairées.
+
+---
+---
+
+# Lot mosaïque du sol — 10 septembre 2026
+
+Branche `feat/sol-plaques`, partie de `fix/palette-perf`. `npx tsc --noEmit` vert,
+`npm run build` vert, ESLint propre sur les fichiers touchés.
+
+## 1. Fichiers touchés
+
+- `scene/DevonianGround.tsx` — trois états de surface exclusifs, brise-bord, rugosité par état, octave de normale intermédiaire, cailloux Voronoï
+- `scene/GroundFlora.tsx` — plancher de densité en zone sèche, fondu en échelle au bord
+
+## 2. Diagnostic du lot 1 : aucune des deux hypothèses ne dominait
+
+La spec proposait deux causes : masques trop doux, ou amplitude de mélange trop
+faible. J'ai répliqué la logique du shader en TypeScript sur le vrai terrain pour
+trancher. **Les deux sont fausses.**
+
+| Mesure, cadre `presence` (r < 18) | Résultat |
+|---|---|
+| masque de mousse **saturé** à 0 ou 1 | **84.5 %** |
+| masque en transition (« bouillie ») | 15.5 % |
+| répartition mousse / lichen / nu | 40.2 % / 12.7 % / 47.2 % |
+
+Les bords étaient donc déjà **nets**, et la couverture déjà proche du tiers. Ce
+n'était ni la douceur ni l'amplitude.
+
+La vraie cause est double, et aucune des deux n'était dans la liste :
+
+1. **Trop peu de plaques dans le cadre.** À l'échelle 14 unités, on ne compte que
+   **5 plaques distinctes** dans le disque r < 18 que cadre la caméra `presence`.
+   Cinq taches sur tout l'écran se lisent comme un aplat, pas comme une mosaïque.
+   Mesuré par comptage de composantes connexes : 14 u → 5 plaques, **10 u → 10**,
+   7 u → 6, 5 u → 4 (à échelle fine les plaques percolent et refusionnent).
+   Échelle retenue : **10**.
+2. **La densité annulait le masque là où la caméra regarde.** `wetProximity`
+   tombe à 0 sur l'éminence centrale, donc `mossDensity = 0` : 32.4 % de la
+   surface cadrée n'avait structurellement aucune mousse. Corrigé par un plancher
+   de densité (`mix(0.25, 1.0, wetProximity)`).
+
+## 3. Répartition mesurée des trois états
+
+Après implémentation, sur le cadre `presence` (r < 18) :
+
+| État | Part |
+|---|---|
+| Roche nue (dont lichen 16.5 %) | **53.3 %** |
+| Mousse | **33.8 %** |
+| Boue de rive | **12.8 %** |
+
+Sur le terrain entier : mousse 52.4 %, roche 31.0 %, boue 16.6 %. Masques
+toujours nets (7.6 % en transition seulement). La boue reste minoritaire par
+construction — c'est une bande de rive, pas un tiers du paysage, et la forcer à
+33 % l'aurait fait remonter sur les hauteurs sèches.
+
+### Deux itérations qu'il a fallu pour y arriver
+
+La boue est passée par deux versions fausses, corrigées à la mesure :
+
+- **v1, terme additif** : `smoothstep(wetProximity)*0.62 + bruit*0.38`. Le bruit
+  seul suffisait à franchir le seuil → **31 % de boue au sommet de l'éminence
+  sèche**. L'humidité doit *conditionner*, pas *s'ajouter*.
+- **v2, `wetProximity` en porte** : pire, **63.7 %** de boue sur le terrain.
+  Parce que `wetProximity` vaut encore **~0.9 sur la majorité du terrain
+  émergé** (sa médiane est à 0.6 unité au-dessus de l'eau) : ce n'est pas une
+  mesure de « bord de l'eau », c'est presque une constante.
+- **v3 retenue** : bande de rive explicite,
+  `1 - smoothstep(WATER_LEVEL, WATER_LEVEL + 1.2, h)`.
+
+## 4. Cooksonia dans le frustum `presence`
+
+Le diagnostic proposé était exact, et le trou plus large que prévu : la règle
+`r < 6` et la zone sèche `wetProximity = 0` ne se recouvrent pas, elles se
+**juxtaposent** — le semis ne plaçait **aucune** plante avant r = 12, alors que
+seuls les 6 premiers mètres étaient voulus. Or 36 % de l'écran en `presence`
+regarde précisément du terrain de rayon 6 à 12.
+
+| | avant | après |
+|---|---|---|
+| instances dans le frustum | 122 | **145** |
+| dont non occultées par le relief | 52 | **73** |
+| dont à moins de 25 u (premier plan) | **0** | **24** |
+| instances à r < 12 (éminence cadrée) | **0** | **30** |
+| plante visible la plus proche | 29.1 u | **9.6 u** |
+
+Le compte brut « dans le frustum » était un mauvais indicateur : 122 instances y
+étaient déjà, toutes lointaines et à moitié occultées. Correction par un plancher
+d'acceptation à 0.4 (testé 0.2 / 0.3 / 0.4 / 0.5 : 0.2 laissait encore l'éminence
+vide, 0.5 aplatissait le gradient d'humidité). Fondu en échelle sur les 8
+dernières unités avant `maxRadius`, calculé au semis donc **à coût nul par frame**.
+
+## 5. Coût GPU du sol
+
+Mesuré avec `EXT_disjoint_timer_query_webgl2`, jamais avec `finish()`.
+
+| Étape | Sol isolé | Frame complète |
+|---|---|---|
+| Avant ce lot | 7.06 ms | 25.5 ms |
+| Après lots 1+2, version naïve | **18.48 ms** | 35.9 ms |
+| Après optimisation | **7.90 ms** | **26.7 ms** |
+
+La version naïve dépassait largement le plafond de 12 ms fixé par la spec. Deux
+optimisations, mesurées :
+
+1. **Voronoï sous branche.** Les cailloux coûtent 18 appels de hash (donc 18
+   `sin`) par pixel. Ils ne servent que sur roche et berge : `if (stoneZone >
+   0.01)`. Les zones sont spatialement cohérentes, la branche est donc efficace
+   sur GPU plutôt que pathologique.
+2. **Voronoï calculé une seule fois.** Il l'était deux fois — dans
+   `<color_fragment>` pour l'assombrissement et dans `<normal_fragment_maps>`
+   pour la normale. Or `color_fragment` (ligne 172 de `meshphysical`) précède
+   `normal_fragment_maps` (ligne 179) dans le même `main()` : le résultat se
+   réutilise. 36 appels de hash économisés par pixel.
+3. Gradients de bruit en **différences avant** (3 évaluations) au lieu de
+   centrées (4), amplitudes doublées en compensation.
+
+**Le sol est revenu à son coût d'avant le lot** (7.90 contre 7.06 ms) alors qu'il
+porte maintenant trois états, un brise-bord, une octave de relief supplémentaire
+et des cailloux.
+
+## 6. Décisions face à une spec ambiguë
+
+### 6.1 « Un tiers chacun » n'est pas atteignable pour la boue sans la rendre fausse
+
+La spec demandait « un tiers chacun en ordre de grandeur, pas 90/5/5 ». Mousse et
+roche y sont (33.8 % et 53.3 %). La boue est à 12.8 % et je l'y ai laissée : c'est
+une bande de rive définie par la distance à l'eau, et les deux tentatives pour
+l'élargir (§3) l'ont fait remonter sur les crêtes sèches, ce qui est absurde
+géologiquement. J'ai préféré une répartition physiquement juste à une
+répartition conforme au chiffre.
+
+### 6.2 Un bug d'extrapolation trouvé au passage
+
+`mix(midColor, highColor, groundT * 1.5)` : `groundT * 1.5` vaut **1.33** au
+sommet de l'éminence, et `mix()` **extrapole** au-delà du second argument. La
+roche y était donc plus claire que `highColor`, ce qui la faisait virer au blanc
+cassé — visible sur la capture intermédiaire comme des plaques de neige. Borné
+par `clamp`. Ce bug préexistait au lot, introduit lors du recalage de la rampe.
+
+### 6.3 Le brise-bord agit avant le seuil, pas après
+
+La spec dit « perturbe le masque » sans préciser où. Ajouté à la **valeur de
+bruit avant le `smoothstep`**, et non au masque résultant : appliqué après, il
+ne ferait que rendre le bord flou ; appliqué avant, il déplace localement la
+frontière et la rend dentelée tout en gardant la transition franche (`edge`
+resserré de 0.05 à 0.02).
+
+## 7. Ce qui reste faible, par ordre d'impact
+
+1. **Le micro-relief ne se voit toujours pas à moyenne distance.** L'octave à 3
+   unités est en place et modulée par l'état de surface, mais l'éminence reste
+   visuellement lisse : la perturbation de normale ne produit pas d'auto-ombrage
+   ni de silhouette. Seul un vrai déplacement de géométrie, ou du parallax
+   mapping, donnerait du volume. C'est le plus gros écart restant à la référence.
+2. **Les cailloux sont invisibles au-delà de ~15 unités.** À 0.85 unité de maille
+   ils passent sous le pixel. Ils ne servent donc que la vue rapprochée, pour un
+   coût payé sur tout l'écran — une atténuation par distance serait rentable.
+3. **La frontière mousse/roche est nette mais plate.** Il manque une transition
+   d'épaisseur : dans la référence, le tapis de mousse a un bord légèrement
+   surélevé et plus sombre. Un liseré assombri sur le contour du masque
+   coûterait presque rien.
+4. **La flore perd de la matière entre 37 et 45 unités** à cause du fondu :
+   ~34 % des instances y sont réduites. Le levier propre est `count` (460
+   donnerait 85 plantes visibles au lieu de 73, ~+15 % de coût), pas
+   l'élargissement du fondu.
+5. **Toujours aucun anti-aliasing** (hérité du lot précédent) : les silhouettes de
+   troncs sur ciel clair crènelent sur écran non-Retina.

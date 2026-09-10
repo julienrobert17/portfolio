@@ -23,10 +23,10 @@ export interface GroundFloraProps {
 
 const DEFAULT_COUNT = 400
 const DEFAULT_SEED = 17
-// Stratégie de coût : rayon de placement borné plutôt que fade en distance.
-// Un fade coûterait un calcul par instance et par frame ; borner le rayon coûte
-// zéro à l'exécution, et au-delà de ~45 unités une plante de 0.3 fait moins
-// d'un pixel de toute façon.
+// Rayon de placement borné : au-delà de ~45 unités une plante de 0.3 fait moins
+// d'un pixel, l'instance serait payée pour rien. La bordure n'est pas coupée
+// net pour autant (voir EDGE_FADE) — mais le fondu est résolu UNE FOIS au
+// semis, pas par frame, donc il reste gratuit à l'exécution.
 const DEFAULT_MAX_RADIUS = 45
 
 // ─── Morphologie (géométrie unitaire, hauteur totale = 1) ────────────────────
@@ -140,6 +140,30 @@ const MIN_RADIUS = 6
 const WATER_MARGIN = 0.2
 /** Hauteur au-dessus de l'eau où la proximité humide retombe à zéro. */
 const WET_FALLOFF = 4.0
+/**
+ * Plancher de la probabilité d'acceptation en zone sèche.
+ *
+ * Sans lui, `wetProximity` EST la probabilité : elle tombe à 0 dès 4 unités
+ * au-dessus de l'eau, et l'éminence centrale (sol à +2.2 pour un niveau d'eau
+ * à -2.13, donc wetProximity = 0 exact) se retrouve stérile. Or c'est
+ * précisément ce que cadrent les caméras `context`/`presence` : mesuré au
+ * lancer de rayon sur le cadre `presence`, 36 % des pixels du plan voient du
+ * sol de rayon 6 à 12 — la couronne sèche entre la zone réservée aux
+ * Prototaxites et la première berge. L'ancien semis n'y posait AUCUNE plante
+ * (rayon minimum observé : 12.0), d'où un premier plan vide.
+ *
+ * La densité reste donc pilotée par l'humidité — c'est le contrat partagé avec
+ * le shader de mousse — mais avec un plancher : 2.5× plus rare en zone sèche
+ * qu'en bord d'eau au lieu d'absente.
+ */
+const WET_DENSITY_FLOOR = 0.4
+/** Largeur, en unités, du fondu d'échelle avant `maxRadius`. */
+const EDGE_FADE = 8
+/**
+ * Échelle résiduelle atteinte à `maxRadius`. Pas 0 : une plante plus petite que
+ * ça est sous-pixellique et son instance coûterait sans rien afficher.
+ */
+const EDGE_MIN_SCALE = 0.2
 /** normal.y sous lequel la paroi est trop raide pour retenir un tapis. */
 const MIN_NORMAL_Y = 0.6
 /** Nombre de plantes tirées autour d'un même point accepté. */
@@ -189,10 +213,17 @@ function buildFlora(count: number, seed: number, maxRadius: number): FloraInstan
   const minGround = water + WATER_MARGIN
   const minR2 = MIN_RADIUS * MIN_RADIUS
   const maxR2 = Math.max(minR2, maxRadius * maxRadius)
+  // Rayon effectif (≥ MIN_RADIUS) : borne le début du fondu même si l'appelant
+  // passe un maxRadius plus petit que la zone réservée, sinon smoothstep
+  // recevrait un intervalle nul et rendrait NaN.
+  const rMax = Math.sqrt(maxR2)
+  const fadeStart = Math.max(0, rMax - EDGE_FADE)
 
   const out: FloraInstance[] = []
   // Garde-fou : si l'habitat est trop étroit pour `count`, on rend ce qu'on a
-  // plutôt que de boucler. Taux d'acceptation mesuré ≈ 40 % à r ≤ 45.
+  // plutôt que de boucler. Taux d'acceptation des points graines mesuré ≈ 31 %
+  // à r ≤ 45 (l'essentiel des rejets vient du filtre « au-dessus de l'eau ») :
+  // 400 plantes sont posées en 255 tirages, très loin du plafond.
   const maxDraws = count * 40
 
   for (let draw = 0; draw < maxDraws && out.length < count; draw++) {
@@ -215,9 +246,11 @@ function buildFlora(count: number, seed: number, maxRadius: number): FloraInstan
     if (ground.normal.y < MIN_NORMAL_Y) continue
 
     // Règle d'humidité partagée avec le lot mousse : 1 au niveau de l'eau,
-    // 0 six unités plus haut, utilisée comme probabilité d'acceptation.
+    // 0 quatre unités plus haut. Elle module la probabilité d'acceptation sans
+    // plus la dicter : au-dessus du plancher, la zone sèche reste peuplée.
     const wetProximity = 1 - smoothstep(water, water + WET_FALLOFF, ground.height)
-    if (rAccept > wetProximity) continue
+    const acceptance = WET_DENSITY_FLOOR + (1 - WET_DENSITY_FLOOR) * wetProximity
+    if (rAccept > acceptance) continue
 
     for (let k = 0; k < CLUMP_SIZE && out.length < count; k++) {
       s = next(s)
@@ -258,6 +291,16 @@ function buildFlora(count: number, seed: number, maxRadius: number): FloraInstan
       const v = 0.72 + rTint * 0.28
       const tint = new THREE.Color(v, v * 0.97 + 0.03, v * 0.9)
 
+      // Fondu de bordure. Une coupure franche à maxRadius dessine un disque de
+      // flore net, très lisible depuis les caméras hautes (`zoomout`,
+      // `resonance` à y = 45). Les plantes rapetissent donc sur les dernières
+      // EDGE_FADE unités au lieu de disparaître d'un coup. Résolu ici, au
+      // semis : la matrice d'instance est figée (frames={1}), le fondu ne coûte
+      // rien par frame.
+      const edgeScale =
+        EDGE_MIN_SCALE +
+        (1 - EDGE_MIN_SCALE) * (1 - smoothstep(fadeStart, rMax, Math.sqrt(d2)))
+
       out.push({
         key: out.length,
         position: [px, renderedGroundHeight(px, pz) - SINK, pz],
@@ -266,7 +309,7 @@ function buildFlora(count: number, seed: number, maxRadius: number): FloraInstan
           rSpin * Math.PI * 2,
           leanZ + (rLeanZ - 0.5) * LEAN_JITTER,
         ],
-        scale: MIN_SCALE + rScale * (MAX_SCALE - MIN_SCALE),
+        scale: (MIN_SCALE + rScale * (MAX_SCALE - MIN_SCALE)) * edgeScale,
         color: `#${tint.getHexString()}`,
       })
     }
