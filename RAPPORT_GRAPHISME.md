@@ -1261,3 +1261,206 @@ les `#include` manquants, pas les collisions de noms entre deux patchs.
 5. **Le contraste de la mosaïque du sol** reste le point signalé au lot
    précédent, non retouché ici.
 6. **Toujours aucun anti-aliasing.**
+
+# Lot performance & brume aérienne — 11 septembre 2026
+
+Branche `fix/resonance`, partie de `feat/dome-densite`. `npx tsc --noEmit` vert,
+`npm run build` vert, ESLint propre sur les fichiers touchés.
+
+## 1. Fichiers touchés
+
+- `scene/aerial.ts` — **nouveau**, le pilote commun brume / reflet
+- `scene/DevonianWater.tsx` — démontage du reflet en vue aérienne
+- `scene/DevonianAtmosphere.tsx` — densité de brume pilotée, shadow map gelée, teinte
+
+## 2. Diagnostic : coût constant, et le « creux à 2 fps » n'est pas où on le croit
+
+Les deux hypothèses de la spec ont été testées séparément. Aucune des deux n'est
+la cause.
+
+**La recomposition des matrices d'instance (piste 1.2) est hors de cause.** La
+boucle de `useFrame` rejouée à l'identique sur 1 200 arbres et 8 `InstancedMesh`
+coûte **0.106 ms**, soit **0.6 %** d'une frame à 60 fps. Il en faudrait **4 723
+dans la même frame** pour produire un creux à 2 fps. Et en `resonance` elle ne
+tourne même pas : `forestSpread` y vaut 1 en permanence, la garde à 0.0005
+l'arrête dès la seconde frame.
+
+**Le régime établi en `resonance` est parfaitement plat.** Profilé frame par
+frame, 28 frames : **5 119 435 triangles à chaque frame**, sans aucune variance,
+0 compilation de shader, 4 uploads de 8 ko. Il n'y a pas de pic.
+
+**Le creux à 2 fps est au CHARGEMENT.** Profil des 67 premières frames :
+
+| frame | durée | ce qu'elle contient |
+|---|---|---|
+| #3 | **2 405 ms** | 7 `texImage2D`, 0 triangle — décodage des textures du GLB |
+| #5 | **2 798 ms** | **17 `linkProgram`, 34 `compileShader`** — compilation |
+| médiane | 169 ms | — |
+
+Ce sont les **seuls** événements multi-secondes de toute la session. Et
+`<Stats />` affiche un minimum **cumulé depuis le chargement de la page** : le
+« 2 » que tu lis en `resonance` a été enregistré avant même que tu cliques sur
+la phase. La moyenne à 40 fps, elle, est bien réelle et vient du coût constant.
+
+### Répartition du coût constant en `resonance`
+
+| passe | triangles/frame | part |
+|---|---|---|
+| scène | 2 323 756 | 45.4 % |
+| **reflet de l'eau** | **2 323 754** | **45.4 %** |
+| shadow map | 471 903 | 9.2 % |
+
+Le reflet redessine la scène **entière** une seconde fois, tous les 1 200 arbres
+compris.
+
+## 3. Ce qui a été modifié, et le gain de chacun
+
+| | avant | après | gain |
+|---|---|---|---|
+| `resonance` | 5 119 435 tris | **2 323 773** | **−54.6 %** |
+| `presence` | 704 568 tris | **704 568** | inchangé |
+
+**3.1 Démontage du reflet en vue aérienne — −2 323 754 tris/frame (−45.4 %).**
+
+`DevonianWater` avait déjà une prop `reflections` documentée « permet de couper
+le reflet si le coût devient un problème ». **Elle ne coupait rien.** Elle ne
+touchait que `resolution` et `mirror` ; or le `useFrame` interne de
+`MeshReflectorMaterial` (drei, `core/MeshReflectorMaterial.js:151`) appelle
+`gl.render(scene, virtualCamera)` **inconditionnellement**, sans regarder ni
+l'une ni l'autre. Baisser la résolution réduisait la qualité du reflet sans
+jamais supprimer la seconde traversée de la scène, qui est tout le coût. Le seul
+moyen d'économiser est de **démonter le matériau**, ce qui est maintenant fait
+au profit d'un `meshStandardMaterial` de même teinte et même rugosité.
+
+Vérifié dans la ventilation par framebuffer : le seau `512x512` du reflet a
+disparu en `resonance`, il est toujours là en `presence`.
+
+**3.2 Gel de la shadow map en vue aérienne — −471 903 tris/frame (−9.2 %).**
+
+Le frustum de la directionnelle ne couvre que ±60 unités, soit le quart central
+d'une image qui porte à 240, et à 45 unités d'altitude ces ombres font quelques
+pixels. Elles étaient redessinées à chaque frame dans une cible 2048². Le seau
+`2048x2048` a disparu en `resonance`, il est toujours là en `presence`.
+
+**3.3 Les paliers de LOD n'ont pas été touchés.** Le point 1.4 demandait de les
+ajuster si le coût était constant et géométrique. Il l'est — mais la géométrie
+qui pesait n'était pas celle des arbres, c'était celle de la **passe dupliquée**.
+Retirer le premier palier aurait rendu 306 090 triangles (6 %), un cinquième
+palier au-delà de 200 unités 121 952 (2.4 %) ; le reflet en rendait 45.4 %, sans
+rien coûter à l'image. Toucher au LOD aurait dégradé la densité obtenue au lot
+précédent pour un dixième du gain. Je ne l'ai pas fait.
+
+## 4. La brume : pilotée par l'altitude de caméra
+
+**Approche retenue**, et pourquoi les deux pistes de la spec ont été écartées
+telles quelles :
+
+- *Fog à densité décroissante en altitude, calculé dans le shader.* C'est la
+  bonne physique, mais pour atteindre aussi les matériaux issus du **GLB des
+  arbres** il faudrait réécrire `THREE.ShaderChunk.fog_fragment`
+  **globalement** — un effet de bord sur tout le module three, pour une seule
+  scène.
+- *Modulation par la phase.* Elle fait un palier à chaque changement de phase et
+  se désynchronise du cadrage si une caméra est retouchée.
+
+Retenu : la densité est modulée par l'**altitude de la caméra**, lue dans
+`useFrame`. C'est l'approximation « toute la scène est à la profondeur optique de
+la caméra » — exacte précisément dans le cas qui casse, une caméra haute
+regardant un terrain bas. Elle est continue, donc la rampe de `zoomout` se fait
+toute seule sans palier, et elle suit automatiquement un cadrage retouché. Les
+phases au sol tiennent entre 3.5 et 8 unités, `resonance` est à 45 : le seuil est
+posé entre 14 et 38, aucune phase au sol n'en approche.
+
+Facteur retenu : **0.80**. Transmittance mesurée depuis la caméra `resonance` :
+
+| distance | avant | **0.80** | 0.72 |
+|---|---|---|---|
+| 69 u (éminence centrale) | 81.8 % | **87.9 %** | 90.1 % |
+| 180 u (plan moyen) | 25.4 % | **41.6 %** | 49.2 % |
+| 295 u (bord de la forêt) | 2.5 % | **9.5 %** | 14.9 % |
+
+0.72 a été mesuré puis **écarté** : il ne gagne que 2.5 % d'écart-type de
+luminance et 0.8 de balance verte, mais fait passer la lisière de la forêt de
+9.5 % à 14.9 % de visibilité — le lot précédent avait justement étendu la forêt
+à 240 unités pour la noyer. Mauvais échange.
+
+**Teinte : `#c2a276` → `#b0a083`.** Statistiques sur la moitié haute de l'image,
+là où la brume domine :
+
+| | luminance | écart-type | G−R | saturation |
+|---|---|---|---|---|
+| `resonance` avant | 127.9 | 19.94 | **−23.1** | 0.401 |
+| `resonance` après | 113.8 | 20.99 | **−9.7** | 0.282 |
+
+La dominante rouge-sur-vert est **coupée de 58 %** et la saturation de 30 %.
+L'essentiel de ce gain vient de la teinte, pas de la densité : passer de 0.80 à
+0.72 ne déplace G−R que de 0.8. Le sépia d'origine était plus **lumineux** que le
+sol ; à 60 % de brume il ne délavait pas le lointain, il l'éclaircissait.
+
+**Contrôle en `presence` (point 2.3)** — identique au pixel près :
+
+| | luminance | écart-type | RGB | G−R |
+|---|---|---|---|---|
+| avant | 163.4 | 25.41 | 159/163/177 | +4.0 |
+| après | 163.4 | 25.40 | 159/163/177 | +4.0 |
+
+À 22 unités la brume laisse passer 98 % : sa teinte n'a rien à dire. Le réglage
+bas, validé, n'a pas bougé — ni en chiffres, ni en triangles.
+
+## 5. Décisions face à une spec ambiguë ou fausse
+
+### 5.1 Les deux pistes de perf de la spec étaient les mauvaises
+
+La spec désignait la recomposition de matrices comme « piste prioritaire » et le
+reflet comme « piste secondaire ». C'est l'inverse : la première coûte 0.106 ms
+et ne tourne pas en `resonance`, la seconde coûte 45 % de la frame. Mesurer
+l'hypothèse prioritaire avant de coder a évité d'étaler sur plusieurs frames un
+travail qui prend un dixième de milliseconde.
+
+### 5.2 Le « creux à 2 fps » ne se corrige pas là où il se lit
+
+Le compteur `<Stats />` affiche un minimum cumulé depuis le chargement. Le creux
+est la compilation des 17 programmes et le décodage des textures du GLB, au
+chargement, en phase `presence`. Chercher un pic en `resonance` était une
+impasse : il n'y en a pas. C'est une bonne nouvelle — le régime établi était déjà
+stable, seul son niveau était trop bas.
+
+### 5.3 Une prop qui ne faisait pas ce qu'elle disait
+
+`reflections` promettait de couper le reflet et ne coupait que sa qualité. Le
+coût annoncé « négligeable » au lot palette-perf avait été mesuré en `presence`
+avec 24 arbres ; il est resté négligeable dans le rapport alors que la scène
+avait pris 1 200 arbres entre-temps. Une mesure vieille de trois lots, jamais
+refaite.
+
+### 5.4 Le basculement coûte une frame
+
+Démonter `MeshReflectorMaterial` fait compiler le `meshStandardMaterial` qui le
+remplace : **1 `linkProgram`, 2 `compileShader`**, une seule fois, au milieu de
+`zoomout`. Mesuré, c'est la seule frame chargée de la transition. Sur une vraie
+carte un programme standard se compile en quelques dizaines de millisecondes,
+donc une frame sautée pendant un mouvement de caméra. Je n'ai pas cherché à le
+pré-compiler : les contournements possibles (monter les deux matériaux, forcer un
+rendu invisible) sont des bricolages, et je ne peux pas mesurer leur gain ici.
+
+## 6. Ce qui reste faible, par ordre d'impact
+
+1. **Je ne peux toujours pas valider les fps.** Le Chrome headless rend en
+   logiciel, à 3 fps. Ce que je rapporte est un **compte de triangles par frame**,
+   fiable et reproductible : 5 119 435 → 2 323 773, et deux passes de rendu
+   complètes supprimées. Si le goulot était bien la géométrie — ce que le profil
+   parfaitement plat suggère — ça pointe vers ~88 fps ; mais le post-traitement et
+   le fill rate n'ont pas bougé, donc le chiffre réel sera plus bas. **À mesurer
+   chez toi**, c'est le seul verdict qui compte.
+2. **Le stall de chargement reste entier** : ~2.4 s de textures GLB et 17
+   programmes à compiler. Il est hors du périmètre de ce lot, mais c'est lui que
+   tu vois dans le minimum de `<Stats />`, et c'est la vraie première impression.
+3. **Une frame sautée au basculement du reflet**, milieu de `zoomout` (§5.4).
+4. **Plus de reflet du tout en vue aérienne** : la nappe y est un aplat. Assumé —
+   le Fresnel la rend quasi non réfléchissante vue de haut — mais si tu descends
+   un jour la caméra `resonance`, le seuil de 14 à 38 unités est à revoir.
+5. **Ombres gelées en vue aérienne** : les arthropodes continuent de bouger sous
+   une ombre figée. Invisible à 45 unités d'altitude sous 12 % de brume, mais
+   c'est une approximation.
+6. **Le contraste de la mosaïque du sol**, signalé depuis deux lots, toujours pas
+   retouché.
