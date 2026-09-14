@@ -1,0 +1,30 @@
+{
+  "auteur": "Julien",
+  "pour": "Mathilde",
+  "questions": [
+    {
+      "texte": "Le trajet en voiture où on n'a rien dit pendant vingt minutes",
+      "mecanique": "curseur",
+      "options": ["j'étais bien", "j'étais mal"],
+      "acte": 2,
+      "mot": "Moi j'étais bien. J'ai mis trois jours à oser te le demander."
+    },
+    {
+      "texte": "Ce que tu ferais si on te donnait un mardi entier, sans rien à rendre",
+      "mecanique": "le-mot",
+      "options": [
+        "dormir", "marcher", "cuisiner", "lire",
+        "appeler", "ranger", "partir", "peindre",
+        "nager", "écrire", "flâner", "rien"
+      ],
+      "acte": 3
+    },
+    {
+      "texte": "Est-ce que tu savais, ce soir-là, que ça allait durer ?",
+      "mecanique": "bascule",
+      "options": ["je le savais", "pas du tout"],
+      "acte": 3,
+      "mot": "Moi non. J'ai compris beaucoup plus tard, et beaucoup trop lentement."
+    }
+  ]
+}

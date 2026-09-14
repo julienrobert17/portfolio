@@ -1,0 +1,1072 @@
+/*
+ * Tokens de l'expérience. Volontairement dupliqués depuis
+ * un-moment-hors-du-temps/invitation.module.css plutôt que partagés : les
+ * rendre communs imposerait un fichier de tokens importé par les deux modules,
+ * pour un gain de quinze lignes et un vrai risque de régression sur une
+ * expérience qui tourne. La DA est de toute façon différente ici.
+ */
+.stage,
+.plein {
+  --nuit: #14120f;
+  --cote-a: #1c1a16;
+  --cote-b: #191712;
+  --laiton: #c8a45c;
+  --laiton-doux: rgba(200, 164, 92, 0.16);
+  --craie: #f2ede3;
+  --craie-douce: rgba(242, 237, 227, 0.62);
+  --trait: rgba(242, 237, 227, 0.14);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color: var(--craie);
+  font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  background: var(--nuit);
+  overflow: hidden;
+}
+
+/* Face à face : téléphone à plat, une moitié par personne, haut et bas. */
+.faceAFace {
+  flex-direction: column;
+}
+
+/* Côte à côte : gauche et droite, aucune rotation. */
+.coteACote {
+  flex-direction: row;
+}
+
+/*
+ * Une moitié mesure entre 192px et 844px de haut selon l'installation et
+ * l'orientation : un rapport de plus de quatre. Aucune mise en page fixe ne
+ * peut servir les deux bouts, et une `@media` ne saurait pas trancher — la
+ * hauteur d'une moitié ne se déduit pas de celle du viewport (390px de haut en
+ * paysage face à face, 844px en portrait côte à côte, pour le même téléphone).
+ * C'est donc la moitié elle-même qui est le contexte de requête, et les
+ * paliers de densité plus bas se déclenchent sur SA hauteur.
+ */
+.half {
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  /* `safe` est indispensable : sans lui, un contenu plus grand que sa moitié
+     déborde par le haut, hors d'atteinte du défilement. */
+  justify-content: center;
+  justify-content: safe center;
+  box-sizing: border-box;
+  /* Filet de sécurité, jamais la mise en page normale : mieux vaut une moitié
+     qui défile de vingt pixels qu'un contenu coupé en silence. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+/* La colonne de contenu. Elle est distincte de `.half` parce qu'une requête
+   de conteneur ne peut pas styler son propre conteneur. */
+.corps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.half::-webkit-scrollbar {
+  display: none;
+}
+
+/* Les deux commandes, groupées pour pouvoir passer sur une ligne. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.halfA {
+  background: var(--cote-a);
+}
+
+.halfB {
+  background: var(--cote-b);
+}
+
+/* La moitié du haut se lit à l'envers, depuis l'autre côté du téléphone. */
+.flipped {
+  transform: rotate(180deg);
+}
+
+/*
+ * La ligne de séparation. Elle n'est pas une bordure : c'est le fil visuel de
+ * toute l'expérience, elle s'amincit à chaque acte et disparaît à la couture.
+ */
+.seam {
+  flex: 0 0 auto;
+  position: relative;
+  background: var(--laiton);
+  opacity: 0.85;
+  transition: flex-basis 900ms var(--ease), opacity 900ms var(--ease);
+}
+
+.seamH {
+  width: 100%;
+}
+
+.seamV {
+  height: 100%;
+}
+
+.seamGone {
+  opacity: 0;
+}
+
+/* ── Typographie ── */
+.question {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(17px, 4.4vh, 25px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin: 0;
+  text-wrap: balance;
+  max-width: 30ch;
+}
+
+.nom {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--craie-douce);
+  margin: 0;
+}
+
+.attente {
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--craie-douce);
+  animation: souffle 2600ms ease-in-out infinite;
+}
+
+@keyframes souffle {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.8; }
+}
+
+/* ── Contrôles ── */
+.btn {
+  appearance: none;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--craie);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 22px;
+  min-height: 48px;
+  cursor: pointer;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(242, 237, 227, 0.06);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 3px;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnFort {
+  background: var(--laiton);
+  border-color: var(--laiton);
+  color: var(--nuit);
+  font-weight: 700;
+}
+
+.btnFort:hover:not(:disabled) {
+  background: #d8b76f;
+}
+
+/* Passer une question : toujours possible, jamais mis en avant. */
+.passer {
+  appearance: none;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--craie-douce);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 10px 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.passer:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.choix {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.choixOn {
+  background: var(--laiton-doux);
+  border-color: var(--laiton);
+}
+
+/* ── Écrans pleins (calibration, interlude, fin) ── */
+.plein {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 28px 22px;
+  box-sizing: border-box;
+  text-align: center;
+  background: var(--nuit);
+}
+
+.titre {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(22px, 5.4vh, 32px);
+  line-height: 1.18;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.sous {
+  margin: 0;
+  font-size: 14px;
+  color: var(--craie-douce);
+  max-width: 34ch;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seam,
+  .btn,
+  .mot {
+    transition: none;
+  }
+  .attente {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ── Mécanique : le curseur ── */
+.curseurWrap {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poles {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  line-height: 1.25;
+  color: var(--craie-douce);
+}
+
+.pole {
+  max-width: 45%;
+}
+
+.poleD {
+  text-align: right;
+}
+
+.slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 44px;
+  background: none;
+  margin: 0;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--trait);
+}
+
+.slider::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--trait);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -11.5px;
+  border-radius: 999px;
+  background: var(--laiton);
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--laiton);
+}
+
+.slider:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+/* ── Mécanique : le mot ── */
+.grille {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.mot {
+  appearance: none;
+  border: 1px solid var(--trait);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--craie);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 10px 4px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.mot:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 2px;
+}
+
+.motOn {
+  background: var(--laiton-doux);
+  border-color: var(--laiton);
+}
+
+.mot:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.compteur {
+  font-size: 11.5px;
+  color: var(--craie-douce);
+  margin: 0;
+}
+
+/* ── Révélation ── */
+.rev {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.revLigne {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.revNom {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--craie-douce);
+  flex-shrink: 0;
+}
+
+.revVal {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 15px;
+  text-align: right;
+}
+
+.revAxe {
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--trait);
+  margin: 16px 0 6px;
+}
+
+.revDot {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 999px;
+  border: 2px solid var(--nuit);
+}
+
+.revDotA {
+  background: var(--laiton);
+}
+
+.revDotB {
+  background: var(--craie);
+}
+
+.commun {
+  color: var(--laiton);
+  font-weight: 700;
+}
+
+/* ── Question écrite par l'un pour l'autre ── */
+.persoTag {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--laiton);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Un filet de part et d'autre : ça marque sans crier. */
+.persoTag::before,
+.persoTag::after {
+  content: '';
+  width: 16px;
+  height: 1px;
+  background: var(--laiton);
+  opacity: 0.6;
+}
+
+/*
+ * Le mot de l'auteur. Il tombe à la révélation de SA question, juste sous les
+ * deux réponses : c'est là qu'il vaut quelque chose.
+ */
+.motAuteur {
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(200, 164, 92, 0.3);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 14px;
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--laiton);
+  text-align: left;
+  animation: monte 700ms var(--ease) both;
+}
+
+.motSignature {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-nunito), system-ui, sans-serif;
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--craie-douce);
+}
+
+@keyframes monte {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motAuteur {
+    animation: none;
+  }
+}
+
+/* ── Mécanique : l'enchère ── */
+.enchere {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.enchereBtn {
+  appearance: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid var(--trait);
+  background: transparent;
+  color: var(--craie);
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.enchereBtn:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 3px;
+}
+
+.enchereBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.enchereVal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 92px;
+}
+
+.enchereNombre {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--laiton);
+}
+
+.enchereUnite {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--craie-douce);
+  margin-top: 4px;
+}
+
+/* ── Mécanique : le classement ── */
+.rangListe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rangCarte {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--trait);
+  border-radius: 12px;
+  background: var(--nuit);
+  font-size: 12.5px;
+  line-height: 1.25;
+  /* C'est le <li> entier qui est saisissable : sans ceci, le navigateur
+     confisque le geste pour faire défiler la page. */
+  touch-action: none;
+  cursor: grab;
+}
+
+/* Le libellé de la carte : seul <span> sans classe du composant. */
+.rangCarte > span:not([class]) {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.rangCarteActive {
+  border-color: var(--laiton);
+  background: var(--laiton-doux);
+  z-index: 2;
+}
+
+/* Poignée décorative : trois traits, pour dire « ça se saisit ». */
+.rangPoignee {
+  flex-shrink: 0;
+  width: 10px;
+  height: 12px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--craie-douce) 0 1.5px,
+    transparent 1.5px 5px
+  );
+  opacity: 0.5;
+}
+
+.rangNum {
+  flex-shrink: 0;
+  width: 20px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 14px;
+  color: var(--laiton);
+}
+
+/*
+ * Les deux flèches côte à côte plutôt qu'empilées. Empilées, elles imposaient
+ * à elles seules 46px de haut par carte, soit près de cent pixels sur les
+ * quatre — de quoi faire déborder le classement d'une moitié de portrait.
+ * En ligne, elles se lisent mieux et la carte tient sur une hauteur de texte.
+ */
+.rangBoutons {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.rangBouton {
+  appearance: none;
+  width: 30px;
+  height: 22px;
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--craie);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rangBouton:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.rangBouton:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 1px;
+}
+
+/* ── Le pari ── */
+.etape {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--laiton);
+}
+
+.revEcart {
+  font-size: 11.5px;
+  color: var(--craie-douce);
+  font-style: italic;
+  margin: 2px 0 0;
+}
+
+/* ── Mécanique : à voix haute, et le tir à la corde ── */
+
+/* Consigne discrète : elle accompagne, elle ne donne pas d'ordre. */
+.consigne {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--craie-douce);
+  max-width: 28ch;
+  text-align: center;
+}
+
+/*
+ * Le seul minuteur de l'expérience, et il ne se voit pas : sur une question à
+ * voix haute, le bouton de validation arrive en fondu sur cinq secondes. Rien
+ * ne tourne, rien ne décompte, rien ne presse — et le bouton reste cliquable
+ * et focusable pendant tout le fondu, donc il ne bloque personne. Il retient
+ * juste le réflexe de valider avant d'avoir parlé.
+ */
+.btnRetenu {
+  animation: retenu 5200ms var(--ease) both;
+}
+
+@keyframes retenu {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/*
+ * La corde. Piste haute de 44px pour rester attrapable au doigt, fil fin,
+ * nœud en laiton. Aucune transition sur la position du nœud : il doit suivre
+ * les deux doigts au pixel près, une interpolation le ferait flotter.
+ */
+.corde {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.corde:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.cordeFil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--trait);
+}
+
+.cordeNoeud {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: var(--laiton);
+  box-shadow: 0 0 0 7px var(--laiton-doux);
+}
+
+/* ── Premier temps de la fin : la couture ── */
+
+/*
+ * La seule animation ample du projet. Trois choses se défont ensemble : la
+ * ligne s'efface (transition portée par `.seam`), les deux fonds convergent,
+ * et la rotation à 180° de la moitié du haut se déroule.
+ */
+.half {
+  transition: transform 1600ms var(--ease), background-color 1600ms var(--ease);
+}
+
+.deroule {
+  transform: rotate(0deg);
+}
+
+.coutureEnCours .halfA,
+.coutureEnCours .halfB {
+  background: var(--nuit);
+}
+
+.nomParti {
+  opacity: 0;
+  transition: opacity 800ms var(--ease);
+}
+
+/* L'écran entier se pose par-dessus les deux moitiés une fois fondues. */
+.pleinPose {
+  z-index: 5;
+}
+
+.pleinArrive {
+  animation: arrive 900ms var(--ease) both;
+}
+
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Deuxième temps : l'ordre du jour ── */
+.pleinLong {
+  justify-content: flex-start;
+  overflow-y: auto;
+  gap: 14px;
+  padding: 34px 20px 44px;
+}
+
+.section {
+  width: 100%;
+  max-width: 420px;
+  text-align: left;
+  margin-top: 10px;
+}
+
+.sectionTitre {
+  font-family: var(--font-nunito), system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--laiton);
+  margin: 0 0 10px;
+}
+
+.item {
+  border-top: 1px solid var(--trait);
+  padding: 11px 0 3px;
+}
+
+.itemQuestion {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 15px;
+  line-height: 1.3;
+  margin: 0 0 6px;
+}
+
+.itemDit {
+  margin: 0 0 3px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--craie-douce);
+}
+
+/* ── Troisième temps : la dernière question ── */
+.pleinNu {
+  gap: 26px;
+}
+
+.derniere {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(21px, 5.8vh, 33px);
+  line-height: 1.22;
+  margin: 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+/*
+ * Il n'y a rien après. Pas de bouton, pas de partage, pas de « recommencer » :
+ * l'écran s'éteint et rend la main à la conversation. Le fondu est conservé
+ * sous mouvement réduit — c'est une variation de lumière, pas un déplacement,
+ * et c'est le point de la scène.
+ */
+.eteint {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 5000ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btnRetenu,
+  .pleinArrive {
+    animation: none;
+  }
+  .half,
+  .nomParti {
+    transition: none;
+  }
+}
+
+/* ══ Paliers de densité ══
+ *
+ * Ils se déclenchent sur la hauteur de la MOITIÉ, pas sur celle de l'écran
+ * (voir le commentaire de `.half`). Deux paliers seulement : « la moitié est
+ * basse » et « la moitié est très basse ».
+ */
+
+/* Palier 1 — moitié basse : portrait face à face (≈419px) et paysage côte à
+   côte (≈390px). On resserre, et les deux commandes passent sur une ligne. */
+@container (max-height: 620px) {
+  .corps {
+    gap: 9px;
+    padding: 12px 14px;
+  }
+
+  .actions {
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .question {
+    font-size: clamp(16px, 3.6vh, 22px);
+    max-width: 34ch;
+  }
+}
+
+/* Palier 2 — moitié très basse : paysage face à face (≈192px). Deux personnes
+   se partagent la hauteur d'un demi-téléphone couché ; tout ce qui n'est pas
+   la question ou la réponse doit maigrir ou partir. */
+@container (max-height: 260px) {
+  .corps {
+    gap: 5px;
+    padding: 6px 14px;
+  }
+
+  /* Le prénom a servi à la calibration. Arrivé là, chacun sait où il est
+     assis, et ces quinze pixels valent mieux ailleurs. */
+  .nom {
+    display: none;
+  }
+
+  .question {
+    font-size: 15.5px;
+    line-height: 1.15;
+    /* La moitié fait toute la largeur de l'écran couché : on s'en sert pour
+       tenir sur une ou deux lignes plutôt que quatre. */
+    max-width: 52ch;
+  }
+
+  .consigne,
+  .etape {
+    font-size: 11px;
+    max-width: 60ch;
+  }
+
+  .btn {
+    min-height: 36px;
+    padding: 7px 16px;
+    font-size: 14px;
+  }
+
+  .passer {
+    min-height: 30px;
+    padding: 4px 8px;
+  }
+
+  .curseurWrap,
+  .choix,
+  .rev {
+    max-width: 420px;
+  }
+
+  .corde,
+  .slider {
+    height: 32px;
+  }
+
+  /* Douze mots sur deux rangs plutôt que quatre. */
+  .grille {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 560px;
+    gap: 5px;
+  }
+
+  .mot {
+    min-height: 32px;
+    padding: 5px 3px;
+    font-size: 11.5px;
+    border-radius: 9px;
+  }
+
+  .compteur {
+    font-size: 10.5px;
+  }
+
+  .rangListe {
+    max-width: 560px;
+    gap: 4px;
+  }
+
+  .rangCarte {
+    padding: 4px 8px;
+    font-size: 11.5px;
+    border-radius: 9px;
+  }
+
+  .enchereBtn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .enchereNombre {
+    font-size: 26px;
+  }
+}
+
+/* Palier étroit — moitié fine : portrait côte à côte (≈192px de large). Là
+   c'est la largeur qui manque, pas la hauteur : rien ne doit dépasser sur les
+   côtés, un débordement horizontal ne se rattrape par aucun défilement. */
+@container (max-width: 250px) {
+  .corps {
+    padding: 18px 10px;
+  }
+
+  /* Sans `min-width: 0`, un mot long (« imprévisible ») élargit sa colonne de
+     grille et fait sortir toute la grille de la moitié. */
+  .mot {
+    min-width: 0;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    font-size: 11.5px;
+    padding: 9px 2px;
+  }
+
+  .grille {
+    gap: 4px;
+  }
+
+  .enchere {
+    gap: 8px;
+  }
+
+  .enchereBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .enchereVal {
+    min-width: 62px;
+  }
+
+  .enchereNombre {
+    font-size: 30px;
+  }
+
+  .rangCarte {
+    padding: 7px 7px;
+    gap: 5px;
+    font-size: 11.5px;
+  }
+
+  .rangNum {
+    width: 13px;
+    font-size: 12px;
+  }
+
+  /* La poignée est décorative : dans une moitié fine, elle prend la place du
+     libellé, qui lui ne l'est pas. */
+  .rangPoignee {
+    display: none;
+  }
+
+  .rangBouton {
+    width: 24px;
+    height: 20px;
+  }
+}
