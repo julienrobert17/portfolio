@@ -37,7 +37,14 @@ function Ligne({ cle, val }: { cle: string; val: React.ReactNode }) {
  * boutons du bas PROVOQUENT les quatre modes de panne au lieu de les
  * attendre. C'est la différence entre lire une courbe et comprendre.
  */
-export default function PanneauDebug({ lien }: { lien: Lien }) {
+interface PanneauProps {
+  lien: Lien
+  empreinte: string
+  fausse: boolean
+  setFausse: (v: boolean) => void
+}
+
+export default function PanneauDebug({ lien, empreinte, fausse, setFausse }: PanneauProps) {
   const [ouvert, setOuvert] = useState(true)
   const [maintenant, setMaintenant] = useState(0)
 
@@ -94,6 +101,11 @@ export default function PanneauDebug({ lien }: { lien: Lien }) {
               }
             />
             <Ligne cle="client" val={clientId.slice(0, 8)} />
+            <Ligne
+              cle="empreinte du déroulé"
+              val={fausse ? `${empreinte} → FAUSSÉE` : empreinte}
+            />
+            <Ligne cle="build" val={(process.env.NEXT_PUBLIC_BUILD ?? '—').slice(11, 19)} />
           </Bloc>
 
           <Bloc titre={`latence · ${latences[0] ?? '—'} ms`}>
@@ -141,6 +153,15 @@ export default function PanneauDebug({ lien }: { lien: Lien }) {
             <div className={styles.actions}>
               {/* Le battement « révélation en vol » dure quelques dizaines de
                   ms : sans ce levier on ne peut pas le regarder. */}
+              <button
+                type="button"
+                className={`${styles.bouton} ${fausse ? styles.boutonRouge : ''}`}
+                onClick={() => setFausse(!fausse)}
+              >
+                {fausse ? 'empreinte faussée ✓' : 'fausser l’empreinte'}
+              </button>
+            </div>
+            <div className={styles.actions}>
               {[0, 800, 2500].map((ms) => (
                 <button
                   key={ms}

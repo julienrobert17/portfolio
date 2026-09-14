@@ -9,6 +9,8 @@ import { NOMS } from '../entre-nous/content'
 import { BANQUE } from '../entre-nous/questions/pool'
 import { PERSO } from '../entre-nous/questions/perso'
 import { buildRun } from '../entre-nous/build-run'
+import { BUILD, empreinteDuDeroule } from './empreinte'
+import { TEXTES } from './content'
 
 /**
  * Ce que l'utilisateur lit quand le lien est en peine.
@@ -21,16 +23,28 @@ import { buildRun } from '../entre-nous/build-run'
 function motDuLien(etat: string, panneDepuisMs: number | null): string {
   if (etat === 'ouvert' || panneDepuisMs === null) return ''
   if (panneDepuisMs < 3000) return ''
-  if (panneDepuisMs < 15000) return 'La ligne est coupée. Ça revient tout seul.'
-  return 'Toujours pas de lien. Regarde le wifi — rien n’est perdu.'
+  if (panneDepuisMs < 15000) return TEXTES.lien.coupe
+  return TEXTES.lien.coupeLongtemps
 }
+
+/**
+ * Ce que le mode à distance retire. Le tir à la corde suppose deux mains sur
+ * le même écran : à distance, la question est rabattue sur un curseur et
+ * reformulée, pas supprimée.
+ */
+const A_DISTANCE = { aDistance: true } as const
 
 export default function AppADistance() {
   const lien = useLien()
   const { etat, cote, lien: info } = lien
   const [nom, setNom] = useState<string>(NOMS.a)
   const [erreur, setErreur] = useState<string | null>(null)
+  const [desaccord, setDesaccord] = useState<{
+    jeSuisEnRetard: boolean | null
+  } | null>(null)
   const [occupe, setOccupe] = useState(false)
+  /** Levier de debug : fausse volontairement l'empreinte envoyée. */
+  const [fausserEmpreinte, setFausserEmpreinte] = useState(false)
 
   /*
    * `?debug=1` comme ailleurs dans le dépôt, `?salle=KRTB` pré-remplit le
@@ -49,12 +63,29 @@ export default function AppADistance() {
       .slice(0, 4),
   )
 
+  /*
+   * L'empreinte est calculée sur une graine FIXE, pas sur celle de la salle :
+   * au moment de rejoindre on ne la connaît pas encore, et on veut de toute
+   * façon comparer les codes, pas les tirages. Deux clients identiques
+   * produisent la même empreinte ; deux clients différents non, quelle que
+   * soit la salle.
+   */
+  const monEmpreinte = useMemo(() => {
+    const temoin = buildRun(BANQUE, PERSO.questions, 'témoin', A_DISTANCE)
+    return empreinteDuDeroule(temoin)
+  }, [])
+
   const entrer = async (avecCode?: string) => {
     setErreur(null)
+    setDesaccord(null)
     setOccupe(true)
-    const r = await lien.entrer(nom, avecCode)
+    const envoyee = fausserEmpreinte ? `${monEmpreinte}-FAUSSE` : monEmpreinte
+    const r = await lien.entrer(nom, avecCode, envoyee, BUILD)
     setOccupe(false)
-    if ('erreur' in r && r.erreur) setErreur(r.erreur)
+    if ('erreur' in r && r.erreur) {
+      setErreur(r.erreur)
+      if ('desaccord' in r && r.desaccord) setDesaccord(r.desaccord)
+    }
   }
 
   const note = motDuLien(info.etat, info.panneDepuisMs)
@@ -65,7 +96,7 @@ export default function AppADistance() {
    * recalculent, ce qui suppose qu'ils font tourner le même code.
    */
   const run = useMemo(
-    () => (etat ? buildRun(BANQUE, PERSO.questions, etat.graine) : null),
+    () => (etat ? buildRun(BANQUE, PERSO.questions, etat.graine, A_DISTANCE) : null),
     [etat],
   )
   const question = run && etat ? (run.questions[etat.index] ?? null) : null
@@ -75,11 +106,8 @@ export default function AppADistance() {
     return (
       <>
         <div className={styles.plein}>
-          <h1 className={styles.titre}>Chacun son téléphone.</h1>
-          <p className={styles.sous}>
-            L’un ouvre une salle, l’autre entre le code. Vous pouvez être dans la même pièce
-            ou pas.
-          </p>
+          <h1 className={styles.titre}>{TEXTES.salon.titre}</h1>
+          <p className={styles.sous}>{TEXTES.salon.sous}</p>
 
           <div className={styles.options}>
             {(['a', 'b'] as const).map((c) => (
@@ -89,7 +117,7 @@ export default function AppADistance() {
                 className={`${styles.btn} ${nom === NOMS[c] ? styles.choisi : ''}`}
                 onClick={() => setNom(NOMS[c])}
               >
-                je suis {NOMS[c]}
+                {TEXTES.salon.jeSuis.replace('{nom}', NOMS[c])}
               </button>
             ))}
           </div>
@@ -101,22 +129,22 @@ export default function AppADistance() {
               disabled={occupe}
               onClick={() => void entrer()}
             >
-              Ouvrir une salle
+              {TEXTES.salon.ouvrir}
             </button>
           </div>
 
-          <p className={styles.sous}>ou</p>
+          <p className={styles.sous}>{TEXTES.salon.ou}</p>
 
           <input
             className={styles.code}
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4))}
-            placeholder="CODE"
+            placeholder={TEXTES.salon.codePlaceholder}
             maxLength={4}
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck={false}
-            aria-label="Code de la salle, quatre lettres"
+            aria-label={TEXTES.salon.codeAide}
           />
           <div className={styles.options}>
             <button
@@ -125,13 +153,44 @@ export default function AppADistance() {
               disabled={code.length !== 4 || occupe}
               onClick={() => void entrer(code)}
             >
-              Rejoindre
+              {TEXTES.salon.rejoindre}
             </button>
           </div>
 
-          {erreur !== null && <p className={styles.erreur}>{erreur}</p>}
+          {erreur !== null && (
+            <>
+              <p className={styles.erreur}>{erreur}</p>
+              {desaccord !== null && (
+                <p className={styles.sous}>
+                  {desaccord.jeSuisEnRetard === true
+                    ? TEXTES.empreinte.jeSuisEnRetard
+                    : desaccord.jeSuisEnRetard === false
+                      ? TEXTES.empreinte.autreEnRetard
+                      : TEXTES.empreinte.indecidable}
+                </p>
+              )}
+              {desaccord !== null && (
+                <div className={styles.options}>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnFort}`}
+                    onClick={() => window.location.reload()}
+                  >
+                    {TEXTES.empreinte.recharger}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-        {debug && <PanneauDebug lien={lien} />}
+        {debug && (
+          <PanneauDebug
+            lien={lien}
+            empreinte={monEmpreinte}
+            fausse={fausserEmpreinte}
+            setFausse={setFausserEmpreinte}
+          />
+        )}
       </>
     )
   }
@@ -153,7 +212,7 @@ export default function AppADistance() {
       <div className={styles.plein}>
         {!enJeu && (
           <>
-            <p className={styles.sous}>votre code</p>
+            <p className={styles.sous}>{TEXTES.salon.votreCode}</p>
             <p className={styles.codeGrand}>{etat.code}</p>
           </>
         )}
@@ -185,7 +244,7 @@ export default function AppADistance() {
             {question ? (
               <Jeu lien={lien} question={question} />
             ) : (
-              <p className={styles.sous}>Fin du déroulé.</p>
+              <p className={styles.sous}>{TEXTES.jeu.finDuDeroule}</p>
             )}
             <div className={styles.options}>
               <button
@@ -193,7 +252,7 @@ export default function AppADistance() {
                 className={styles.btn}
                 onClick={() => void lien.agir('index', { index: etat.index + 1 })}
               >
-                Question suivante
+                {TEXTES.jeu.suivante}
               </button>
             </div>
           </>
@@ -209,13 +268,22 @@ export default function AppADistance() {
                 disabled={etat.places.length < 2}
                 onClick={() => void lien.agir('phase', { phase: 'jeu' })}
               >
-                {etat.places.length < 2 ? 'On attend l’autre' : 'Commencer'}
+                {etat.places.length < 2 ? TEXTES.attente.bouton : TEXTES.attente.commencer}
               </button>
             </div>
+            {/* Le seul instant où personne n'est pressé : on attend l'autre. */}
+            <p className={styles.appelez}>{TEXTES.attente.appelez}</p>
           </>
         )}
       </div>
-      {debug && <PanneauDebug lien={lien} />}
+      {debug && (
+        <PanneauDebug
+          lien={lien}
+          empreinte={monEmpreinte}
+          fausse={fausserEmpreinte}
+          setFausse={setFausserEmpreinte}
+        />
+      )}
     </>
   )
 }

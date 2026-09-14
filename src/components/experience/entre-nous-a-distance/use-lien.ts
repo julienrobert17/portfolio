@@ -20,6 +20,13 @@ export interface Revelation {
  */
 export type EtatQuestion = 'saisie' | 'attente' | 'en-vol' | 'revelee'
 
+/** Renvoyé quand les deux appareils n'ont pas le même déroulé. */
+export interface Desaccord {
+  jeSuisEnRetard: boolean | null
+  monBuild: string | null
+  buildSalle: string | null
+}
+
 const CLE_CLIENT = 'entre-nous-client'
 const JOURNAL_MAX = 120
 const LATENCES_MAX = 30
@@ -327,14 +334,23 @@ export function useLien() {
   useEffect(() => () => fermer(), [fermer])
 
   const entrer = useCallback(
-    async (nom: string, code?: string) => {
+    async (nom: string, code: string | undefined, empreinte: string, build: string) => {
       const r = await fetch('/api/entre-nous/salle', {
         method: code ? 'PUT' : 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ nom, clientId, ...(code ? { code } : {}) }),
+        body: JSON.stringify({ nom, clientId, empreinte, build, ...(code ? { code } : {}) }),
       })
-      const charge = (await r.json()) as { etat?: EtatSalle; cote?: Cote; message?: string }
+      const charge = (await r.json()) as {
+        etat?: EtatSalle
+        cote?: Cote
+        message?: string
+        raison?: string
+        desaccord?: Desaccord
+      }
       noter({ sens: 'envoyé', type: code ? 'rejoindre' : 'creer', taille: 0 })
+      if (charge.raison === 'empreinte') {
+        return { erreur: charge.message ?? 'Échec.', desaccord: charge.desaccord ?? null }
+      }
       if (!r.ok || !charge.etat) return { erreur: charge.message ?? 'Échec.' }
       setEtat(charge.etat)
       setCote(charge.cote ?? null)
@@ -410,9 +426,9 @@ export function useLien() {
   )
 
   const repondre = useCallback(
-    async (questionId: string, valeur: unknown, index: number) => {
+    async (questionId: string, valeur: unknown, index: number, passe = false, pari?: unknown) => {
       setMiennes((m) => ({ ...m, [questionId]: valeur }))
-      return agir('repondre', { questionId, valeur, index })
+      return agir('repondre', { questionId, valeur, index, passe, pari })
     },
     [agir],
   )

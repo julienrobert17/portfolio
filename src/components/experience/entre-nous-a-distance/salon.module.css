@@ -173,3 +173,36 @@
 @media (prefers-reduced-motion: reduce) {
   .attente { animation: none; opacity: 0.6; }
 }
+
+/* Le pari : quel des deux temps on est en train de saisir. */
+.etapePari {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--laiton);
+}
+
+/* La consigne d'une question qui se joue dans l'appel, pas ici. */
+.consigneDistance {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--craie-douce);
+  max-width: 28ch;
+}
+
+/*
+ * La ligne du salon : elle assume le canal vocal au lieu de l'espérer.
+ * Discrète — c'est une évidence partagée, pas une consigne.
+ */
+.appelez {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--craie-douce);
+  max-width: 30ch;
+  border-top: 1px solid var(--trait);
+  padding-top: 12px;
+}
