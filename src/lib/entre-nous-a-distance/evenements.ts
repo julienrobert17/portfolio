@@ -12,22 +12,49 @@ import type { Cote, EtatSalle, Evenement, Phase, TypeEvenement } from './types'
  * l'inverse. Les séparer, c'est laisser un client se croire à jour alors
  * qu'il a manqué quelque chose.
  */
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+
+/**
+ * Écrit un événement et incrémente la version, dans une transaction DÉJÀ
+ * ouverte par l'appelant.
+ *
+ * L'`UPDATE` sur la salle prend un verrou de ligne pour toute la durée de la
+ * transaction : deux requêtes concurrentes sur la même salle se sérialisent
+ * donc ici. C'est ce qui permet à `repondre` de compter les réponses sans
+ * qu'un autre client s'intercale entre le compte et la décision.
+ */
+export async function emettreDans(
+  tx: Tx,
+  salleCode: string,
+  type: TypeEvenement,
+  charge: object,
+): Promise<number> {
+  const salle = await tx.salle.update({
+    where: { code: salleCode },
+    data: { version: { increment: 1 } },
+    select: { version: true },
+  })
+  const evenement = await tx.evenement.create({
+    // La version accompagne l'événement : c'est ce qui permet au client de
+    // rester en phase sans redemander l'état à chaque fois.
+    data: { salleCode, type, charge: charge as never, version: salle.version },
+    select: { id: true },
+  })
+  return evenement.id
+}
+
 export async function emettre(
   salleCode: string,
   type: TypeEvenement,
   charge: object,
 ): Promise<{ id: number; version: number }> {
   const resultat = await prisma.$transaction(async (tx) => {
-    const salle = await tx.salle.update({
+    const id = await emettreDans(tx, salleCode, type, charge)
+    const salle = await tx.salle.findUniqueOrThrow({
       where: { code: salleCode },
-      data: { version: { increment: 1 } },
       select: { version: true },
     })
-    const evenement = await tx.evenement.create({
-      data: { salleCode, type, charge: charge as never },
-      select: { id: true },
-    })
-    return { id: evenement.id, version: salle.version }
+    return { id, version: salle.version }
   })
   await flux.publier(salleCode, resultat.id)
   return resultat
@@ -83,5 +110,10 @@ export async function rejouer(
   })
   // Trop de retard : un instantané coûtera moins cher et sera plus sûr.
   if (lignes.length > FENETRE_REJEU) return null
-  return lignes.map((l) => ({ id: l.id, type: l.type as TypeEvenement, charge: l.charge }))
+  return lignes.map((l) => ({
+    id: l.id,
+    type: l.type as TypeEvenement,
+    charge: l.charge,
+    version: l.version,
+  }))
 }

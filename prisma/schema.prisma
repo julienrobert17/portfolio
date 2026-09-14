@@ -105,9 +105,16 @@ model Evenement {
   salleCode String
   salle     Salle  @relation(fields: [salleCode], references: [code], onDelete: Cascade)
 
-  type   String
-  charge Json
-  creeA  DateTime @default(now())
+  type    String
+  charge  Json
+  /// La version de la salle APRÈS cet événement.
+  ///
+  /// Sans elle, la version du client dérive : il reçoit des événements qui
+  /// font avancer la salle sans que sa propre copie bouge, et sa prochaine
+  /// écriture est refusée pour une raison qu'il ne peut pas comprendre. Un
+  /// journal d'événements doit se suffire à lui-même.
+  version Int      @default(0)
+  creeA   DateTime @default(now())
 
   @@index([salleCode, id])
 }

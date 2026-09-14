@@ -22,6 +22,8 @@ export interface Evenement {
   id: number
   type: TypeEvenement
   charge: unknown
+  /** La version de la salle après cet événement. */
+  version: number
 }
 
 /** Ce qu'un client sait de la salle. C'est la seule vérité affichable. */

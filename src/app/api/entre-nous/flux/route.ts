@@ -55,12 +55,15 @@ export async function GET(requete: Request) {
   const corps = new ReadableStream<Uint8Array>({
     async start(controleur) {
       let ferme = false
-      const envoyer = (type: string, charge: unknown, id?: number) => {
+      const envoyer = (type: string, charge: unknown, id?: number, version?: number) => {
         if (ferme) return
+        // La version voyage dans l'enveloppe, à côté de la charge : le client
+        // la lit sans avoir à connaître la forme de chaque type d'événement.
+        const enveloppe = version !== undefined ? { v: version, c: charge } : { c: charge }
         const morceaux = [
           id !== undefined ? `id: ${id}\n` : '',
           `event: ${type}\n`,
-          `data: ${JSON.stringify(charge)}\n\n`,
+          `data: ${JSON.stringify(enveloppe)}\n\n`,
         ].join('')
         controleur.enqueue(encodeur.encode(morceaux))
       }
@@ -87,7 +90,7 @@ export async function GET(requete: Request) {
         dernierId = dernier && dernier.length > 0 ? dernier[dernier.length - 1].id : depuis
       } else {
         for (const e of rejeu) {
-          envoyer(e.type, e.charge, e.id)
+          envoyer(e.type, e.charge, e.id, e.version)
           dernierId = e.id
         }
         if (depuis === 0) envoyer('instantane', etatInitial)
@@ -100,7 +103,7 @@ export async function GET(requete: Request) {
           const evenements = await flux.attendre(code, dernierId, requete.signal)
           if (evenements.length > 0) {
             for (const e of evenements) {
-              envoyer(e.type, e.charge, e.id)
+              envoyer(e.type, e.charge, e.id, e.version)
               dernierId = e.id
             }
           } else {

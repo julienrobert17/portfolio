@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { emettre, instantane } from '@/lib/entre-nous-a-distance/evenements'
+import { repondre } from '@/lib/entre-nous-a-distance/reponses'
 import type { ConflitVersion, Phase } from '@/lib/entre-nous-a-distance/types'
 
 export const runtime = 'nodejs'
@@ -45,8 +46,22 @@ export async function POST(requete: Request) {
   const moi = salle.participants.find((p) => p.clientId === clientId)
   if (!moi) return NextResponse.json({ message: 'Vous n’avez pas de place ici.' }, { status: 403 })
 
-  // ── Le contrôle de version ──
-  if (version !== salle.version) {
+  /*
+   * ── Le contrôle de version, et ce à quoi il NE s'applique pas ──
+   *
+   * Une réponse est une écriture COMMUTATIVE : chaque côté écrit sa propre
+   * ligne, identifiée par (salle, question, côté). Deux réponses n'entrent
+   * jamais en conflit, et les soumettre au contrôle de version produit un
+   * refus dans le cas le plus courant qui soit — A valide, la version bouge,
+   * et la réponse de B rebondit alors qu'elle ne gênait personne.
+   *
+   * Le contrôle sert à ORDONNER la navigation (phase, index), où deux clients
+   * peuvent vraiment se marcher dessus. Ce qui menace une réponse n'est pas
+   * la version mais la question : si la salle est passée à la suivante
+   * pendant qu'on répondait, la réponse n'a plus d'objet. C'est `repondre`
+   * qui vérifie ça, sur l'index, et qui le dit clairement.
+   */
+  if (action !== 'repondre' && version !== salle.version) {
     const etat = await instantane(code)
     if (!etat) return NextResponse.json({ message: 'Salle inconnue.' }, { status: 404 })
     const conflit: ConflitVersion = {
@@ -74,6 +89,53 @@ export async function POST(requete: Request) {
       }
       await prisma.salle.update({ where: { code }, data: { phase: voulue } })
       await emettre(code, 'phase', { phase: voulue })
+      break
+    }
+    case 'repondre': {
+      const c = brut.charge as
+        | { questionId?: unknown; valeur?: unknown; pari?: unknown; passe?: unknown }
+        | undefined
+      const questionId = typeof c?.questionId === 'string' ? c.questionId : ''
+      if (questionId === '') {
+        return NextResponse.json({ message: 'Question manquante.' }, { status: 400 })
+      }
+      const indexClient = typeof (c as { index?: unknown })?.index === 'number'
+        ? (c as { index: number }).index
+        : null
+      if (indexClient !== null && indexClient !== salle.index) {
+        const etatPasse = await instantane(code)
+        return NextResponse.json(
+          {
+            refus: 'question-passee',
+            indexClient,
+            indexSalle: salle.index,
+            etat: etatPasse,
+          },
+          { status: 409 },
+        )
+      }
+      const r = await repondre(code, moi.cote as 'a' | 'b', {
+        questionId,
+        valeur: c?.valeur,
+        pari: c?.pari,
+        passe: c?.passe === true,
+      })
+      const etatApres = await instantane(code)
+      return NextResponse.json({ etat: etatApres, revele: r.revele, comptes: r.comptes })
+    }
+    case 'index': {
+      const vers = (brut.charge as { index?: unknown } | undefined)?.index
+      if (typeof vers !== 'number' || !Number.isInteger(vers) || vers < 0) {
+        return NextResponse.json({ message: 'Index invalide.' }, { status: 400 })
+      }
+      // Comme les phases : on n'avance jamais à reculons. Deux clients qui
+      // touchent « Continuer » en même temps ne sautent pas deux questions.
+      if (vers <= salle.index) {
+        const etatIgnore = await instantane(code)
+        return NextResponse.json({ ignore: 'index-en-arriere', etat: etatIgnore })
+      }
+      await prisma.salle.update({ where: { code }, data: { index: vers } })
+      await emettre(code, 'index', { index: vers })
       break
     }
     case 'ping': {

@@ -45,7 +45,12 @@ export const transportSondage: FluxTransport = {
       })
       if (lignes.length > 0) {
         return lignes.map(
-          (l): Evenement => ({ id: l.id, type: l.type as TypeEvenement, charge: l.charge }),
+          (l): Evenement => ({
+            id: l.id,
+            type: l.type as TypeEvenement,
+            charge: l.charge,
+            version: l.version,
+          }),
         )
       }
       await dormir(PAS_MS, signal)
