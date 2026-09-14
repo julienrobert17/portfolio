@@ -18,16 +18,47 @@ function codeAuHasard(): string {
   return code
 }
 
-export type Echec = 'inconnue' | 'complete' | 'expiree'
+export type Echec = 'inconnue' | 'complete' | 'expiree' | 'empreinte'
+
+/** Ce qu'on sait dire à quelqu'un dont le déroulé ne colle pas à celui de la salle. */
+export interface DesaccordEmpreinte {
+  /** Vrai si c'est CE client qui est en retard. `null` si on ne peut pas trancher. */
+  jeSuisEnRetard: boolean | null
+  monBuild: string | null
+  buildSalle: string | null
+}
 
 export class ErreurSalle extends Error {
-  constructor(readonly raison: Echec) {
+  constructor(
+    readonly raison: Echec,
+    readonly desaccord?: DesaccordEmpreinte,
+  ) {
     super(raison)
   }
 }
 
+/**
+ * Compare deux horodatages de construction ISO.
+ *
+ * Rend `null` dès qu'un des deux manque ou n'est pas lisible : dire « c'est
+ * toi qui es en retard » à tort est pire que de ne rien dire, parce que la
+ * personne recharge le mauvais téléphone et retombe sur le même écran.
+ */
+function quiEstEnRetard(mien: string | null, salle: string | null): boolean | null {
+  if (mien === null || salle === null) return null
+  const a = Date.parse(mien)
+  const b = Date.parse(salle)
+  if (Number.isNaN(a) || Number.isNaN(b) || a === b) return null
+  return a < b
+}
+
 /** Crée une salle et y installe son premier occupant, côté `a`. */
-export async function creerSalle(nom: string, clientId: string): Promise<EtatSalle> {
+export async function creerSalle(
+  nom: string,
+  clientId: string,
+  empreinte?: string,
+  build?: string,
+): Promise<EtatSalle> {
   for (let essai = 0; essai < 8; essai += 1) {
     const code = codeAuHasard()
     const existe = await prisma.salle.findUnique({ where: { code }, select: { code: true } })
@@ -37,6 +68,8 @@ export async function creerSalle(nom: string, clientId: string): Promise<EtatSal
         code,
         graine: `${Date.now()}-${Math.floor(Math.random() * 1e9)}`,
         expireA: new Date(Date.now() + SALLE_MS),
+        empreinte: empreinte ?? null,
+        build: build ?? null,
         participants: { create: { cote: 'a', nom, clientId } },
       },
     })
@@ -65,6 +98,8 @@ export async function rejoindre(
   code: string,
   nom: string,
   clientId: string,
+  empreinte?: string,
+  build?: string,
 ): Promise<{ etat: EtatSalle; cote: Cote; repriseDeBail: boolean }> {
   const resultat = await prisma.$transaction(async (tx) => {
     const salle = await tx.salle.findUnique({
@@ -73,6 +108,23 @@ export async function rejoindre(
     })
     if (!salle) throw new ErreurSalle('inconnue')
     if (salle.expireA.getTime() < Date.now()) throw new ErreurSalle('expiree')
+
+    /*
+     * Le désaccord d'empreinte se vérifie AVANT de donner une place : laisser
+     * entrer quelqu'un dont le déroulé diffère, c'est garantir une partie qui
+     * ne révélera jamais rien, sans que personne comprenne pourquoi.
+     */
+    if (
+      empreinte !== undefined &&
+      salle.empreinte !== null &&
+      salle.empreinte !== empreinte
+    ) {
+      throw new ErreurSalle('empreinte', {
+        jeSuisEnRetard: quiEstEnRetard(build ?? null, salle.build),
+        monBuild: build ?? null,
+        buildSalle: salle.build,
+      })
+    }
 
     const mienne = salle.participants.find((p) => p.clientId === clientId)
     if (mienne) {

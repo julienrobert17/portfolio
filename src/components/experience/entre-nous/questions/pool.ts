@@ -101,6 +101,8 @@ const ACTE_1: readonly Question[] = [
      */
     id: 'a1-8',
     texte: 'Trois mots pour la personne en face',
+    /* À distance, personne n'est « en face ». */
+    texteADistance: 'Trois mots pour l’autre',
     mecanique: 'le-mot',
     acte: 1,
     options: [
@@ -266,6 +268,11 @@ const ACTE_3: readonly Question[] = [
     id: 'a3-2',
     texte:
       'Dites-vous une chose que l’autre fait sans le savoir, et que vous aimez.',
+    /* À distance on est au téléphone : « de vive voix » dit le canal sans
+       supposer qu'on est dans la même pièce. La formule est la même sur les
+       trois, ce qui en fait un petit rituel. */
+    texteADistance:
+      'Dites-le-vous de vive voix : une chose que l’autre fait sans le savoir, et que vous aimez.',
     mecanique: 'a-voix-haute',
     acte: 3,
   },
@@ -273,6 +280,7 @@ const ACTE_3: readonly Question[] = [
     id: 'a3-3',
     texte:
       'En une semaine, combien de fois tu penses à la personne en face sans le lui dire',
+    texteADistance: 'En une semaine, combien de fois tu penses à l’autre sans le lui dire',
     mecanique: 'enchere',
     acte: 3,
     echelle: { min: 0, max: 25, pas: 1, unite: 'fois', uniteSing: 'fois' },
@@ -281,6 +289,7 @@ const ACTE_3: readonly Question[] = [
   {
     id: 'a3-4',
     texte: 'Être connu par cœur par la personne en face',
+    texteADistance: 'Être connu par cœur par l’autre',
     mecanique: 'curseur',
     acte: 3,
     options: ['c’est tout ce que je veux', 'j’en garde un bout pour moi'],
@@ -289,12 +298,18 @@ const ACTE_3: readonly Question[] = [
     id: 'a3-5',
     texte:
       'Dites-vous une chose que vous aimeriez faire ensemble, et que vous n’avez jamais proposée.',
+    texteADistance:
+      'Dites-le-vous de vive voix : une chose que vous aimeriez faire ensemble, et que vous n’avez jamais proposée.',
     mecanique: 'a-voix-haute',
     acte: 3,
   },
   {
     id: 'a3-6',
     texte: 'Où vous en êtes, tous les deux. Un seul curseur, à deux mains.',
+    /* Sur deux appareils, personne ne tire sur le curseur de l'autre : chacun
+       place le sien, et c'est l'écart qui se regarde. La question survit, la
+       phrase change. */
+    texteADistance: 'Où vous en êtes, tous les deux. Chacun le place de son côté.',
     mecanique: 'tir-a-la-corde',
     acte: 3,
     options: ['chacun sa bulle', 'collés'],
@@ -304,6 +319,8 @@ const ACTE_3: readonly Question[] = [
     id: 'a3-7',
     texte:
       'Chacun son tour : dites ce que vous espérez de l’année qui vient.',
+    texteADistance:
+      'Chacun son tour, de vive voix : ce que vous espérez de l’année qui vient.',
     mecanique: 'a-voix-haute',
     acte: 3,
     garde: true,

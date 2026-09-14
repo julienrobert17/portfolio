@@ -44,6 +44,12 @@ export interface Question {
   /** Si vrai, chacun répond aussi en devinant la réponse de l'autre. */
   pari?: boolean
   /**
+   * Formulation de remplacement quand la mécanique a été rabattue sur une
+   * autre (mode à distance). Une question qui dit « à deux mains » n'a plus
+   * de sens dès qu'il y a deux appareils : la question reste, la phrase change.
+   */
+  texteADistance?: string
+  /**
    * Si vrai, `buildRun` ne retirera JAMAIS cette question pour faire de la
    * place aux questions perso.
    *

@@ -9,20 +9,33 @@ interface Corps {
   nom?: unknown
   code?: unknown
   clientId?: unknown
+  empreinte?: unknown
+  build?: unknown
 }
 
-function lire(corps: Corps): { nom: string; clientId: string; code?: string } | null {
+interface Lu {
+  nom: string
+  clientId: string
+  code?: string
+  empreinte?: string
+  build?: string
+}
+
+function lire(corps: Corps): Lu | null {
   const nom = typeof corps.nom === 'string' ? corps.nom.trim() : ''
   const clientId = typeof corps.clientId === 'string' ? corps.clientId.trim() : ''
   if (nom === '' || clientId === '') return null
   const code = typeof corps.code === 'string' ? corps.code.trim().toUpperCase() : undefined
-  return { nom, clientId, ...(code ? { code } : {}) }
+  const empreinte = typeof corps.empreinte === 'string' ? corps.empreinte : undefined
+  const build = typeof corps.build === 'string' ? corps.build : undefined
+  return { nom, clientId, ...(code ? { code } : {}), ...(empreinte ? { empreinte } : {}), ...(build ? { build } : {}) }
 }
 
 const MESSAGES: Record<string, { statut: number; message: string }> = {
   inconnue: { statut: 404, message: 'Ce code ne correspond à aucune salle.' },
   expiree: { statut: 410, message: 'Cette salle a expiré.' },
   complete: { statut: 409, message: 'Cette salle est complète. Elle a deux places.' },
+  empreinte: { statut: 409, message: 'Vos deux téléphones n’ont pas la même version du jeu.' },
 }
 
 /**
@@ -45,7 +58,7 @@ export async function GET(requete: Request) {
 export async function POST(requete: Request) {
   const corps = lire((await requete.json().catch(() => ({}))) as Corps)
   if (!corps) return NextResponse.json({ message: 'Nom ou client manquant.' }, { status: 400 })
-  const etat = await creerSalle(corps.nom, corps.clientId)
+  const etat = await creerSalle(corps.nom, corps.clientId, corps.empreinte, corps.build)
   return NextResponse.json({ etat, cote: 'a' })
 }
 
@@ -54,12 +67,25 @@ export async function PUT(requete: Request) {
   const corps = lire((await requete.json().catch(() => ({}))) as Corps)
   if (!corps?.code) return NextResponse.json({ message: 'Code manquant.' }, { status: 400 })
   try {
-    const { etat, cote, repriseDeBail } = await rejoindre(corps.code, corps.nom, corps.clientId)
+    const { etat, cote, repriseDeBail } = await rejoindre(
+      corps.code,
+      corps.nom,
+      corps.clientId,
+      corps.empreinte,
+      corps.build,
+    )
     return NextResponse.json({ etat, cote, repriseDeBail })
   } catch (erreur) {
     if (erreur instanceof ErreurSalle) {
       const m = MESSAGES[erreur.raison]
-      return NextResponse.json({ message: m.message, raison: erreur.raison }, { status: m.statut })
+      return NextResponse.json(
+        {
+          message: m.message,
+          raison: erreur.raison,
+          ...(erreur.desaccord ? { desaccord: erreur.desaccord } : {}),
+        },
+        { status: m.statut },
+      )
     }
     throw erreur
   }

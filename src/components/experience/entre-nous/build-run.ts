@@ -81,6 +81,52 @@ function mecaniqueParDefaut(options: readonly string[] | undefined): Mecanique {
   return 'curseur'
 }
 
+/**
+ * Ce qui peut varier d'un mode de jeu à l'autre.
+ *
+ * `exclure` retire des mécaniques de la partie. C'est ce qui permet au mode à
+ * distance de se passer du tir à la corde, qui n'a aucun sens sur deux
+ * appareils : deux mains sur le même curseur suppose un seul écran.
+ *
+ * Les questions concernées sont RABATTUES, pas supprimées. Les supprimer
+ * ouvrait un trou dans l'acte 3 qui mettait deux « à voix haute » côte à côte
+ * — l'exclusion aurait alors abîmé le rythme au lieu de se contenter de
+ * retirer un geste impossible. Une question rabattue garde sa place, son acte
+ * et son id ; elle change de mécanique, et de formulation si elle en propose
+ * une (`texteADistance`).
+ */
+export interface OptionsRun {
+  /**
+   * Deux appareils au lieu d'un.
+   *
+   * Un seul drapeau plutôt qu'une liste d'exclusions, parce que les deux
+   * conséquences vont ensemble et qu'un appelant qui excluerait la mécanique
+   * sans reformuler les questions produirait un jeu qui marche et qui sonne
+   * faux. Concrètement : le tir à la corde est rabattu sur un curseur, et
+   * toute question portant un `texteADistance` prend sa formulation.
+   */
+  aDistance?: boolean
+}
+
+/** Ce que le mode à distance rend impossible. */
+const IMPOSSIBLE_A_DISTANCE: readonly Mecanique[] = ['tir-a-la-corde']
+
+/**
+ * Une perso écrite pour une mécanique exclue n'est pas jetée : la règle 1 dit
+ * que toutes les questions perso sont jouées. Elle est rabattue sur la
+ * mécanique la plus proche — un tir à la corde a deux pôles, exactement comme
+ * un curseur, et c'est bien ce qu'il devient quand on ne peut plus tirer à deux.
+ */
+const REPLI: Partial<Record<Mecanique, Mecanique>> = {
+  'tir-a-la-corde': 'curseur',
+}
+
+function rabattre(m: Mecanique, exclure: readonly Mecanique[]): Mecanique {
+  if (!exclure.includes(m)) return m
+  const repli = REPLI[m]
+  return repli !== undefined && !exclure.includes(repli) ? repli : 'bascule'
+}
+
 /** Construit la `Question` jouée. Le `mot` n'y entre jamais. */
 function versQuestion(p: PersoPreparee, acte: Acte): Question {
   const q: Question = { id: p.id, texte: p.texte, mecanique: p.mecanique, acte }
@@ -400,16 +446,39 @@ export function buildRun(
   banque: readonly Question[],
   perso: readonly QuestionPerso[],
   seed: string,
+  options: OptionsRun = {},
 ): RunPlan {
   const graine = typeof seed === 'string' ? seed : ''
+  const aDistance = options.aDistance === true
+  const exclure = aDistance ? IMPOSSIBLE_A_DISTANCE : []
+  const banqueRetenue = !aDistance
+    ? banque
+    : banque.map((q) => {
+        const besoin = exclure.includes(q.mecanique) || q.texteADistance !== undefined
+        if (!besoin) return q
+        const remplacee: Question = { ...q }
+        if (exclure.includes(q.mecanique)) remplacee.mecanique = rabattre(q.mecanique, exclure)
+        // La reformulation ne dépend PAS du rabattement : une question peut
+        // garder sa mécanique et devoir changer de mots.
+        if (q.texteADistance !== undefined) remplacee.texte = q.texteADistance
+        return remplacee
+      })
+  const persoRetenues =
+    !aDistance
+      ? perso
+      : perso.map((p) =>
+          p.mecanique !== undefined && exclure.includes(p.mecanique)
+            ? { ...p, mecanique: rabattre(p.mecanique, exclure) }
+            : p,
+        )
   // Flux séparés : un changement de banque ne rebat pas les cartes des perso.
   const rndPerso = createRandom(hashSeed(`${graine}|perso`))
   const rndRetraits = createRandom(hashSeed(`${graine}|retraits`))
   const rndTrous = createRandom(hashSeed(`${graine}|trous`))
   const rndMeca = createRandom(hashSeed(`${graine}|meca`))
 
-  const preparees = preparerPerso(Array.isArray(perso) ? perso : [])
-  const parActe = banqueParActe(Array.isArray(banque) ? banque : [])
+  const preparees = preparerPerso(Array.isArray(persoRetenues) ? persoRetenues : [])
+  const parActe = banqueParActe(Array.isArray(banqueRetenue) ? banqueRetenue : [])
 
   // Répartition des perso entre actes 2 et 3 : déclarations d'abord, puis les
   // libres au prorata des tailles visées (11 contre 8).

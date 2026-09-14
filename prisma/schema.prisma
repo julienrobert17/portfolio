@@ -53,6 +53,20 @@ model Salle {
   /// Incrémentée à CHAQUE écriture. C'est elle qui détecte un client périmé.
   version Int    @default(0)
 
+  /// Empreinte du DÉROULÉ, posée par le premier arrivant.
+  ///
+  /// Les questions ne transitent jamais par le serveur : les deux clients les
+  /// recalculent depuis `graine`. Si leurs codes diffèrent — déploiement en
+  /// cours, onglet ouvert depuis hier — les déroulés divergent en silence,
+  /// même index et questions différentes, et plus aucune révélation ne tombe.
+  /// On compare donc une empreinte du résultat, pas un numéro de version du
+  /// code : une retouche de CSS ne doit pas bloquer une partie, une question
+  /// reformulée si.
+  empreinte String?
+  /// Date de construction du client qui a posé l'empreinte, pour savoir qui
+  /// des deux est en retard.
+  build     String?
+
   creeeA  DateTime @default(now())
   majA    DateTime @updatedAt
   /// Une salle est jetable. Passé cette date, elle peut être purgée.
