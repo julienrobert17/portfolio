@@ -47,6 +47,7 @@ export default function PanneauDebug({ lien }: { lien: Lien }) {
   }, [])
 
   const { etat, cote, lien: info, journal, latences, conflits, provoquer, agir, clientId } = lien
+  const { retard, setRetard } = lien
   const resteMs = info.echeance !== null && maintenant > 0 ? info.echeance - maintenant : null
   const pire = Math.max(1, ...latences)
 
@@ -136,6 +137,20 @@ export default function PanneauDebug({ lien }: { lien: Lien }) {
               <button type="button" className={styles.bouton} onClick={() => void agir('ping')}>
                 ping
               </button>
+            </div>
+            <div className={styles.actions}>
+              {/* Le battement « révélation en vol » dure quelques dizaines de
+                  ms : sans ce levier on ne peut pas le regarder. */}
+              {[0, 800, 2500].map((ms) => (
+                <button
+                  key={ms}
+                  type="button"
+                  className={`${styles.bouton} ${retard === ms ? styles.boutonRouge : ''}`}
+                  onClick={() => setRetard(ms)}
+                >
+                  {ms === 0 ? 'révélation immédiate' : `retarder ${ms} ms`}
+                </button>
+              ))}
             </div>
           </Bloc>
 

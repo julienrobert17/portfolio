@@ -116,3 +116,60 @@
   .btn { transition: none; }
   .ligneCoupee { animation: none; opacity: 0.35; }
 }
+
+/* ── Une question, sur un écran entier : 390×844 pour soi tout seul ── */
+.question {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(20px, 5vh, 30px);
+  line-height: 1.2;
+  margin: 0;
+  text-wrap: balance;
+  max-width: 24ch;
+}
+
+.choix { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 330px; }
+
+.attente {
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--craie-douce);
+  animation: respire 2600ms ease-in-out infinite;
+}
+@keyframes respire { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.8; } }
+
+/*
+ * « La révélation est en vol » : la ligne s'éclaire, brièvement, et rien ne
+ * s'écrit. C'est une autre attente que « l'autre réfléchit encore », et elle
+ * doit se lire autrement — sinon une révélation lente et un partenaire lent
+ * sont le même écran.
+ */
+.ligneVive {
+  height: 3px;
+  opacity: 1;
+  box-shadow: 0 0 14px 2px rgba(200, 164, 92, 0.55);
+}
+
+.rev { width: 100%; max-width: 330px; display: flex; flex-direction: column; gap: 2px; }
+.revLigne {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-top: 1px solid var(--trait);
+}
+.revNom {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--craie-douce);
+  padding-top: 3px;
+}
+.revVal { font-family: var(--font-fraunces), Georgia, serif; font-size: 16px; text-align: right; }
+
+.passee { margin: 0; font-size: 13px; color: #e3a08a; max-width: 30ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .attente { animation: none; opacity: 0.6; }
+}

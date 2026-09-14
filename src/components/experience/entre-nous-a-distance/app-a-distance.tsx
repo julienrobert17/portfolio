@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import styles from './salon.module.css'
 import PanneauDebug from './debug/panneau'
+import Jeu from './jeu'
 import { useLien } from './use-lien'
 import { NOMS } from '../entre-nous/content'
+import { BANQUE } from '../entre-nous/questions/pool'
+import { PERSO } from '../entre-nous/questions/perso'
+import { buildRun } from '../entre-nous/build-run'
 
 /**
  * Ce que l'utilisateur lit quand le lien est en peine.
@@ -54,6 +58,17 @@ export default function AppADistance() {
   }
 
   const note = motDuLien(info.etat, info.panneDepuisMs)
+
+  /*
+   * Le déroulé est calculé ICI, une seule fois, à partir de la graine de la
+   * salle. Le serveur ne transmet jamais les questions — les deux clients les
+   * recalculent, ce qui suppose qu'ils font tourner le même code.
+   */
+  const run = useMemo(
+    () => (etat ? buildRun(BANQUE, PERSO.questions, etat.graine) : null),
+    [etat],
+  )
+  const question = run && etat ? (run.questions[etat.index] ?? null) : null
 
   // ── Le salon : on n'a pas encore de salle ──
   if (!etat) {
@@ -121,15 +136,33 @@ export default function AppADistance() {
     )
   }
 
-  // ── La salle : l'écran nu de la première tranche ──
+  // ── La salle ──
   const lienEnPeine = info.etat !== 'ouvert'
+  const enJeu = etat.phase === 'jeu'
+  /*
+   * La ligne dit trois choses avec une seule forme : pleine quand tout va
+   * bien, amincie et respirante quand le lien tombe, vive et courte quand la
+   * révélation est en vol. Un seul objet, trois lectures — c'est la seule
+   * chose qui traverse toute l'expérience, autant qu'elle porte l'information.
+   */
+  const revelationEnVol =
+    enJeu && question !== null && lien.etatQuestion(question.id) === 'en-vol'
+
   return (
     <>
       <div className={styles.plein}>
-        <p className={styles.sous}>votre code</p>
-        <p className={styles.codeGrand}>{etat.code}</p>
+        {!enJeu && (
+          <>
+            <p className={styles.sous}>votre code</p>
+            <p className={styles.codeGrand}>{etat.code}</p>
+          </>
+        )}
 
-        <div className={`${styles.ligne} ${lienEnPeine ? styles.ligneCoupee : ''}`} />
+        <div
+          className={`${styles.ligne} ${lienEnPeine ? styles.ligneCoupee : ''} ${
+            revelationEnVol ? styles.ligneVive : ''
+          }`}
+        />
         <p className={styles.note}>{note}</p>
 
         <div className={styles.places}>
@@ -147,22 +180,40 @@ export default function AppADistance() {
           })}
         </div>
 
-        <p className={styles.sous}>
-          phase « {etat.phase} » · version {etat.version}
-        </p>
-
-        <div className={styles.options}>
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnFort}`}
-            onClick={() => void lien.agir('phase', { phase: etat.phase === 'lobby' ? 'jeu' : 'couture' })}
-          >
-            Faire avancer la phase
-          </button>
-        </div>
-        <p className={styles.sous}>
-          Touche ce bouton d’un téléphone : l’autre doit bouger sans rien faire.
-        </p>
+        {enJeu ? (
+          <>
+            {question ? (
+              <Jeu lien={lien} question={question} />
+            ) : (
+              <p className={styles.sous}>Fin du déroulé.</p>
+            )}
+            <div className={styles.options}>
+              <button
+                type="button"
+                className={styles.btn}
+                onClick={() => void lien.agir('index', { index: etat.index + 1 })}
+              >
+                Question suivante
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className={styles.sous}>
+              phase « {etat.phase} » · version {etat.version}
+            </p>
+            <div className={styles.options}>
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnFort}`}
+                disabled={etat.places.length < 2}
+                onClick={() => void lien.agir('phase', { phase: 'jeu' })}
+              >
+                {etat.places.length < 2 ? 'On attend l’autre' : 'Commencer'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
       {debug && <PanneauDebug lien={lien} />}
     </>

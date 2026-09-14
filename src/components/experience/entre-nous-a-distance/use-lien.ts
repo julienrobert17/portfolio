@@ -3,6 +3,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Cote, EtatSalle } from '@/lib/entre-nous-a-distance/types'
 
+/** Ce que le serveur renvoie quand les deux côtés ont validé. */
+export interface Revelation {
+  questionId: string
+  a: { valeur: unknown; pari: unknown; passe: boolean } | null
+  b: { valeur: unknown; pari: unknown; passe: boolean } | null
+}
+
+/**
+ * Les quatre états d'une question, vus du client.
+ *
+ * `attente` et `en-vol` se ressemblent — dans les deux cas on attend — et
+ * c'est précisément pour ça qu'il faut les distinguer : sans ça, une
+ * révélation lente est indiscernable d'un partenaire lent, et c'est
+ * frustrant des deux côtés sans qu'on sache pourquoi.
+ */
+export type EtatQuestion = 'saisie' | 'attente' | 'en-vol' | 'revelee'
+
 const CLE_CLIENT = 'entre-nous-client'
 const JOURNAL_MAX = 120
 const LATENCES_MAX = 30
@@ -101,10 +118,19 @@ export function useLien() {
     coupeAlaMain: false,
   })
   const [journal, setJournal] = useState<Message[]>([])
+  /** Les révélations reçues, par question. La vérité ne vient que d'ici. */
+  const [revelations, setRevelations] = useState<Record<string, Revelation>>({})
+  /** Qui a validé quoi — le côté seulement, jamais la valeur. */
+  const [valides, setValides] = useState<Record<string, Cote[]>>({})
+  /** Ce que J'AI envoyé, gardé en local pour l'afficher pendant l'attente. */
+  const [miennes, setMiennes] = useState<Record<string, unknown>>({})
+  /** Retarde l'application des révélations, pour voir le battement court. */
+  const [retard, setRetard] = useState(0)
   const [latences, setLatences] = useState<number[]>([])
   const [conflits, setConflits] = useState(0)
 
   const sourceRef = useRef<EventSource | null>(null)
+  const retardRef = useRef(0)
   /** Quand le lien a cessé d'être ouvert. 0 = il va bien. */
   const panneDepuisRef = useRef(0)
   const dernierIdRef = useRef(0)
@@ -147,7 +173,17 @@ export function useLien() {
 
       const surEvenement = (type: string) => (e: MessageEvent<string>) => {
         dernierRecuRef.current = Date.now()
-        const charge: unknown = e.data ? JSON.parse(e.data) : null
+        // Enveloppe : { v?: version, c: charge }. La version voyage à côté de
+        // la charge pour que le client reste en phase sans redemander l'état.
+        const enveloppe = (e.data ? JSON.parse(e.data) : { c: null }) as {
+          v?: number
+          c: unknown
+        }
+        const charge: unknown = enveloppe.c
+        if (typeof enveloppe.v === 'number') {
+          const v = enveloppe.v
+          setEtat((x) => (x === null || x.version >= v ? x : { ...x, version: v }))
+        }
         const id = e.lastEventId ? Number(e.lastEventId) : undefined
         if (id !== undefined && Number.isFinite(id) && id > dernierIdRef.current) {
           dernierIdRef.current = id
@@ -181,6 +217,23 @@ export function useLien() {
         }
         if (type === 'instantane') {
           setEtat(charge as EtatSalle)
+          return
+        }
+        if (type === 'reponse') {
+          const r = charge as { cote: Cote; questionId: string }
+          setValides((v) => {
+            const deja = v[r.questionId] ?? []
+            return deja.includes(r.cote) ? v : { ...v, [r.questionId]: [...deja, r.cote] }
+          })
+          return
+        }
+        if (type === 'revelation') {
+          const r = charge as Revelation
+          const appliquer = () => setRevelations((x) => ({ ...x, [r.questionId]: r }))
+          // Le retard est un levier de debug : il rend visible l'état
+          // « révélation en vol », qui dure sinon quelques dizaines de ms.
+          if (retardRef.current > 0) setTimeout(appliquer, retardRef.current)
+          else appliquer()
           return
         }
         if (type === 'phase' || type === 'participant' || type === 'index') {
@@ -223,6 +276,10 @@ export function useLien() {
   useEffect(() => {
     ouvrirRef.current = ouvrir
   }, [ouvrir])
+
+  useEffect(() => {
+    retardRef.current = retard
+  }, [retard])
 
   /**
    * DEUX HORLOGES, ET IL FAUT QU'ELLES LE RESTENT.
@@ -337,7 +394,34 @@ export function useLien() {
     }, [ouvrir]),
   }
 
-  return { clientId, etat, cote, lien, journal, latences, conflits, entrer, agir, provoquer }
+  /**
+   * L'état d'une question. Il se DÉDUIT de ce que le serveur a dit, jamais
+   * d'un raisonnement local du genre « j'ai validé et lui aussi, donc ».
+   */
+  const etatQuestion = useCallback(
+    (questionId: string): EtatQuestion => {
+      if (revelations[questionId]) return 'revelee'
+      const cotes = valides[questionId] ?? []
+      const jaiValide = cote !== null && cotes.includes(cote)
+      if (!jaiValide) return 'saisie'
+      return cotes.length >= 2 ? 'en-vol' : 'attente'
+    },
+    [cote, revelations, valides],
+  )
+
+  const repondre = useCallback(
+    async (questionId: string, valeur: unknown, index: number) => {
+      setMiennes((m) => ({ ...m, [questionId]: valeur }))
+      return agir('repondre', { questionId, valeur, index })
+    },
+    [agir],
+  )
+
+  return {
+    clientId, etat, cote, lien, journal, latences, conflits, entrer, agir, provoquer,
+    revelations, valides, miennes, etatQuestion, repondre,
+    retard, setRetard,
+  }
 }
 
 export type Lien = ReturnType<typeof useLien>
