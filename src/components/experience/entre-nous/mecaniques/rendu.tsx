@@ -4,7 +4,7 @@ import styles from '../entre-nous.module.css'
 import Bascule from './bascule'
 import Curseur, { formulerPosition } from './curseur'
 import Enchere, { uniteDe } from './enchere'
-import LeMot from './le-mot'
+import LeMot, { motsRequis } from './le-mot'
 import Classement from './classement'
 import AVoixHaute from './a-voix-haute'
 import TirALaCorde from './tir-a-la-corde'
@@ -44,7 +44,8 @@ export function valeurInitiale(question: Question): Valeur {
 export function estComplet(question: Question, valeur: Valeur): boolean {
   switch (question.mecanique) {
     case 'le-mot':
-      return Array.isArray(valeur) && valeur.length === 3
+      // Le seuil suit la grille : une grille plus courte demande moins de mots.
+      return Array.isArray(valeur) && valeur.length === motsRequis(question.options?.length ?? 0)
     case 'classement':
       return Array.isArray(valeur) && valeur.length > 0
     case 'curseur':

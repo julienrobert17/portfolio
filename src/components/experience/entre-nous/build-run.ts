@@ -1,5 +1,5 @@
 import { createRandom, hashSeed, shuffleSeeded } from '@/lib/seeded-random'
-import type { Acte, Mecanique, Question, QuestionPerso, RunPlan } from './types'
+import type { Acte, Echelle, Mecanique, Question, QuestionPerso, RunPlan } from './types'
 
 /**
  * Tailles visées : acte 1 = 8, acte 2 = 11, acte 3 = 9, soit 28 questions.
@@ -30,11 +30,43 @@ interface PersoPreparee {
   /** Déjà normalisé : 2, 3, ou absent. L'acte 1 déclaré est reclassé en 2. */
   acteDeclare?: Acte
   pari?: boolean
+  echelle?: Echelle
   mot?: string
 }
 
 function estActe(valeur: unknown): valeur is Acte {
   return valeur === 1 || valeur === 2 || valeur === 3
+}
+
+/**
+ * Une échelle n'est retenue que si elle est entièrement cohérente. À moitié
+ * valide, elle produirait une enchère absurde : bornes inversées et les deux
+ * boutons sont désactivés d'emblée, pas nul et la valeur ne bouge jamais.
+ * Dans ces cas-là le repli 0–10 est moins mauvais.
+ *
+ * Cette vérification est ici, et pas seulement dans le lecteur JSON, parce
+ * que `preparerPerso` est le seul passage obligé entre une entrée écrite à la
+ * main et une question jouée.
+ */
+export function lireEchelle(brut: unknown): Echelle | undefined {
+  if (typeof brut !== 'object' || brut === null) return undefined
+  const e = brut as Record<string, unknown>
+  const nb = (v: unknown): number | null =>
+    typeof v === 'number' && Number.isFinite(v) ? v : null
+  const min = nb(e.min)
+  const max = nb(e.max)
+  const pas = nb(e.pas) ?? 1
+  if (min === null || max === null || max <= min || pas <= 0) return undefined
+  const echelle: Echelle = {
+    min,
+    max,
+    pas,
+    unite: typeof e.unite === 'string' ? e.unite.trim() : '',
+  }
+  if (typeof e.uniteSing === 'string' && e.uniteSing.trim() !== '') {
+    echelle.uniteSing = e.uniteSing.trim()
+  }
+  return echelle
 }
 
 /**
@@ -58,6 +90,8 @@ function versQuestion(p: PersoPreparee, acte: Acte): Question {
   if (p.pari === true && p.mecanique !== 'a-voix-haute' && p.mecanique !== 'tir-a-la-corde') {
     q.pari = true
   }
+  // Seule l'enchère la lit ; la porter ailleurs laisserait croire qu'elle agit.
+  if (p.echelle && p.mecanique === 'enchere') q.echelle = p.echelle
   return q
 }
 
@@ -90,6 +124,8 @@ function preparerPerso(perso: readonly QuestionPerso[]): PersoPreparee[] {
       acteDeclare: declare === 1 ? 2 : declare,
     }
     if (p.pari === true) prepare.pari = true
+    const echelle = lireEchelle(p.echelle)
+    if (echelle) prepare.echelle = echelle
     if (options) prepare.options = options
     if (typeof p.mot === 'string' && p.mot.length > 0) prepare.mot = p.mot
     out.push(prepare)

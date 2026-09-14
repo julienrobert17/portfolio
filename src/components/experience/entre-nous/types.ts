@@ -69,6 +69,12 @@ export interface QuestionPerso {
    * sur `tir-a-la-corde` (deviner une valeur qu'on tient dans la main).
    */
   pari?: boolean
+  /**
+   * Bornes et unité d'une enchère. Sans elle, une enchère perso tombait sur
+   * un repli 0–10 sans unité — soit un nombre nu, pas une question.
+   * Ignorée par toutes les autres mécaniques.
+   */
+  echelle?: Echelle
   /** Phrase de l'auteur, révélée sous les deux réponses de sa question. */
   mot?: string
 }

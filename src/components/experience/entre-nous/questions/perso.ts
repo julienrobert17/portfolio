@@ -1,4 +1,5 @@
 import brut from '../questions-perso.json'
+import { lireEchelle } from '../build-run'
 import type { Acte, Mecanique, QuestionPerso } from '../types'
 
 const MECANIQUES: readonly Mecanique[] = [
@@ -37,6 +38,7 @@ function lire(): { auteur: string; pour: string; questions: QuestionPerso[] } {
           : {}),
         ...(acte ? { acte } : {}),
         ...(e.pari === true ? { pari: true } : {}),
+        ...(lireEchelle(e.echelle) ? { echelle: lireEchelle(e.echelle) } : {}),
         ...(typeof e.mot === 'string' && e.mot.trim() !== '' ? { mot: e.mot.trim() } : {}),
       },
     ]
