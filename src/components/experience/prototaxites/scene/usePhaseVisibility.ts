@@ -28,6 +28,11 @@ const ORDER: Record<Phase, number> = {
   resonance: 6,
 }
 
+// Colonisation atteinte à la fin d'eclipse : la Terre n'est pas encore
+// couverte, le dézoom achève le basculement.
+const ECOSYSTEM_SPREAD_END = 0.12
+const ECLIPSE_SPREAD_END = 0.55
+
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
 
 // Adoucit les rampes : les bornes 0 et 1 et les seuils de déclenchement sont
@@ -50,9 +55,26 @@ export function usePhaseVisibility({ phase, progress }: PhaseVisibilityInput): P
   else if (phase === 'eclipse') forest = easeInOutCubic(clamp01(p * 1.5))
   else forest = 1
 
-  // La colonisation suit la même rampe que la forêt, mais pilote la
-  // croissance par arbre plutôt qu'une opacité globale.
-  const forestSpread = forest
+  // La colonisation NE s'arrête PAS à la fin d'eclipse : elle se poursuit
+  // pendant zoomout, précisément la phase où le spectateur prend du recul et
+  // doit constater l'ampleur du changement. Une forêt figée pendant le dézoom
+  // racontait un basculement déjà terminé.
+  // Les premiers arbres lèvent pendant ecosystem, alors que les Prototaxites
+  // sont encore à pleine opacité : c'est le fait historique (arbres vers 390 Ma,
+  // extinction vers 375 Ma, une quinzaine de millions d'années de coexistence)
+  // et c'est ce croisement des deux règnes qui porte le propos.
+  // Le facteur 1.5 de l'ancienne rampe la saturait dès p = 0.667, laissant une
+  // demi-phase d'eclipse sans aucune progression visible.
+  let forestSpread: number
+  if (step < ORDER.ecosystem) forestSpread = 0
+  else if (phase === 'ecosystem')
+    forestSpread = easeInOutCubic(clamp01((p - 0.7) / 0.3)) * ECOSYSTEM_SPREAD_END
+  else if (phase === 'eclipse')
+    forestSpread =
+      ECOSYSTEM_SPREAD_END + (ECLIPSE_SPREAD_END - ECOSYSTEM_SPREAD_END) * easeInOutCubic(p)
+  else if (phase === 'zoomout')
+    forestSpread = ECLIPSE_SPREAD_END + (1 - ECLIPSE_SPREAD_END) * easeInOutCubic(p)
+  else forestSpread = 1
 
   // Prototaxites : présents jusqu'à l'éclipse, s'effacent sur sa 2ᵉ moitié.
   // Pendant 'interior' le tronc devient translucide pour que la structure

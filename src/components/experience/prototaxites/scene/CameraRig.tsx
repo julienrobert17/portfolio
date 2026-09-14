@@ -13,10 +13,20 @@ const CAM: Record<
   Exclude<Phase, 'zoomout'>,
   { p: [number, number, number]; t: [number, number, number] }
 > = {
-  context: { p: [8, 5, 14], t: [0, 4, 0] },
-  presence: { p: [8, 5, 14], t: [0, 4, 0] },
+  // Reculé de 16 à 22 unités et réorienté : recherche numérique sur azimut ×
+  // rayon × hauteur (marche de rayons sur le vrai terrain). Fait entrer un
+  // chenal à 26 u avec sa berge boueuse (8.9 % du cadre contre 6.7 %), au prix
+  // d'un Prototaxite à 34 % de la hauteur d'écran au lieu de 46 — il reste
+  // largement le sujet dominant.
+  context: { p: [22, 5, 0], t: [0, 4, 0] },
+  presence: { p: [22, 5, 0], t: [0, 4, 0] },
   interior: { p: [0.8, 3.5, 0.8], t: [0, 4.5, 0] },
-  ecosystem: { p: [18, 8, 22], t: [0, 2, 0] },
+  // Azimut ajusté à rayon et hauteur constants : eau 13.8 -> 15.2 % du cadre,
+  // berge 24.8 -> 29.0 %.
+  ecosystem: { p: [28, 8, -4.9], t: [0, 2, 0] },
+  // Laissé tel quel : mesuré à 9.2 % d'eau et 10.7 % de berge, meilleure part
+  // d'eau de tous les azimuts testés à ce rayon. Les alternatives gagnaient de
+  // la berge en perdant de l'eau, sans gain net.
   eclipse: { p: [14, 6, 18], t: [0, 4, 0] },
   resonance: { p: [0, 45, 55], t: [0, 8, 0] },
 }

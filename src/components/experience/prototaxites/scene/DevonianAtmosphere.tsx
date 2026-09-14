@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { AERIAL_FOG_SCALE, aerialFactor } from './aerial'
 
 /** Position par défaut du soleil : ancienne position du disque solaire. */
 const DEFAULT_SUN_POSITION: [number, number, number] = [120, 200, 80]
@@ -13,6 +15,16 @@ const DEFAULT_SUN_POSITION: [number, number, number] = [120, 200, 80]
  * terrain garde ~34 texels/unité en 2048² au lieu de ~2,5.
  */
 const SHADOW_EXTENT = 60
+
+/** Densité de brume au ras du sol. Calibrée sur les cadrages bas, elle est bonne. */
+const FOG_DENSITY = 0.0065
+/**
+ * Teinte de la brume. Réchauffée d'un cran vers le vert-gris par rapport au
+ * sépia d'origine (#c2a276) : à 60 % de brume, un sépia franc ne délavait pas
+ * seulement le lointain, il l'ÉCLAIRCISSAIT, parce qu'il est bien plus lumineux
+ * que le sol. Les verts du tapis et du feuillage disparaissaient sous l'orange.
+ */
+const FOG_COLOR = '#b0a083'
 
 const skyVertexShader = /* glsl */ `
   varying vec3 vWorldPos;
@@ -71,6 +83,27 @@ export default function DevonianAtmosphere({
 }: DevonianAtmosphereProps) {
   const sunLightRef = useRef<THREE.DirectionalLight>(null)
 
+  useFrame((state) => {
+    const aerial = aerialFactor(state.camera.position.y)
+
+    // Brume pilotée par l'altitude de la caméra. Ce n'est PAS un fog à densité
+    // variable en altitude calculé par fragment : ce serait plus juste, mais il
+    // faudrait réécrire le chunk fog_fragment de three GLOBALEMENT pour
+    // atteindre aussi les matériaux venus du GLB des arbres. L'approximation
+    // est exacte dans le cas qui pose problème — caméra haute regardant un
+    // terrain bas — et ne coûte pas une ligne de GLSL.
+    const fog = state.scene.fog
+    if (fog instanceof THREE.FogExp2) {
+      fog.density = FOG_DENSITY * (1 + (AERIAL_FOG_SCALE - 1) * aerial)
+    }
+
+    // Vue aérienne : on gèle la shadow map. Le frustum de la directionnelle ne
+    // couvre que ±60 unités, soit le quart central d'une image qui porte à 240,
+    // et à cette altitude ces ombres font quelques pixels. Elles étaient
+    // pourtant redessinées à chaque frame.
+    state.gl.shadowMap.autoUpdate = aerial < 1
+  })
+
   const [sunX, sunY, sunZ] = sunPosition
   const sunDistance = Math.sqrt(sunX * sunX + sunY * sunY + sunZ * sunZ) || 1
 
@@ -104,7 +137,11 @@ export default function DevonianAtmosphere({
   return (
     <>
       {/* Densité montée vs l'original pour masquer les bords du sol */}
-      <fogExp2 attach="fog" args={['#b8956a', 0.012]} />
+      {/* Densité descendue de 0.012 : elle avait été montée pour masquer les bords
+          d'un sol de 400 unités, qui en fait 800 depuis. À 0.0065 on lit encore les
+          plans du relief vers 200-300 unités, et le bord du sol reste noyé. Teinte
+          rapprochée de la bande d'horizon du shader de ciel. */}
+      <fogExp2 attach="fog" args={[FOG_COLOR, FOG_DENSITY]} />
       <color attach="background" args={['#4a6fa0']} />
 
       {/* Lumière principale — alignée sur le disque solaire et le halo */}

@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Bloom, EffectComposer, SSAO, Vignette } from '@react-three/postprocessing'
+import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import type { Beat } from './constants/narrative'
 import Arthropods from './scene/Arthropods'
@@ -11,6 +11,7 @@ import DevonianAtmosphere from './scene/DevonianAtmosphere'
 import DevonianForest, { getForestPositions } from './scene/DevonianForest'
 import DevonianGround from './scene/DevonianGround'
 import DevonianWater from './scene/DevonianWater'
+import GroundFlora from './scene/GroundFlora'
 import InternalStructure from './scene/InternalStructure'
 import PrototaxiteGroup from './scene/PrototaxiteGroup'
 import Smoke from './scene/Smoke'
@@ -21,15 +22,13 @@ interface PrototaxiteSceneProps {
   progress: number
 }
 
-const FOREST_COUNT = 24
-
 export default function PrototaxitesScene({ currentPhase, progress }: PrototaxiteSceneProps) {
   const vis = usePhaseVisibility({ phase: currentPhase, progress })
 
   // Les foyers naissent dans la forêt : on reprend des positions d'arbres
   // réellement générées, pas des coordonnées codées en dur.
   const smokeOrigins = useMemo(() => {
-    const all = getForestPositions({ count: FOREST_COUNT })
+    const all = getForestPositions()
     return [0, 6, 12, 18].map((i) => all[i % all.length])
   }, [])
 
@@ -47,8 +46,9 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
           <DevonianGround />
           <DevonianWater />
+          <GroundFlora />
 
-          <DevonianForest count={FOREST_COUNT} forestSpread={vis.forestSpread} />
+          <DevonianForest forestSpread={vis.forestSpread} />
 
           <PrototaxiteGroup opacity={vis.prototaxites} />
           <InternalStructure opacity={vis.internal} />
@@ -58,19 +58,7 @@ export default function PrototaxitesScene({ currentPhase, progress }: Prototaxit
 
           <CameraRig phase={currentPhase} progress={progress} />
 
-          <EffectComposer enableNormalPass>
-            <SSAO
-              worldDistanceThreshold={80}
-              worldDistanceFalloff={20}
-              worldProximityThreshold={4}
-              worldProximityFalloff={2}
-              samples={31}
-              rings={7}
-              radius={2.2}
-              intensity={9}
-              luminanceInfluence={0.6}
-              depthAwareUpsampling
-            />
+          <EffectComposer multisampling={0}>
             <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.2} intensity={0.5} mipmapBlur />
             <Vignette offset={0.32} darkness={0.42} blendFunction={BlendFunction.NORMAL} />
           </EffectComposer>
