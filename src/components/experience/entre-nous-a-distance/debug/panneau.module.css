@@ -1,0 +1,99 @@
+/*
+ * Le panneau de debug n'appartient pas à la fiction.
+ *
+ * Tout ici est délibérément l'inverse de l'expérience : monospace contre
+ * Fraunces, dense contre aéré, gris contre laiton. Ce contraste est le
+ * message — on ne doit jamais se demander si ce qu'on lit fait partie du jeu.
+ */
+.panneau {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  width: min(420px, 100vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #c8ccd4;
+  background: #0f1115;
+  border-top: 1px solid #2a2f3a;
+  border-left: 1px solid #2a2f3a;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.poignee {
+  appearance: none;
+  border: none;
+  background: #171a21;
+  color: #8b93a3;
+  font: inherit;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.poignee:hover { background: #1d212a; }
+
+.corps {
+  overflow-y: auto;
+  padding: 4px 10px 10px;
+}
+
+.bloc { border-top: 1px solid #22262f; padding: 8px 0; }
+.bloc:first-child { border-top: none; }
+
+.titreBloc {
+  color: #6b7383;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 9.5px;
+  margin: 0 0 5px;
+}
+
+.ligne { display: flex; justify-content: space-between; gap: 12px; }
+.cle { color: #6b7383; }
+.val { color: #d8dce4; font-variant-numeric: tabular-nums; }
+
+.pastille {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: baseline;
+}
+.ouvert { background: #4ade80; }
+.connexion { background: #facc15; }
+.reprise { background: #fb923c; }
+.ferme { background: #f87171; }
+
+.barres { display: flex; align-items: flex-end; gap: 1px; height: 26px; margin-top: 5px; }
+.barre { flex: 1; background: #3b82f6; min-height: 1px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.bouton {
+  appearance: none;
+  font: inherit;
+  font-size: 10.5px;
+  color: #c8ccd4;
+  background: #1d212a;
+  border: 1px solid #2f3541;
+  border-radius: 3px;
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.bouton:hover { background: #262b36; }
+.boutonRouge { border-color: #5b2b2b; color: #fca5a5; }
+
+.journal { max-height: 150px; overflow-y: auto; margin-top: 4px; }
+.msg { display: flex; gap: 8px; white-space: nowrap; }
+.recu { color: #7dd3fc; }
+.envoye { color: #d8b4fe; }
+.horo { color: #4d5462; }
+.taille { color: #4d5462; margin-left: auto; }
