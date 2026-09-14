@@ -7,29 +7,107 @@ datasource db {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  slug        String    @unique
   title       String
   description String
-  content     String?  // markdown
+  content     String? // markdown
   tags        String[]
   githubUrl   String?
   liveUrl     String?
   imageUrl    String?
-  featured    Boolean  @default(false)
+  featured    Boolean   @default(false)
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Experience {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   company     String
   role        String
   description String
   startDate   DateTime
   endDate     DateTime?
-  current     Boolean  @default(false)
+  current     Boolean   @default(false)
   skills      String[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// « Entre nous — à distance » : la couche de session temps réel.
+//
+// Quatre tables, dont deux portent toute l'architecture :
+//   · Salle.version  — numéro d'ordre des écritures. Un client envoie la
+//     version sur laquelle il croit agir ; le serveur refuse si elle a bougé.
+//   · Evenement.id   — c'est le `Last-Event-ID` du protocole SSE. À la
+//     reconnexion, le navigateur le renvoie tout seul et le serveur rejoue la
+//     suite. Si l'id est trop vieux, on bascule sur un instantané complet.
+// ─────────────────────────────────────────────────────────────────────────
+
+model Salle {
+  code    String @id // quatre lettres, sans glyphes ambigus
+  graine  String // le tirage : les deux clients calculent le même déroulé
+  phase   String @default("lobby")
+  index   Int    @default(0)
+  /// Incrémentée à CHAQUE écriture. C'est elle qui détecte un client périmé.
+  version Int    @default(0)
+
+  creeeA  DateTime @default(now())
+  majA    DateTime @updatedAt
+  /// Une salle est jetable. Passé cette date, elle peut être purgée.
+  expireA DateTime
+
+  participants Participant[]
+  reponses     Reponse[]
+  evenements   Evenement[]
+
+  @@index([expireA])
+}
+
+/// Une place dans la salle. Il y en a exactement deux, et c'est un BAIL :
+/// elle appartient à un `clientId` tant qu'il donne signe de vie. Un bail
+/// expiré peut être repris — c'est ce qui permet de revenir depuis un autre
+/// appareil sans être confondu avec un intrus.
+model Participant {
+  id        String @id @default(cuid())
+  salleCode String
+  salle     Salle  @relation(fields: [salleCode], references: [code], onDelete: Cascade)
+
+  cote     String /// 'a' ou 'b'
+  nom      String
+  clientId String /// uuid rangé en localStorage, survit au rafraîchissement
+  vuA      DateTime @default(now())
+
+  @@unique([salleCode, cote]) /// deux places, jamais trois
+  @@index([salleCode, clientId])
+}
+
+model Reponse {
+  id        String @id @default(cuid())
+  salleCode String
+  salle     Salle  @relation(fields: [salleCode], references: [code], onDelete: Cascade)
+
+  questionId String
+  cote       String
+  valeur     Json?
+  pari       Json?
+  passe      Boolean  @default(false)
+  creeA      DateTime @default(now())
+
+  /// Rejouer une écriture ne duplique rien : c'est ce qui rend un POST
+  /// réémis après une coupure sans conséquence.
+  @@unique([salleCode, questionId, cote])
+}
+
+model Evenement {
+  id        Int    @id @default(autoincrement())
+  salleCode String
+  salle     Salle  @relation(fields: [salleCode], references: [code], onDelete: Cascade)
+
+  type   String
+  charge Json
+  creeA  DateTime @default(now())
+
+  @@index([salleCode, id])
 }
