@@ -6,7 +6,7 @@ import SincereModal from '../ui/sincere-modal'
 import styles from '../invitation.module.css'
 import { COPY } from '../content'
 import { useDodge } from '../use-dodge'
-import { useReducedMotion } from '../use-reduced-motion'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 import type { StepProps } from './step-props'
 
 /** Nombre d'esquives après lequel le Non se pose. La porte de sortie. */

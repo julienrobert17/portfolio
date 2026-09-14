@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { burstConfetti, emojiRain } from './confetti'
-import { useReducedMotion } from './use-reduced-motion'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 import styles from './invitation.module.css'
 
 /** La palette de l'expérience, en version projectile. */
