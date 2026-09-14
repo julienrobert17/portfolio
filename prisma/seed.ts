@@ -86,6 +86,23 @@ async function main() {
     },
   })
 
+  await prisma.project.upsert({
+    where: { slug: 'entre-nous' },
+    update: {
+      liveUrl: '/experience/entre-nous',
+    },
+    create: {
+      slug: 'entre-nous',
+      title: 'Entre nous',
+      description:
+        "Un téléphone posé entre deux personnes, l'écran coupé en deux. Chacun répond de son côté, et rien ne se révèle tant que les deux n'ont pas validé.",
+      tags: ['Next.js', 'TypeScript', 'Multi-touch', 'Interaction'],
+      liveUrl: '/experience/entre-nous',
+      featured: true,
+      publishedAt: new Date('2026-09-14'),
+    },
+  })
+
   await prisma.experience.upsert({
     where: { id: 'exp-current' },
     update: {},

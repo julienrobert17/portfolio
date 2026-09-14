@@ -94,6 +94,20 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   420 Ma
                 </span>
               </div>
+            ) : project.slug === 'entre-nous' ? (
+              /*
+               * L'expérience en miniature : ses deux territoires et la ligne
+               * de laiton entre les deux. Pas d'image — c'est exactement tout
+               * ce qu'il y a à montrer, et ça évite un asset pour trois divs.
+               */
+              <div
+                className="project-card-bg"
+                style={{ backgroundColor: '#14120F', display: 'flex' }}
+              >
+                <div style={{ flex: 1, backgroundColor: '#1C1A16' }} />
+                <div style={{ flex: '0 0 2px', backgroundColor: '#C8A45C', opacity: 0.85 }} />
+                <div style={{ flex: 1, backgroundColor: '#191712' }} />
+              </div>
             ) : project.slug === 'un-moment-hors-du-temps' ? (
               /*
                * Photo de Mimi. La source est un portrait 2160x3840 où le chat
