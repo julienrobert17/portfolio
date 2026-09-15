@@ -173,13 +173,44 @@ export async function rejoindre(
 export async function signeDeVie(code: string, clientId: string): Promise<boolean> {
   const p = await prisma.participant.findFirst({
     where: { salleCode: code, clientId },
-    select: { id: true, cote: true, nom: true, vuA: true },
+    select: { id: true, cote: true, nom: true, absentSignale: true },
   })
   if (!p) return false
-  const etaitAbsent = Date.now() - p.vuA.getTime() > BAIL_MS
-  await prisma.participant.update({ where: { id: p.id }, data: { vuA: new Date() } })
-  if (etaitAbsent) {
+  await prisma.participant.update({
+    where: { id: p.id },
+    data: { vuA: new Date(), absentSignale: false },
+  })
+  // On n'annonce que les changements : le drapeau dit si le départ avait
+  // déjà été signalé, donc si ce retour en est un.
+  if (p.absentSignale) {
     await emettre(code, 'participant', { cote: p.cote, nom: p.nom, arrive: true, retour: true })
   }
-  return etaitAbsent
+  return p.absentSignale
+}
+
+/**
+ * Annonce les absences pas encore annoncées.
+ *
+ * Appelée à chaque tour de la boucle du flux — c'est le seul endroit du
+ * système où quelqu'un observe en continu, donc le seul qui puisse remarquer
+ * que l'autre s'est tu. Sans ça la pastille de présence ne s'assombrit
+ * jamais : `present` n'est recalculé qu'à la construction d'un instantané, et
+ * rien ne déclenche d'instantané quand il ne se passe précisément rien.
+ */
+export async function signalerAbsences(code: string): Promise<void> {
+  const limite = new Date(Date.now() - BAIL_MS)
+  const partis = await prisma.participant.findMany({
+    where: { salleCode: code, absentSignale: false, vuA: { lt: limite } },
+    select: { id: true, cote: true, nom: true },
+  })
+  for (const p of partis) {
+    // Le drapeau d'abord : si deux flux tournent, seul celui qui gagne la
+    // course écrit, et un seul événement part.
+    const { count } = await prisma.participant.updateMany({
+      where: { id: p.id, absentSignale: false },
+      data: { absentSignale: true },
+    })
+    if (count === 0) continue
+    await emettre(code, 'participant', { cote: p.cote, nom: p.nom, arrive: false })
+  }
 }

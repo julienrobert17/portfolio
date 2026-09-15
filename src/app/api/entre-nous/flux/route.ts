@@ -1,6 +1,6 @@
 import { flux } from '@/lib/entre-nous-a-distance/flux'
 import { instantane, rejouer } from '@/lib/entre-nous-a-distance/evenements'
-import { signeDeVie } from '@/lib/entre-nous-a-distance/salle'
+import { signalerAbsences, signeDeVie } from '@/lib/entre-nous-a-distance/salle'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -47,6 +47,8 @@ export async function GET(requete: Request) {
   // pour un client qui reprend la main lui-même.
   const entete = requete.headers.get('last-event-id')
   const depuis = Number(entete ?? url.searchParams.get('depuis') ?? 0) || 0
+  /** Le client réclame un instantané plutôt qu'un rattrapage. */
+  const resync = url.searchParams.get('resync') === '1'
 
   const ouvertureA = Date.now()
   const echeance = ouvertureA + maxDuration * 1000 - MARGE_MS
@@ -80,26 +82,48 @@ export async function GET(requete: Request) {
         margeMs: MARGE_MS,
       })
 
-      // ── Rattrapage : incrémental si on peut, instantané sinon ──
+      /*
+       * ── Deux reprises, et il faut choisir ──
+       *
+       * INCRÉMENTALE : on rejoue les événements manqués. C'est le cas normal,
+       * quand le flux est mort de sa belle mort (l'échéance de la fonction) et
+       * qu'on sait exactement où on s'était arrêté.
+       *
+       * COMPLÈTE : on envoie un instantané et on repositionne le curseur sur
+       * le dernier événement, sans rien rejouer. Demandée par le client quand
+       * il ne peut plus faire confiance à son incrémental — après une veille
+       * notamment, où le téléphone a pu rester éteint plus longtemps que la
+       * fenêtre de rejeu. Rejouer alors ferait resurgir d'anciennes
+       * révélations comme si elles venaient d'arriver.
+       */
       let dernierId = depuis
-      const rejeu = await rejouer(code, depuis)
-      if (rejeu === null) {
-        const etat = await instantane(code)
-        envoyer('instantane', etat)
-        const dernier = await rejouer(code, 0)
-        dernierId = dernier && dernier.length > 0 ? dernier[dernier.length - 1].id : depuis
+      const dernierConnu = async () => {
+        const tous = await rejouer(code, 0)
+        return tous && tous.length > 0 ? tous[tous.length - 1].id : depuis
+      }
+
+      if (resync) {
+        envoyer('instantane', await instantane(code))
+        dernierId = await dernierConnu()
       } else {
-        for (const e of rejeu) {
-          envoyer(e.type, e.charge, e.id, e.version)
-          dernierId = e.id
+        const rejeu = await rejouer(code, depuis)
+        if (rejeu === null) {
+          envoyer('instantane', await instantane(code))
+          dernierId = await dernierConnu()
+        } else {
+          for (const e of rejeu) {
+            envoyer(e.type, e.charge, e.id, e.version)
+            dernierId = e.id
+          }
+          if (depuis === 0) envoyer('instantane', etatInitial)
         }
-        if (depuis === 0) envoyer('instantane', etatInitial)
       }
 
       // ── La boucle ──
       try {
         while (!ferme && !requete.signal.aborted && Date.now() < echeance) {
           await signeDeVie(code, clientId)
+          await signalerAbsences(code)
           const evenements = await flux.attendre(code, dernierId, requete.signal)
           if (evenements.length > 0) {
             for (const e of evenements) {

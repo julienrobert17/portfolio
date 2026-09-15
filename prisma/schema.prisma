@@ -88,10 +88,16 @@ model Participant {
   salleCode String
   salle     Salle  @relation(fields: [salleCode], references: [code], onDelete: Cascade)
 
-  cote     String /// 'a' ou 'b'
-  nom      String
-  clientId String /// uuid rangé en localStorage, survit au rafraîchissement
-  vuA      DateTime @default(now())
+  cote          String /// 'a' ou 'b'
+  nom           String
+  clientId      String /// uuid rangé en localStorage, survit au rafraîchissement
+  vuA           DateTime @default(now())
+  /// Vrai quand l'absence a DÉJÀ été annoncée.
+  ///
+  /// Sans ce drapeau, la boucle du flux réémettrait un événement d'absence à
+  /// chaque tour tant que la personne est partie. On n'annonce donc que les
+  /// CHANGEMENTS : parti une fois, revenu une fois.
+  absentSignale Boolean  @default(false)
 
   @@unique([salleCode, cote]) /// deux places, jamais trois
   @@index([salleCode, clientId])
