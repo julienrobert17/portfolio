@@ -42,6 +42,16 @@ export const TEXTES = {
     pasBranchee: 'Mécanique « {m} » — pas encore branchée à distance.',
     questionPassee: 'Cette question est passée pendant que tu répondais.',
   },
+  /**
+   * L'intercalaire du retour. Il ne s'affiche QUE si quelque chose a bougé
+   * pendant l'absence — jamais pour un simple aller-retour.
+   */
+  retour: {
+    titre: 'Pendant que tu étais parti…',
+    questionChangee: 'On est passés à la question suivante.',
+    phaseChangee: 'La partie a avancé.',
+    reprendre: 'Reprendre',
+  },
   lien: {
     coupe: 'La ligne est coupée. Ça revient tout seul.',
     coupeLongtemps: 'Toujours pas de lien. Regarde le wifi — rien n’est perdu.',

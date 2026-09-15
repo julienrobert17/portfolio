@@ -28,6 +28,20 @@ export interface Desaccord {
 }
 
 const CLE_CLIENT = 'entre-nous-client'
+/**
+ * La dernière salle rejointe, gardée pour pouvoir y revenir seul.
+ *
+ * iOS ne se contente pas de fermer le flux quand l'écran s'éteint : après une
+ * veille longue il peut évincer la page entière de la mémoire. Au réveil, le
+ * navigateur la recharge — et sans ça on retomberait sur le salon, à devoir
+ * retaper un code, au milieu d'une partie. Or poser son téléphone est
+ * précisément ce que l'expérience demande de faire.
+ *
+ * Le PRÉNOM y est rangé avec le code, et ce n'est pas un détail : la reprise
+ * envoyait sinon le prénom par défaut du salon, et on revenait à sa place
+ * sous le nom de l'autre.
+ */
+const CLE_SALLE = 'entre-nous-salle'
 const JOURNAL_MAX = 120
 const LATENCES_MAX = 30
 
@@ -63,6 +77,21 @@ export interface InfoLien {
   echeance: number | null
   /** Vrai quand le client a coupé lui-même, via le panneau de debug. */
   coupeAlaMain: boolean
+  /**
+   * Vrai tant que l'écran est éteint ou l'onglet en arrière-plan.
+   *
+   * Sur iOS, verrouiller l'écran ferme le flux. Or c'est exactement ce que
+   * l'expérience DEMANDE de faire pendant une question parlée : poser le
+   * téléphone. Revenir sur un flux mort est donc un chemin nominal, pas une
+   * panne, et rien de ce qui alarme ne doit tourner pendant ce temps-là.
+   */
+  enVeille: boolean
+}
+
+/** Ce qui a bougé dans la salle pendant une absence. */
+export interface Retour {
+  index: number
+  phase: string
 }
 
 /**
@@ -113,6 +142,8 @@ function clientPersistant(): string {
 export function useLien() {
   const [clientId] = useState(clientPersistant)
   const [etat, setEtat] = useState<EtatSalle | null>(null)
+  /** Miroir de `etat`, lisible depuis un écouteur d'événement. */
+  const etatRef = useRef<EtatSalle | null>(null)
   const [cote, setCote] = useState<Cote | null>(null)
   const [lien, setLien] = useState<InfoLien>({
     etat: 'ferme',
@@ -123,6 +154,7 @@ export function useLien() {
     panneDepuisMs: null,
     echeance: null,
     coupeAlaMain: false,
+    enVeille: false,
   })
   const [journal, setJournal] = useState<Message[]>([])
   /** Les révélations reçues, par question. La vérité ne vient que d'ici. */
@@ -133,6 +165,16 @@ export function useLien() {
   const [miennes, setMiennes] = useState<Record<string, unknown>>({})
   /** Retarde l'application des révélations, pour voir le battement court. */
   const [retard, setRetard] = useState(0)
+  /**
+   * Ce qui a bougé pendant que l'écran était éteint, ou `null` si rien.
+   *
+   * C'est un CHANGEMENT qui le déclenche, jamais une durée. Un coup d'œil de
+   * trois secondes à une notification ne doit rien produire, et un téléphone
+   * posé deux minutes pendant lesquelles personne n'a validé non plus : dans
+   * les deux cas on revient exactement là où on était, et se voir annoncer
+   * son propre aller-retour serait absurde.
+   */
+  const [retour, setRetour] = useState<Retour | null>(null)
   const [latences, setLatences] = useState<number[]>([])
   const [conflits, setConflits] = useState(0)
 
@@ -140,6 +182,10 @@ export function useLien() {
   const retardRef = useRef(0)
   /** Quand le lien a cessé d'être ouvert. 0 = il va bien. */
   const panneDepuisRef = useRef(0)
+  /** Vrai quand l'écran est éteint : l'horloge de panne ne tourne pas. */
+  const enVeilleRef = useRef(false)
+  /** L'état de la salle au moment où l'écran s'est éteint. */
+  const avantVeilleRef = useRef<{ index: number; phase: string } | null>(null)
   const dernierIdRef = useRef(0)
   /** 0 tant que rien n'est arrivé : `Date.now()` pendant le rendu est impur. */
   const dernierRecuRef = useRef(0)
@@ -166,7 +212,7 @@ export function useLien() {
   const ouvrirRef = useRef<((code: string) => void) | null>(null)
 
   const ouvrir = useCallback(
-    (code: string) => {
+    (code: string, resync = false) => {
       fermer()
       dernierRecuRef.current = Date.now()
       codeRef.current = code
@@ -174,7 +220,10 @@ export function useLien() {
       setLien((l) => ({ ...l, etat: 'connexion', coupeAlaMain: false }))
       coupeRef.current = false
 
-      const url = `/api/entre-nous/flux?salle=${encodeURIComponent(code)}&client=${encodeURIComponent(clientId)}&depuis=${dernierIdRef.current}`
+      const url =
+        `/api/entre-nous/flux?salle=${encodeURIComponent(code)}` +
+        `&client=${encodeURIComponent(clientId)}&depuis=${dernierIdRef.current}` +
+        (resync ? '&resync=1' : '')
       const source = new EventSource(url)
       sourceRef.current = source
 
@@ -223,7 +272,17 @@ export function useLien() {
           return
         }
         if (type === 'instantane') {
-          setEtat(charge as EtatSalle)
+          const frais = charge as EtatSalle
+          const avant = avantVeilleRef.current
+          if (avant !== null) {
+            avantVeilleRef.current = null
+            // Seuls l'index et la phase comptent : une version qui a bougé
+            // parce que l'autre a validé n'est pas un changement visible.
+            if (avant.index !== frais.index || avant.phase !== frais.phase) {
+              setRetour({ index: avant.index, phase: avant.phase })
+            }
+          }
+          setEtat(frais)
           return
         }
         if (type === 'reponse') {
@@ -288,6 +347,10 @@ export function useLien() {
     retardRef.current = retard
   }, [retard])
 
+  useEffect(() => {
+    etatRef.current = etat
+  }, [etat])
+
   /**
    * DEUX HORLOGES, ET IL FAUT QU'ELLES LE RESTENT.
    *
@@ -309,10 +372,15 @@ export function useLien() {
     const t = setInterval(() => {
       const depuis = dernierRecuRef.current
       const panne = panneDepuisRef.current
+      // En veille, l'horloge de panne ne tourne pas : sinon un téléphone posé
+      // deux minutes reviendrait sur « vérifie le wifi » avant même que la
+      // reconnexion ait eu une chance d'aboutir.
+      const veille = enVeilleRef.current
       setLien((l) => ({
         ...l,
         silenceMs: depuis === 0 ? 0 : Date.now() - depuis,
-        panneDepuisMs: panne === 0 ? null : Date.now() - panne,
+        panneDepuisMs: veille || panne === 0 ? null : Date.now() - panne,
+        enVeille: veille,
       }))
     }, 500)
     return () => clearInterval(t)
@@ -321,17 +389,46 @@ export function useLien() {
   /** Un retour d'arrière-plan ne se rattrape pas en incrémental. */
   useEffect(() => {
     const surVisibilite = () => {
-      if (document.visibilityState !== 'visible') return
+      if (document.visibilityState !== 'visible') {
+        // On note où en était la salle : au retour, on ne comparera pas des
+        // durées mais des états.
+        enVeilleRef.current = true
+        avantVeilleRef.current = etatRef.current
+          ? { index: etatRef.current.index, phase: etatRef.current.phase }
+          : null
+        return
+      }
+      enVeilleRef.current = false
       if (coupeRef.current || codeRef.current === null) return
-      if (dernierRecuRef.current !== 0 && Date.now() - dernierRecuRef.current < 5000) return
-      setLien((l) => ({ ...l, etat: 'reprise', reconnexions: l.reconnexions + 1 }))
-      ouvrir(codeRef.current)
+      // Une reconnexion systématique au retour, sans seuil de durée. Le coût
+      // est nul quand le flux est encore vivant, et le flux est mort dès que
+      // l'écran s'est éteint — ce que l'expérience encourage à faire.
+      panneDepuisRef.current = 0
+      setLien((l) => ({ ...l, etat: 'reprise', panneDepuisMs: null }))
+      // Resynchronisation COMPLÈTE : après une veille on ne fait pas confiance
+      // à l'incrémental, et c'est l'instantané qui permet de comparer où on en
+      // était avec où on en est.
+      ouvrir(codeRef.current, true)
     }
     document.addEventListener('visibilitychange', surVisibilite)
     return () => document.removeEventListener('visibilitychange', surVisibilite)
   }, [ouvrir])
 
   useEffect(() => () => fermer(), [fermer])
+
+  /** La dernière salle rejointe, avec le prénom qu'on y portait. */
+  const [salleMemorisee] = useState<{ code: string; nom: string } | null>(() => {
+    try {
+      const brut = sessionStorage.getItem(CLE_SALLE)
+      if (brut === null) return null
+      const lu = JSON.parse(brut) as { code?: unknown; nom?: unknown }
+      return typeof lu.code === 'string' && typeof lu.nom === 'string'
+        ? { code: lu.code, nom: lu.nom }
+        : null
+    } catch {
+      return null
+    }
+  })
 
   const entrer = useCallback(
     async (nom: string, code: string | undefined, empreinte: string, build: string) => {
@@ -355,6 +452,11 @@ export function useLien() {
       setEtat(charge.etat)
       setCote(charge.cote ?? null)
       dernierIdRef.current = 0
+      try {
+        sessionStorage.setItem(CLE_SALLE, JSON.stringify({ code: charge.etat.code, nom }))
+      } catch {
+        // Navigation privée : on jouera sans pouvoir revenir seul.
+      }
       ouvrir(charge.etat.code)
       return { etat: charge.etat }
     },
@@ -405,8 +507,7 @@ export function useLien() {
     }, [ouvrir]),
     perimer: useCallback(() => agir('ping', {}, (etat?.version ?? 1) - 1), [agir, etat]),
     resync: useCallback(() => {
-      dernierIdRef.current = 0
-      if (codeRef.current) ouvrir(codeRef.current)
+      if (codeRef.current) ouvrir(codeRef.current, true)
     }, [ouvrir]),
   }
 
@@ -433,10 +534,12 @@ export function useLien() {
     [agir],
   )
 
+  const oublierRetour = useCallback(() => setRetour(null), [])
+
   return {
     clientId, etat, cote, lien, journal, latences, conflits, entrer, agir, provoquer,
     revelations, valides, miennes, etatQuestion, repondre,
-    retard, setRetard,
+    retard, setRetard, retour, oublierRetour, salleMemorisee,
   }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import styles from './salon.module.css'
 import PanneauDebug from './debug/panneau'
 import Jeu from './jeu'
@@ -74,6 +74,24 @@ export default function AppADistance() {
     const temoin = buildRun(BANQUE, PERSO.questions, 'témoin', A_DISTANCE)
     return empreinteDuDeroule(temoin)
   }, [])
+
+  /*
+   * Reprise automatique après un rechargement.
+   *
+   * Ce n'est pas un confort : iOS peut évincer la page pendant une veille
+   * longue, et se retrouver devant un champ « CODE » au milieu d'une partie
+   * parce qu'on a posé son téléphone — ce que l'expérience demande — serait
+   * le contraire d'un chemin nominal. On revient à sa place tout seul, la
+   * place étant un bail attaché au client.
+   */
+  const repriseTentee = useRef(false)
+  useEffect(() => {
+    if (repriseTentee.current || etat !== null || lien.salleMemorisee === null) return
+    repriseTentee.current = true
+    // Le prénom vient de la mémoire, pas du salon : sinon on revient à sa
+    // place sous le nom par défaut, c'est-à-dire sous celui de l'autre.
+    void lien.entrer(lien.salleMemorisee.nom, lien.salleMemorisee.code, monEmpreinte, BUILD)
+  }, [etat, lien, monEmpreinte])
 
   const entrer = async (avecCode?: string) => {
     setErreur(null)
@@ -195,6 +213,38 @@ export default function AppADistance() {
     )
   }
 
+  // ── L'intercalaire du retour, s'il y a quelque chose à raconter ──
+  if (lien.retour !== null && etat.phase !== 'lobby') {
+    const questionABouge = lien.retour.index !== etat.index
+    return (
+      <>
+        <div className={styles.plein}>
+          <h1 className={styles.titre}>{TEXTES.retour.titre}</h1>
+          <p className={styles.sous}>
+            {questionABouge ? TEXTES.retour.questionChangee : TEXTES.retour.phaseChangee}
+          </p>
+          <div className={styles.options}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnFort}`}
+              onClick={lien.oublierRetour}
+            >
+              {TEXTES.retour.reprendre}
+            </button>
+          </div>
+        </div>
+        {debug && (
+          <PanneauDebug
+            lien={lien}
+            empreinte={monEmpreinte}
+            fausse={fausserEmpreinte}
+            setFausse={setFausserEmpreinte}
+          />
+        )}
+      </>
+    )
+  }
+
   // ── La salle ──
   const lienEnPeine = info.etat !== 'ouvert'
   const enJeu = etat.phase === 'jeu'
@@ -206,6 +256,8 @@ export default function AppADistance() {
    */
   const revelationEnVol =
     enJeu && question !== null && lien.etatQuestion(question.id) === 'en-vol'
+  /* Pendant une question parlée, poser son téléphone est ce qu'on demande. */
+  const questionParlee = enJeu && question?.mecanique === 'a-voix-haute'
 
   return (
     <>
@@ -224,12 +276,32 @@ export default function AppADistance() {
         />
         <p className={styles.note}>{note}</p>
 
+        {/*
+         * LA PRÉSENCE, ET POURQUOI ELLE EN DIT MOINS ICI QU'EN PRÉSENTIEL.
+         *
+         * En face à face, l'indicateur apporte une information qu'on n'a pas :
+         * on voit la personne, pas sa moitié d'écran. En appel c'est l'inverse
+         * — on l'ENTEND. Le canal de présence est déjà saturé par la voix, et
+         * une phrase du genre « Mathilde s'est absentée » risquerait de
+         * contredire ce qu'on entend à l'instant même. Un indicateur qui ment
+         * de façon immédiatement vérifiable n'abîme pas que lui-même.
+         *
+         * D'où : une pastille qui s'éteint, aucune phrase, jamais. Sa seule
+         * utilité réelle est d'expliquer pourquoi une révélation ne vient pas,
+         * et pour ça un point terne suffit.
+         *
+         * Et rien du tout pendant une question parlée : l'écran éteint y est
+         * l'état recherché, le signaler comme un problème serait à contresens.
+         */}
         <div className={styles.places}>
           {(['a', 'b'] as const).map((c) => {
             const place = etat.places.find((p) => p.cote === c)
+            const terne = !questionParlee && place?.present === false
             return (
               <span key={c} className={styles.place}>
-                <span className={`${styles.pastille} ${place?.present ? styles.present : ''}`} />
+                <span
+                  className={`${styles.pastille} ${place && !terne ? styles.present : ''}`}
+                />
                 <span className={styles.nomPlace}>
                   {place ? place.nom : 'libre'}
                   {c === cote ? ' · toi' : ''}
