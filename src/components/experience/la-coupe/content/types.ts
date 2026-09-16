@@ -32,6 +32,8 @@ export interface DescripteurCoupe {
   /** Hauteur sous plafond de chaque niveau, du bas vers le haut. */
   niveaux: number[]
   toit: 'plat' | 'deux-pentes' | 'mono'
+  /** Hauteur du toit en mètres ; sinon proportionnelle à la largeur. */
+  hauteurToit?: number
   /** Profondeur du sous-sol, en mètres (0 si aucun). */
   enterre?: number
   /** Position en x d'un vide traversant [debut, fin], en mètres. */

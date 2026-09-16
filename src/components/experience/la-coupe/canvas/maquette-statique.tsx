@@ -52,7 +52,7 @@ const FILLS: Record<Face['teinte'], string> = {
 
 export default function MaquetteStatique({ className }: { className?: string }) {
   const volumes = [...MAQUETTE.volumes]
-    .filter((v) => v.role !== 'vide')
+    .filter((v) => v.role !== 'vide' && v.role !== 'escalier')
     .sort((a, b) => a.x + a.y - (b.x + b.y) || a.z - b.z)
   const socle = MAQUETTE.volumes.find((v) => v.role === 'socle')
   const faces: Face[] = []

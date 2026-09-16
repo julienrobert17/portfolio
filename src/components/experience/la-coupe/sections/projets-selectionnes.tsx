@@ -22,7 +22,7 @@ export default function ProjetsSelectionnes() {
           Projets sélectionnés
         </h2>
         <p className="lc-mono lc-muted">
-          {formatNumero(selection.length - 1)} sur {total}
+          {formatNumero(selection.length - 1)} / {total}
         </p>
       </div>
       {selection.map((projet) => {

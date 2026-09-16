@@ -30,11 +30,11 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
         {projets.map((projet) => (
           <li key={projet.slug} className={styles.item}>
             <Link href={`${site.base}/projets/${projet.slug}`} className={styles.ligne}>
-              <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>
-              <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>
+              <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
+              <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>{' '}
               <span className={styles.details}>
-                <span className={`lc-mono lc-muted ${styles.lieu}`}>{projet.lieu}</span>
-                <span className={`lc-mono ${styles.annee}`}>{projet.annee}</span>
+                <span className={`lc-mono lc-muted ${styles.lieu}`}>{projet.lieu}</span>{' '}
+                <span className={`lc-mono ${styles.annee}`}>{projet.annee}</span>{' '}
                 <span className={`lc-mono lc-muted ${styles.statut}`}>{projet.statut}</span>
               </span>
             </Link>

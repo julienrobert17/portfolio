@@ -43,7 +43,7 @@ export const site = {
   ],
 
   /** Slugs des projets mis en avant sur l'accueil, dans l'ordre. */
-  selection: ['maison-des-vignes', 'halle-saint-ouen', 'les-terrasses-du-canal', 'mediatheque-des-tanneurs'],
+  selection: ['maison-des-vignes', 'halle-saint-ouen', 'mediatheque-des-tanneurs', 'les-terrasses-du-canal'],
 
   atelierTeaser: {
     titre: "L'atelier",

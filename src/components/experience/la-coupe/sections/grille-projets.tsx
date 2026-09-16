@@ -24,8 +24,8 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
             <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
               <Photo image={image} />
               <span className={styles.legende}>
-                <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>
-                <span className={styles.nom}>{projet.titre}</span>
+                <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
+                <span className={styles.nom}>{projet.titre}</span>{' '}
                 <span className={`lc-mono lc-muted ${styles.meta}`}>
                   {projet.lieu} — {projet.annee}
                 </span>

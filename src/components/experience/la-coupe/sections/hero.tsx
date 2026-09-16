@@ -18,7 +18,7 @@ export default function Hero() {
       </div>
 
       <h1 id="hero-titre" className={`lc-display lc-h1 ${styles.titre}`}>
-        <span className={styles.titreLigne}>{ligne1}</span>
+        <span className={styles.titreLigne}>{ligne1}</span>{' '}
         <span className={styles.titreLigne}>{ligne2}</span>
       </h1>
 

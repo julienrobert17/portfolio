@@ -1,3 +1,4 @@
+import { EPAISSEUR_DALLE } from '../canvas/maquette'
 import type { Dessin, DescripteurCoupe, DescripteurPlan } from '../content/types'
 
 /**
@@ -90,11 +91,12 @@ export function rendrePlan(p: DescripteurPlan, echelle: number): DessinRendu {
 
 export function rendreCoupe(c: DescripteurCoupe, echelle: number): DessinRendu {
   const s = (v: number) => +(v * echelle).toFixed(2)
-  const dalle = 0.25
+  const dalle = EPAISSEUR_DALLE
   const mur = 0.3
   const enterre = c.enterre ?? 0
   const hauteurNiveaux = c.niveaux.reduce((a, b) => a + b + dalle, 0)
-  const hauteurToit = c.toit === 'plat' ? dalle : c.toit === 'mono' ? Math.min(c.largeur * 0.12, 2.2) : Math.min(c.largeur * 0.28, 4)
+  const hauteurToit =
+    c.hauteurToit ?? (c.toit === 'plat' ? dalle : c.toit === 'mono' ? Math.min(c.largeur * 0.12, 2.2) : Math.min(c.largeur * 0.28, 4))
   const hauteurTotale = hauteurNiveaux + hauteurToit
   const ox = MARGE + 1.5
   // Le sol est à y = oyBas ; on dessine vers le haut (y décroissant).

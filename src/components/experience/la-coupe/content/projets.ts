@@ -1,3 +1,4 @@
+import { coupeDepuisMaquette, planDepuisMaquette } from '../canvas/maquette'
 import type { Projet } from './types'
 
 /**
@@ -29,29 +30,19 @@ export const projets: Projet[] = [
       { ratio: '4:5', alt: 'Mur en pierre de Comblanchien au ras du talus' },
       { ratio: '16:9', alt: 'Terrasse couverte, vue sur le village' },
     ],
+    // Le projet phare est aussi la maquette du hero : plan et coupe en dérivent.
     dessins: [
-      {
-        type: 'plan',
-        largeur: 18,
-        profondeur: 11,
-        murs: [
+      planDepuisMaquette(
+        [
           [6, 0, 6, 11],
           [6, 5.5, 18, 5.5],
           [12, 5.5, 12, 11],
           [0, 4, 6, 4],
         ],
-        ouvertures: [[7, 11], [13, 17]],
-        legende: 'Plan du rez-de-chaussée',
-      },
-      {
-        type: 'coupe',
-        largeur: 18,
-        niveaux: [2.7, 2.6, 2.4],
-        toit: 'deux-pentes',
-        enterre: 1.2,
-        vide: [6, 9],
-        legende: 'Coupe transversale sur le vide',
-      },
+        [[7, 11], [13, 17]],
+        'Plan du rez-de-chaussée',
+      ),
+      coupeDepuisMaquette('Coupe transversale sur le vide'),
     ],
     teinte: 34,
   },

@@ -22,7 +22,7 @@ export default function Equipe() {
                   <Photo image={photo} />
                 </span>
               ) : null}
-              <span className={`lc-display lc-h3 ${styles.nom}`}>{m.nom}</span>
+              <span className={`lc-display lc-h3 ${styles.nom}`}>{m.nom}</span>{' '}
               <span className={`lc-mono lc-muted ${styles.role}`}>{m.role}</span>
             </li>
           )
