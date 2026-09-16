@@ -11,12 +11,17 @@ import { setLenis } from '../lib/lenis-store'
  * que le canvas R3F partagera (Phase 2). Désactivé au tactile, où le
  * défilement natif est meilleur, et sous prefers-reduced-motion.
  */
-export default function SmoothScroll() {
+interface SmoothScrollProps {
+  /** Faux en Phase 1 : Lenis est monté mais laissé inactif jusqu'au hero 3D (Phase 2). */
+  actif?: boolean
+}
+
+export default function SmoothScroll({ actif = true }: SmoothScrollProps) {
   const reduit = useReducedMotion()
   const { gsap, ScrollTrigger } = registerGsap()
 
   useEffect(() => {
-    if (reduit || window.matchMedia('(pointer: coarse)').matches) return
+    if (!actif || reduit || window.matchMedia('(pointer: coarse)').matches) return
 
     const lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1, autoRaf: false })
     setLenis(lenis)
@@ -30,7 +35,7 @@ export default function SmoothScroll() {
       lenis.destroy()
       setLenis(null)
     }
-  }, [reduit, gsap, ScrollTrigger])
+  }, [actif, reduit, gsap, ScrollTrigger])
 
   return null
 }

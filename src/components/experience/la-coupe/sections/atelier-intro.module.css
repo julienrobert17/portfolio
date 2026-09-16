@@ -1,0 +1,24 @@
+.section {
+  padding-bottom: var(--s-8);
+}
+
+.portrait {
+  grid-column: 1 / span 5;
+}
+
+.texte {
+  grid-column: 7 / span 5;
+  align-self: end;
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+}
+
+@media (max-width: 900px) {
+  .portrait,
+  .texte {
+    grid-column: 1 / -1;
+  }
+
+  .texte {
+    margin-top: var(--s-5);
+  }
+}

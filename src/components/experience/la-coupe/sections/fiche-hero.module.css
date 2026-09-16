@@ -1,0 +1,24 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+}
+
+.image {
+  height: 60vh;
+  min-height: 320px;
+  overflow: hidden;
+}
+
+.entete {
+  display: grid;
+  gap: var(--s-3);
+  padding-block: var(--s-5) var(--s-6);
+}
+
+.titre {
+  max-width: 16ch;
+}
+
+.sousTitre {
+  color: var(--ink-2);
+}
