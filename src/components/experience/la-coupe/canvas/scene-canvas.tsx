@@ -3,6 +3,9 @@
 import { Canvas } from '@react-three/fiber'
 import Scene from './scene'
 
+/** Ré-exporté pour l'hôte, qui ne doit pas importer fiber statiquement. */
+export { advance } from '@react-three/fiber'
+
 /**
  * Le seul <Canvas> de l'expérience. frameloop="never" : c'est le ticker GSAP
  * qui appelle advance(). Fond transparent, le papier de la page fait le fond.

@@ -1,6 +1,5 @@
 'use client'
 
-import { advance } from '@react-three/fiber'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, useSyncExternalStore, type ComponentType } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
@@ -32,6 +31,8 @@ export default function CanvasHost() {
   const mode = useSyncExternalStore(abonnerHero, lireMode, lireModeServeur)
   const pret = useSyncExternalStore(abonnerHero, lireCanvasPret, lireFaux)
   const [SceneCanvas, setSceneCanvas] = useState<ComponentType | null>(null)
+  /** advance() de fiber, récupéré avec le module dynamique : rien de three dans le JS initial. */
+  const avancer = useRef<((temps: number) => void) | null>(null)
   const hote = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -46,7 +47,9 @@ export default function CanvasHost() {
     const charger = () => {
       import('./scene-canvas')
         .then((m) => {
-          if (!annule) setSceneCanvas(() => m.default)
+          if (annule) return
+          avancer.current = m.advance
+          setSceneCanvas(() => m.default)
         })
         .catch(() => setModeHero('statique'))
     }
@@ -71,9 +74,9 @@ export default function CanvasHost() {
         dernierY = y
       }
       // Rendu à la demande : la scène remet `sale` à vrai tant qu'elle bouge.
-      if (hero.sale) {
+      if (hero.sale && avancer.current) {
         hero.sale = false
-        advance(temps)
+        avancer.current(temps)
       }
     })
   }, [SceneCanvas])
