@@ -45,12 +45,40 @@ traits à largeur constante et des cotes en HTML pour garder une taille de texte
 fixe. Les traits marqués `tardif` (cotes, hachures, escalier) seront tracés en
 dernier au scroll (Phase 3).
 
-## Maquette
+## Maquette et hero 3D
 
-`canvas/maquette.ts` décrit le projet phare en volumes (mètres). Le rendu
-isométrique statique (`canvas/maquette-statique.tsx`) sert de placeholder et
-de repli sans WebGL. `HAUTEUR_COUPE` en dérive : c'est la seule source de la
-cote du hero. `loadModel()` est le point d'entrée pour un futur `.glb`.
+`canvas/maquette.ts` décrit le projet phare en volumes (mètres) : c'est la
+source unique du SVG statique, de la scène three et des dessins de la fiche
+(`coupeDepuisMaquette`, `planDepuisMaquette`). `HAUTEUR_COUPE` en dérive : la
+cote du hero, la coupe de la fiche et celle du footer affichent la même valeur.
+`loadModel()` est le point d'entrée pour un futur `.glb`.
+
+```
+canvas/projection.ts        azimut 30°, plongée 30°, communs au SVG et à la caméra
+canvas/maquette-statique    SVG axonométrique : placeholder, puis repli (coupe à mi-hauteur)
+canvas/geometrie.ts         maquette creuse (murs, dalles trouées, refends, toit, escalier), une géométrie fusionnée
+canvas/rig.ts               tout l'impératif : plan de coupe, matériaux, caméra, parallaxe
+canvas/coupe.tsx            face coupée par stencil (webgl_clipping_stencil), en --accent
+canvas/scene.tsx            l'arbre R3F ; prop mode: 'hero' | 'menu' (menu : Phase 4)
+canvas/scene-canvas.tsx     le seul <Canvas>, frameloop="never", chargé en import dynamique
+canvas/canvas-host.tsx      couche fixe dans le layout : décision, chargement à l'inactivité, rendu à la demande
+canvas/garde-canvas.tsx     error boundary → repli statique
+sections/hero-scroll.tsx    pin 300vh (220vh tactile), scrub 0.4, cote, fondu du titre, parallaxe
+lib/hero-store.ts           état partagé (mode, progression, cadre, souris, sale)
+lib/ticker.ts               la seule boucle : gsap.ticker → lenis.raf() et advance()
+```
+
+Déroulé : le SVG est affiché au premier rendu ; three se charge après
+`requestIdleCallback` ; à la deuxième frame rendue, fondu croisé 600 ms vers
+le canvas, cadré sur le repère du SVG (même projection, même largeur). Le hero
+est épinglé ; la progression 0 → 1 descend le plan de coupe du faîtage au sol,
+tourne la maquette de 20°, recule la caméra de 15 % et efface le titre sur les
+20 derniers %. La cote affiche la hauteur au-dessus de laquelle tout est coupé.
+
+Repli (`prefers-reduced-motion`, WebGL absent, échec de chargement, erreur de
+scène) : pas de pin, SVG conservé avec le plan de coupe dessiné à mi-hauteur,
+cote fixe en `--accent`. En développement, `window.__laCoupeHero` permet de
+piloter la progression depuis la console.
 
 ## Styles
 
@@ -65,7 +93,7 @@ sur `--ink` 7,0.
 ## Phases
 
 - [x] Phase 1 — site statique navigable, sans animation
-- [ ] Phase 2 — hero R3F, plan de coupe au scroll, cote animée
+- [x] Phase 2 — hero R3F, plan de coupe au scroll, cote animée
 - [ ] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
 - [ ] Phase 4 — menu, transitions de page (`layout/page-transition.tsx`), curseur, préchargeur
 - [ ] Phase 5 — Lighthouse, clavier, reduced motion, navigateurs
