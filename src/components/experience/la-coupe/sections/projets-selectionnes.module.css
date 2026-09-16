@@ -39,7 +39,7 @@
 
 .index {
   position: absolute;
-  top: var(--s-4);
+  top: calc(var(--nav-h) + var(--s-3));
   right: var(--margin);
 }
 

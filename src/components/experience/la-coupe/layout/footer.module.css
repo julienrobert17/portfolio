@@ -100,3 +100,9 @@
     grid-column: span 6;
   }
 }
+
+@media (max-width: 480px) {
+  .colonne {
+    grid-column: 1 / -1;
+  }
+}
