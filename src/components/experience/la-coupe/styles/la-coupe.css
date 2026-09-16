@@ -1,0 +1,247 @@
+/*
+ * La Coupe : tokens, typographie, grille. Tout est préfixé `lc` et posé sur
+ * la racine `.lc`, jamais sur :root, pour ne pas toucher au reste du site.
+ */
+.lc {
+  --paper: #f3f0ea;
+  --paper-2: #e9e4dc;
+  --ink: #151412;
+  --ink-2: #5c5853;
+  --line: #c9c3b8;
+  --accent: #b5452d;
+  /* Sur fond --ink (footer) : texte secondaire à 7,0 et filets. */
+  --ink-2-inverse: #a89f93;
+  --line-inverse: #3a3733;
+
+  --font-display: var(--lc-font-display), 'Instrument Sans', system-ui, sans-serif;
+  --font-serif: var(--lc-font-serif), 'Instrument Serif', Georgia, serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 16px;
+  --s-4: 24px;
+  --s-5: 40px;
+  --s-6: 64px;
+  --s-7: 104px;
+  --s-8: 168px;
+  --s-9: 272px;
+
+  --gutter: clamp(12px, 1.5vw, 24px);
+  --margin: clamp(16px, 4vw, 64px);
+  --nav-h: 64px;
+
+  --ease-ui: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-micro: 250ms;
+  --t-enter: 800ms;
+  --t-page: 1000ms;
+
+  color-scheme: light;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 0.98rem + 0.25vw, 1.15rem);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  flex: 1 0 auto;
+}
+
+@media (max-width: 720px) {
+  .lc {
+    --s-8: 104px;
+    --s-9: 168px;
+    --nav-h: 56px;
+  }
+}
+
+/* Le fond de la fenêtre (rebond, barre système) suit le papier. */
+html:has(.lc) {
+  background: #f3f0ea;
+  color-scheme: light;
+}
+
+.lc *,
+.lc *::before,
+.lc *::after {
+  box-sizing: border-box;
+}
+
+.lc a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lc :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 1px;
+}
+
+.lc img,
+.lc svg {
+  display: block;
+  max-width: 100%;
+}
+
+.lc img {
+  height: auto;
+}
+
+.lc ::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ───────────── Typographie ───────────── */
+
+.lc-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-wrap: balance;
+}
+
+.lc-h1 {
+  font-size: clamp(3.25rem, 10vw, 13rem);
+}
+
+.lc-h2 {
+  font-size: clamp(2.5rem, 6vw, 6.5rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.lc-h3 {
+  font-size: clamp(1.5rem, 2.6vw, 2.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-weight: 500;
+}
+
+.lc-lead {
+  font-size: clamp(1.6rem, 3.2vw, 3.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 450;
+  text-wrap: pretty;
+}
+
+.lc-body {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.lc-body p + p {
+  margin-top: 1em;
+}
+
+.lc em,
+.lc .lc-em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: 0;
+}
+
+.lc-mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.lc-muted {
+  color: var(--ink-2);
+}
+
+.lc-accent {
+  color: var(--accent);
+}
+
+.lc-link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.lc-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ───────────── Grille et espace ───────────── */
+
+.lc-container {
+  padding-inline: var(--margin);
+}
+
+.lc-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+.lc-section {
+  padding-block: var(--s-8);
+}
+
+.lc-rule {
+  border-top: 1px solid var(--line);
+}
+
+.lc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Lien d'évitement : visible seulement au focus clavier. */
+.lc-skip {
+  position: fixed;
+  top: var(--s-3);
+  left: var(--s-3);
+  z-index: 100;
+  padding: var(--s-2) var(--s-3);
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateY(-200%);
+}
+
+.lc-skip:focus-visible {
+  transform: none;
+  outline-offset: 2px;
+}
+
+/* ───────────── Transitions de page ─────────────
+ * Phase 1 : coupe franche. Les rideaux et l'élément partagé viennent en
+ * Phase 4, dans layout/transitions/. */
+::view-transition-group(.lc-page),
+::view-transition-old(.lc-page),
+::view-transition-new(.lc-page) {
+  animation-duration: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+  }
+}
