@@ -48,6 +48,16 @@ export const hero: EtatHero = {
   sale: true,
 }
 
+// En développement seulement : piloter la coupe depuis la console (captures, débogage).
+declare global {
+  interface Window {
+    __laCoupeHero?: EtatHero
+  }
+}
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+  window.__laCoupeHero = hero
+}
+
 type Ecouteur = () => void
 const ecouteurs = new Set<Ecouteur>()
 

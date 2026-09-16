@@ -13,10 +13,10 @@ import {
   lireFaux,
   lireMode,
   lireModeServeur,
-  setCanvasPret,
   setModeHero,
 } from '../lib/hero-store'
 import { onTick } from '../lib/ticker'
+import GardeCanvas from './garde-canvas'
 import styles from './canvas-host.module.css'
 
 /**
@@ -63,7 +63,6 @@ export default function CanvasHost() {
   useEffect(() => {
     if (!SceneCanvas) return
     let dernierY = 0
-    let frames = 0
     return onTick((temps) => {
       if (!hero.actif) return
       const y = Math.min(0, hero.finPin - window.scrollY)
@@ -71,14 +70,10 @@ export default function CanvasHost() {
         hote.current.style.transform = `translate3d(0, ${y}px, 0)`
         dernierY = y
       }
-      if (hero.sale || frames < 3) {
+      // Rendu à la demande : la scène remet `sale` à vrai tant qu'elle bouge.
+      if (hero.sale) {
         hero.sale = false
         advance(temps)
-        frames++
-        if (frames === 2) {
-          setCanvasPret(true)
-          setModeHero('canvas')
-        }
       }
     })
   }, [SceneCanvas])
@@ -87,7 +82,11 @@ export default function CanvasHost() {
 
   return (
     <div ref={hote} className={styles.hote} data-pret={pret || undefined} aria-hidden="true" hidden={!accueil}>
-      {SceneCanvas ? <SceneCanvas /> : null}
+      {SceneCanvas ? (
+        <GardeCanvas>
+          <SceneCanvas />
+        </GardeCanvas>
+      ) : null}
     </div>
   )
 }

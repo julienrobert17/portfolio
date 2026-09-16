@@ -69,11 +69,14 @@ function toiture(t: Volume): BufferGeometry[] {
   const pente = Math.atan2(t.h, t.p / 2)
   const eV = EPAISSEUR_DALLE / Math.cos(pente)
   const debord = 0.5
+  // L'épaisseur du pan est prise sous la surface du massing : le faîtage
+  // reste le point le plus haut du modèle, et HAUTEUR_COUPE reste vraie.
+  const zEgout = zBas - (debord * t.h) / (t.p / 2)
   const pan = (yEgout: number): [number, number][] => [
-    [yEgout, zBas - (debord * t.h) / (t.p / 2)],
+    [yEgout, zEgout - eV],
+    [yFaite, zFaite - eV],
     [yFaite, zFaite],
-    [yFaite, zFaite + eV],
-    [yEgout, zBas - (debord * t.h) / (t.p / 2) + eV],
+    [yEgout, zEgout],
   ]
   const pignon: [number, number][] = [
     [t.y, zBas],
@@ -129,8 +132,12 @@ export function construireMaquette(): MaquetteConstruite {
     ...volee(escalier, escalier.y, escalier.p / 2 - 0.1, solSocle, plafondSocle, 1),
     ...volee(escalier, escalier.y + escalier.p / 2 + 0.1, escalier.p / 2 - 0.1, plafondSocle, plafondEtage, -1),
   ]
-  const geometrie = mergeGeometries(parties, false)
+  // Les boîtes sont indexées, les extrusions non : on désindexe tout avant de fusionner.
+  const plates = parties.map((g) => (g.index ? g.toNonIndexed() : g))
+  const geometrie = mergeGeometries(plates, false)
   parties.forEach((g) => g.dispose())
+  plates.forEach((g) => g.dispose())
+  if (!geometrie) throw new Error('la-coupe : fusion de la maquette impossible')
 
   const coins: [number, number][] = []
   for (const v of [socle, etage, toit]) {
