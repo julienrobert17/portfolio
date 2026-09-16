@@ -1,19 +1,21 @@
 /**
  * État partagé du hero entre trois arbres React distincts : la section (pin,
  * cote, titre), l'hôte du canvas (layout) et la scène. Les valeurs lues à
- * chaque frame sont des champs mutables ; seules `mode` et `canvasPret`
+ * chaque frame sont des champs mutables ; seuls `mode` et `canvasPret`
  * passent par React (useSyncExternalStore).
  */
 export type ModeHero =
-  /** Décision en cours : WebGL disponible, chargement de three lancé. */
+  /** Rien de décidé : premier rendu, avant tout effet. */
+  | 'indecis'
+  /** WebGL disponible, chargement de three lancé après le premier rendu. */
   | 'attente'
-  /** Canvas monté, coupe pilotée par le scroll. */
+  /** Canvas monté et première frame rendue : coupe pilotée par le scroll. */
   | 'canvas'
   /** Repli : SVG statique avec coupe à mi-hauteur, cote fixe, pas de pin. */
   | 'statique'
 
 export interface CadreHero {
-  /** Centre du repère de la maquette SVG, en pixels, relatif au viewport pendant le pin. */
+  /** Centre du repère de la maquette SVG en pixels, relatif au viewport pendant le pin. */
   cx: number
   cy: number
   largeur: number
@@ -27,20 +29,23 @@ interface EtatHero {
   /** Position de scroll où le pin se termine ; Infinity tant qu'il n'existe pas. */
   finPin: number
   cadre: CadreHero | null
-  /** Souris normalisée dans [-1, 1], (0, 0) au centre. */
+  /** Souris normalisée dans [-1, 1], (0, 0) au centre de la fenêtre. */
   souris: { x: number; y: number }
   /** Le canvas est-il sur la page courante (accueil) ? */
   actif: boolean
+  /** Quelque chose a changé : la prochaine frame doit être rendue. */
+  sale: boolean
 }
 
 export const hero: EtatHero = {
-  mode: 'attente',
+  mode: 'indecis',
   canvasPret: false,
   progression: 0,
   finPin: Infinity,
   cadre: null,
   souris: { x: 0, y: 0 },
   actif: false,
+  sale: true,
 }
 
 type Ecouteur = () => void
@@ -69,10 +74,27 @@ export function setCanvasPret(pret: boolean): void {
   notifier()
 }
 
-export function lireMode(): ModeHero {
-  return hero.mode
+export const lireMode = (): ModeHero => hero.mode
+export const lireCanvasPret = (): boolean => hero.canvasPret
+export const lireModeServeur = (): ModeHero => 'indecis'
+export const lireFaux = (): boolean => false
+
+function webglDisponible(): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
 }
 
-export function lireCanvasPret(): boolean {
-  return hero.canvasPret
+/**
+ * Tranche une fois pour toutes, au premier composant monté qui le demande :
+ * repli statique si mouvement réduit ou sans WebGL, sinon on attend three.
+ */
+export function deciderModeHero(mouvementReduit: boolean): ModeHero {
+  if (hero.mode === 'indecis') {
+    setModeHero(mouvementReduit || !webglDisponible() ? 'statique' : 'attente')
+  }
+  return hero.mode
 }

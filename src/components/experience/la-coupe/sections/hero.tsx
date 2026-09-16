@@ -1,11 +1,12 @@
 import MaquetteStatique from '../canvas/maquette-statique'
 import { HAUTEUR_COUPE } from '../canvas/maquette'
 import { site } from '../content/site'
+import HeroScroll from './hero-scroll'
 import styles from './hero.module.css'
 
 /**
- * Hero statique. Phase 2 : le SVG isométrique devient le placeholder d'un
- * canvas R3F ; la section s'épingle sur 300vh et la cote suit la coupe.
+ * Hero : le SVG axonométrique est le placeholder du canvas R3F (fondu croisé
+ * à la première frame) et son repli sans WebGL ou sous mouvement réduit.
  */
 export default function Hero() {
   const [ligne1, ligne2] = site.hero.titre
@@ -13,9 +14,11 @@ export default function Hero() {
     <section className={`lc-container ${styles.hero}`} aria-labelledby="hero-titre">
       <p className={`lc-mono ${styles.ligne}`}>{site.hero.ligne}</p>
 
-      <div className={styles.maquette} role="img" aria-label={site.hero.canvasLabel}>
+      <p className="lc-visually-hidden">{site.hero.canvasLabel}</p>
+      <div className={styles.maquette} data-hero="maquette" aria-hidden="true">
         <MaquetteStatique className={styles.svg} />
       </div>
+      <HeroScroll />
 
       <h1 id="hero-titre" className={`lc-display lc-h1 ${styles.titre}`}>
         <span className={styles.titreLigne}>{ligne1}</span>{' '}

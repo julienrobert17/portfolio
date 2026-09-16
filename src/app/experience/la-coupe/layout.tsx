@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Instrument_Sans, Instrument_Serif } from 'next/font/google'
 import type { ReactNode } from 'react'
+import CanvasHost from '@/components/experience/la-coupe/canvas/canvas-host'
 import { site } from '@/components/experience/la-coupe/content/site'
 import Footer from '@/components/experience/la-coupe/layout/footer'
 import Nav from '@/components/experience/la-coupe/layout/nav'
@@ -67,6 +68,7 @@ export default function LaCoupeLayout({ children }: { children: ReactNode }) {
   return (
     <div className={`lc ${display.variable} ${serif.variable}`} lang="fr">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organisation) }} />
+      <CanvasHost />
       <SkipLink />
       <Nav />
       <main id="contenu">{children}</main>

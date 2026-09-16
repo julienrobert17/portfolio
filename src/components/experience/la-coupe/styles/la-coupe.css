@@ -47,6 +47,8 @@
   text-rendering: optimizeLegibility;
   font-kerning: normal;
   position: relative;
+  /* Contexte d'empilement : le canvas fixe (z-index -1) reste au-dessus du papier. */
+  isolation: isolate;
   width: 100%;
   min-height: 100vh;
   flex: 1 0 auto;
@@ -244,4 +246,22 @@ html:has(.lc) {
   ::view-transition-new(*) {
     animation-duration: 0s !important;
   }
+}
+
+/* ───────────── Lenis ───────────── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }

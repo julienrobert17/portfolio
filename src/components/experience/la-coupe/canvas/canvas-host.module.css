@@ -1,0 +1,23 @@
+.hote {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-ui);
+  will-change: transform;
+}
+
+.hote[data-pret] {
+  opacity: 1;
+}
+
+.hote canvas {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hote {
+    display: none;
+  }
+}

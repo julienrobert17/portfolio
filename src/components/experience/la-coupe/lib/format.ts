@@ -20,3 +20,8 @@ export function formatGps(lat: number, lon: number): string {
 export function anneesDepuis(annee: number, maintenant = new Date()): number {
   return maintenant.getFullYear() - annee
 }
+
+/** 8.8 → « 8,80 m », virgule et espace insécable. */
+export function formatMetres(m: number): string {
+  return `${m.toFixed(2).replace('.', ',')}${NBSP}m`
+}

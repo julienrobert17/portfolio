@@ -23,6 +23,12 @@
 .svg {
   width: 100%;
   height: auto;
+  transition: opacity 600ms var(--ease-ui);
+}
+
+/* Fondu croisé : le SVG s'efface quand le canvas a rendu sa première frame. */
+.hero[data-canvas='pret'] .svg {
+  opacity: 0;
 }
 
 .titre {
