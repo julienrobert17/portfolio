@@ -1,0 +1,87 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-inline: var(--margin);
+  color: var(--paper);
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.nav a,
+.nav span {
+  pointer-events: auto;
+}
+
+.nom {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nomCourt {
+  display: none;
+  letter-spacing: 0.02em;
+}
+
+.droite {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.liens {
+  display: flex;
+  gap: var(--s-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lien {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.lien:hover,
+.lien[aria-current='page'] {
+  text-decoration-color: currentColor;
+}
+
+.heure {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .nomLong {
+    display: none;
+  }
+
+  .nomCourt {
+    display: inline;
+  }
+
+  .heure {
+    display: none;
+  }
+
+  .liens {
+    gap: var(--s-3);
+  }
+}
