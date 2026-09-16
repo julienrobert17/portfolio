@@ -26,7 +26,8 @@ export default function Hero() {
         <span className={styles.titreLigne}>{ligne2}</span>
       </h1>
 
-      <p className={`lc-mono ${styles.cote}`} aria-label={`Cote de la coupe, de ${formatMetres(HAUTEUR_COUPE)} au sol au fil du défilement`}>
+      <p className={`lc-mono ${styles.cote}`}>
+        <span className="lc-visually-hidden">Cote de la </span>
         <span className="lc-muted">Coupe</span>
         <span className={styles.coteValeur} data-hero="cote">
           {formatMetres(HAUTEUR_COUPE)}

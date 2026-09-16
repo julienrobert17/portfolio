@@ -30,7 +30,8 @@ export default function ProjetsSelectionnes() {
         const numero = formatNumero(projets.indexOf(projet))
         return (
           <article key={projet.slug} className={styles.bloc}>
-            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien} aria-label={`${projet.titre}, voir le projet`}>
+            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
+              <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image}>
                 <Photo image={image} cover />
               </div>

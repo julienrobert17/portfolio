@@ -11,8 +11,9 @@ import styles from './nav.module.css'
 export default function Nav() {
   return (
     <header className={styles.nav}>
-      <Link href={site.base} className={styles.nom} aria-label={`${site.nom}, accueil`}>
+      <Link href={site.base} className={styles.nom}>
         <span className={styles.nomLong}>{site.nom}</span>
+        <span className="lc-visually-hidden">, accueil</span>
         <span className={styles.nomCourt} aria-hidden="true">
           {site.initiales}
         </span>
