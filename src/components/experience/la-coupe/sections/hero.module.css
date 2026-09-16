@@ -1,0 +1,71 @@
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding-top: calc(var(--nav-h) + var(--s-4));
+  padding-bottom: var(--s-5);
+}
+
+.ligne {
+  justify-self: end;
+  color: var(--ink-2);
+}
+
+.maquette {
+  position: absolute;
+  right: var(--margin);
+  top: 50%;
+  width: min(46vw, 620px);
+  transform: translateY(-54%);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+}
+
+.titre {
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  padding-bottom: var(--s-4);
+}
+
+.titreLigne {
+  display: block;
+}
+
+.cote {
+  position: absolute;
+  right: var(--margin);
+  bottom: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.coteValeur {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .maquette {
+    position: static;
+    transform: none;
+    width: min(72vw, 420px);
+    justify-self: center;
+    align-self: center;
+    margin-block: var(--s-5);
+  }
+
+  .titre {
+    padding-bottom: var(--s-6);
+  }
+
+  .cote {
+    bottom: var(--s-4);
+  }
+}

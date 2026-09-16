@@ -1,0 +1,49 @@
+.grille {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  row-gap: var(--s-7);
+  align-items: end;
+}
+
+.item {
+  min-width: 0;
+}
+
+.lien {
+  display: block;
+}
+
+.legende {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--s-3);
+  row-gap: 2px;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+  margin-top: var(--s-3);
+}
+
+.numero {
+  grid-row: 1 / span 2;
+  transition: color var(--t-micro) var(--ease-ui);
+}
+
+.lien:hover .numero {
+  color: var(--accent);
+}
+
+.nom {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 720px) {
+  .item {
+    grid-column: 1 / -1 !important;
+  }
+
+  .grille {
+    row-gap: var(--s-6);
+  }
+}

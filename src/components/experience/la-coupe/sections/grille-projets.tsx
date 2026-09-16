@@ -1,0 +1,39 @@
+import Link from 'next/link'
+import { projets as tous } from '../content/projets'
+import { site } from '../content/site'
+import type { Projet } from '../content/types'
+import { imageProjet } from '../lib/images'
+import { formatNumero } from '../lib/format'
+import Photo from '../ui/photo'
+import styles from './grille-projets.module.css'
+
+interface GrilleProjetsProps {
+  projets: Projet[]
+}
+
+/** Colonnes 5/7, 4/8, 6/6 alternées : la largeur suit la position, pas le projet. */
+const PLACEMENTS = ['1 / span 5', '8 / span 5', '1 / span 4', '6 / span 7', '1 / span 6', '7 / span 6', '2 / span 5', '8 / span 5']
+
+export default function GrilleProjets({ projets }: GrilleProjetsProps) {
+  return (
+    <ul className={`lc-grid ${styles.grille}`}>
+      {projets.map((projet, i) => {
+        const image = imageProjet(projet, 0)
+        return (
+          <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }}>
+            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
+              <Photo image={image} />
+              <span className={styles.legende}>
+                <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>
+                <span className={styles.nom}>{projet.titre}</span>
+                <span className={`lc-mono lc-muted ${styles.meta}`}>
+                  {projet.lieu} — {projet.annee}
+                </span>
+              </span>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}

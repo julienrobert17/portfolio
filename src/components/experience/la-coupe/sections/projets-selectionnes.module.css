@@ -1,0 +1,63 @@
+.section {
+  border-top: 1px solid var(--line);
+}
+
+.entete {
+  display: flex;
+  justify-content: space-between;
+  padding-block: var(--s-3);
+}
+
+.entete h2 {
+  font-weight: 400;
+}
+
+.bloc {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.lien {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--paper);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+}
+
+.image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(21, 20, 18, 0.55), rgba(21, 20, 18, 0) 45%);
+}
+
+.index {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--margin);
+}
+
+.legende {
+  position: absolute;
+  left: var(--margin);
+  right: var(--margin);
+  bottom: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.titre {
+  max-width: 14ch;
+}
+
+.meta {
+  color: var(--paper);
+  opacity: 0.85;
+}
