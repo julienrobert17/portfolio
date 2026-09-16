@@ -31,6 +31,20 @@
   opacity: 0;
 }
 
+/* Repli statique : le plan de coupe est dessiné à mi-hauteur dans le SVG. */
+.svg [data-plan-coupe] {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-ui);
+}
+
+.hero[data-mode='statique'] .svg [data-plan-coupe] {
+  opacity: 1;
+}
+
+.hero[data-mode='statique'] .coteValeur {
+  color: var(--accent);
+}
+
 .titre {
   align-self: end;
   display: flex;

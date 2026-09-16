@@ -1,4 +1,4 @@
-import { MAQUETTE, type Volume } from './maquette'
+import { HAUTEUR_COUPE, MAQUETTE, type Volume } from './maquette'
 import { profondeur, projeter as projeterMetres } from './projection'
 
 /**
@@ -76,6 +76,17 @@ export default function MaquetteStatique({ className }: { className?: string }) 
   const minY = Math.min(...ys) - marge
   const largeur = Math.max(...xs) + marge - minX
   const hauteur = Math.max(...ys) + marge - minY
+  // Plan de coupe du repli statique, à mi-hauteur, sur l'emprise du socle élargie.
+  const zCoupe = HAUTEUR_COUPE / 2
+  const m = 0.8
+  const planCoupe = socle
+    ? polygone([
+        projeter(socle.x - m, socle.y - m, zCoupe),
+        projeter(socle.x + socle.l + m, socle.y - m, zCoupe),
+        projeter(socle.x + socle.l + m, socle.y + socle.p + m, zCoupe),
+        projeter(socle.x - m, socle.y + socle.p + m, zCoupe),
+      ])
+    : null
   return (
     <svg
       viewBox={`${minX.toFixed(2)} ${minY.toFixed(2)} ${largeur.toFixed(2)} ${hauteur.toFixed(2)}`}
@@ -97,6 +108,9 @@ export default function MaquetteStatique({ className }: { className?: string }) 
           />
         ))}
       </g>
+      {planCoupe ? (
+        <polygon data-plan-coupe points={planCoupe} fill="var(--accent)" fillOpacity={0.16} stroke="var(--accent)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      ) : null}
     </svg>
   )
 }
