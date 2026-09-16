@@ -61,7 +61,7 @@ const organisation = {
 /**
  * Racine de « la Coupe » : palette papier imposée quel que soit le thème de
  * l'OS, langue française, polices de l'expérience. Nav et footer communs.
- * Lenis est monté mais inactif jusqu'à la Phase 2 ; transitions en Phase 4.
+ * Lenis et le canvas partagent le ticker GSAP ; transitions en Phase 4.
  */
 export default function LaCoupeLayout({ children }: { children: ReactNode }) {
   return (
@@ -71,7 +71,7 @@ export default function LaCoupeLayout({ children }: { children: ReactNode }) {
       <Nav />
       <main id="contenu">{children}</main>
       <Footer />
-      <SmoothScroll actif={false} />
+      <SmoothScroll />
     </div>
   )
 }

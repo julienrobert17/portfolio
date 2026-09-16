@@ -1,19 +1,19 @@
 import { MAQUETTE, type Volume } from './maquette'
+import { profondeur, projeter as projeterMetres } from './projection'
 
 /**
  * Rendu statique de la maquette en axonométrie isométrique : sert de
  * placeholder pendant le chargement de three (Phase 2) et de repli sans
  * WebGL ou sous prefers-reduced-motion. Peintre : les volumes sont dessinés
- * du plus lointain au plus proche (x + y croissant), puis par altitude.
+ * du plus lointain au plus proche selon la direction de la caméra, puis par altitude.
  */
-const COS = Math.cos(Math.PI / 6)
-const SIN = 0.5
 const ECHELLE = 24
 
 type Point = [number, number]
 
 function projeter(x: number, y: number, z: number): Point {
-  return [(x - y) * COS * ECHELLE, (x + y) * SIN * ECHELLE - z * ECHELLE]
+  const [sx, sy] = projeterMetres(x, y, z)
+  return [sx * ECHELLE, sy * ECHELLE]
 }
 
 function polygone(points: Point[]): string {
@@ -53,7 +53,7 @@ const FILLS: Record<Face['teinte'], string> = {
 export default function MaquetteStatique({ className }: { className?: string }) {
   const volumes = [...MAQUETTE.volumes]
     .filter((v) => v.role !== 'vide' && v.role !== 'escalier')
-    .sort((a, b) => a.x + a.y - (b.x + b.y) || a.z - b.z)
+    .sort((a, b) => profondeur(a.x + a.l / 2, a.y + a.p / 2, 0) - profondeur(b.x + b.l / 2, b.y + b.p / 2, 0) || a.z - b.z)
   const socle = MAQUETTE.volumes.find((v) => v.role === 'socle')
   const faces: Face[] = []
   if (socle) {
