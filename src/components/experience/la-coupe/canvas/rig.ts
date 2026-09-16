@@ -13,6 +13,7 @@ const DISTANCE_CAMERA = 80
 const MARGE_SVG_M = 1
 /** Au-dessus du faîtage à progression 0 : rien n'est coupé. */
 const MARGE_COUPE = 0.05
+const MARGE_COUPE_SOL = 0.03
 
 const DIRECTION = new Vector3(...DIRECTION_CAMERA)
 const HAUT_MONDE = new Vector3(0, 1, 0)
@@ -86,7 +87,9 @@ export class RigHero {
     groupe.updateMatrixWorld(true)
 
     // Coupe : du faîtage (p = 0) au sol (p = 1), dans le repère de la maquette.
-    const hauteur = (HAUTEUR_COUPE + MARGE_COUPE) * (1 - p)
+    // À l'arrivée le plan entre de 3 cm dans la dalle du rez-de-chaussée : jamais
+    // coplanaire avec sa face supérieure, sinon le stencil scintille.
+    const hauteur = (HAUTEUR_COUPE + MARGE_COUPE) * (1 - p) - MARGE_COUPE_SOL * p
     this.planLocal.constant = hauteur
     this.plan.copy(this.planLocal).applyMatrix4(groupe.matrixWorld)
     if (quad) quad.position.y = hauteur

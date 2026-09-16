@@ -1,6 +1,7 @@
 import MaquetteStatique from '../canvas/maquette-statique'
 import { HAUTEUR_COUPE } from '../canvas/maquette'
 import { site } from '../content/site'
+import { formatMetres } from '../lib/format'
 import HeroScroll from './hero-scroll'
 import styles from './hero.module.css'
 
@@ -20,14 +21,16 @@ export default function Hero() {
       </div>
       <HeroScroll />
 
-      <h1 id="hero-titre" className={`lc-display lc-h1 ${styles.titre}`}>
+      <h1 id="hero-titre" className={`lc-display lc-h1 ${styles.titre}`} data-hero="titre">
         <span className={styles.titreLigne}>{ligne1}</span>{' '}
         <span className={styles.titreLigne}>{ligne2}</span>
       </h1>
 
-      <p className={`lc-mono ${styles.cote}`} aria-label={`Hauteur de la coupe : 0 mètre sur ${HAUTEUR_COUPE.toFixed(2)}`}>
+      <p className={`lc-mono ${styles.cote}`} aria-label={`Cote de la coupe, de ${formatMetres(HAUTEUR_COUPE)} au sol au fil du défilement`}>
         <span className="lc-muted">Coupe</span>
-        <span className={styles.coteValeur}>0,00 m</span>
+        <span className={styles.coteValeur} data-hero="cote">
+          {formatMetres(HAUTEUR_COUPE)}
+        </span>
       </p>
     </section>
   )
