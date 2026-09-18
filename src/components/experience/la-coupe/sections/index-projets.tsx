@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LienTransition from '../layout/lien-transition'
 import { projets as tous } from '../content/projets'
 import { site } from '../content/site'
 import type { Projet } from '../content/types'
@@ -37,7 +37,7 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
           const image = imageProjet(projet, 0)
           return (
             <li key={projet.slug} className={styles.item} data-flip-id={projet.slug} data-image={image.src} data-image-alt={image.alt}>
-              <Link href={`${site.base}/projets/${projet.slug}`} className={styles.ligne} data-curseur="view">
+              <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.ligne} data-curseur="view">
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
                 <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>{' '}
                 <span className={styles.details}>
@@ -45,7 +45,7 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
                   <span className={`lc-mono ${styles.annee}`}>{projet.annee}</span>{' '}
                   <span className={`lc-mono lc-muted ${styles.statut}`}>{projet.statut}</span>
                 </span>
-              </Link>
+              </LienTransition>
             </li>
           )
         })}
@@ -53,9 +53,9 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
       <ImageFlottante />
       {lien ? (
         <p className={styles.pied}>
-          <Link href={lien.href} className={`lc-mono lc-link ${styles.lien}`} data-magnetique>
+          <LienTransition href={lien.href} label="Projets" className={`lc-mono lc-link ${styles.lien}`} data-magnetique>
             {lien.label}
-          </Link>
+          </LienTransition>
         </p>
       ) : null}
     </section>

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LienTransition from '../layout/lien-transition'
 import { imagesAtelier, site } from '../content/site'
 import { imageAtelier } from '../lib/images'
 import Apparition from '../ui/apparition'
@@ -23,9 +23,9 @@ export default function AtelierTeaser() {
           <RevealText as="p" className="lc-body" delay={0.1}>
             {site.atelierTeaser.texte}
           </RevealText>
-          <Link href={`${site.base}/atelier`} className={`lc-mono lc-link ${styles.lien}`}>
+          <LienTransition href={`${site.base}/atelier`} label="Atelier" className={`lc-mono lc-link ${styles.lien}`}>
             {site.atelierTeaser.lien}
-          </Link>
+          </LienTransition>
         </div>
       </div>
     </section>

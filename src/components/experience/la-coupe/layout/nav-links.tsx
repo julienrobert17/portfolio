@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import LienTransition from './lien-transition'
 import { usePathname } from 'next/navigation'
 import { site } from '../content/site'
 import styles from './nav.module.css'
@@ -15,9 +15,9 @@ export default function NavLinks() {
         const courant = pathname === href || pathname.startsWith(`${href}/`)
         return (
           <li key={item.href}>
-            <Link href={href} className={`lc-mono ${styles.lien}`} aria-current={courant ? 'page' : undefined}>
+            <LienTransition href={href} label={item.label} className={`lc-mono ${styles.lien}`} aria-current={courant ? 'page' : undefined}>
               {item.label}
-            </Link>
+            </LienTransition>
           </li>
         )
       })}

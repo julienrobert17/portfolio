@@ -231,20 +231,70 @@ html:has(.lc) {
   outline-offset: 2px;
 }
 
-/* ───────────── Transitions de page ─────────────
- * Phase 1 : coupe franche. Les rideaux et l'élément partagé viennent en
- * Phase 4, dans layout/transitions/. */
-::view-transition-group(.lc-page),
-::view-transition-old(.lc-page),
-::view-transition-new(.lc-page) {
-  animation-duration: 0s;
+/* ───────────── Transitions de page (layout/page-transition.tsx) ─────────────
+ * partage : l'image partagée (.lc-partage) s'étire en 900 ms, la page s'estompe.
+ * rideau / retour : l'ancienne page est tenue 300 ms sous le rideau, puis remplacée. */
+::view-transition-group(.lc-partage) {
+  animation-duration: 900ms;
+  animation-timing-function: var(--ease-ui);
+  z-index: 70;
+}
+
+::view-transition-old(.lc-partage),
+::view-transition-new(.lc-partage) {
+  animation: none;
+  mix-blend-mode: normal;
+  object-fit: cover;
+}
+
+::view-transition-old(.lc-page-partage) {
+  animation: lc-fondu-sortie 900ms var(--ease-ui) both;
+}
+
+::view-transition-new(.lc-page-partage) {
+  animation: lc-fondu-entree 900ms var(--ease-ui) both;
+}
+
+::view-transition-old(.lc-page-rideau) {
+  animation: lc-tenir 300ms linear both;
+}
+
+::view-transition-new(.lc-page-rideau) {
+  animation: none;
+}
+
+@keyframes lc-fondu-sortie {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes lc-fondu-entree {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lc-tenir {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
+  ::view-transition-group(*) {
+    animation: none !important;
+  }
+
+  ::view-transition-old(*) {
+    animation: lc-fondu-sortie 200ms linear both !important;
+  }
+
   ::view-transition-new(*) {
-    animation-duration: 0s !important;
+    animation: lc-fondu-entree 200ms linear both !important;
   }
 }
 

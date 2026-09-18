@@ -2,6 +2,7 @@ import { projets } from '../content/projets'
 import type { Projet } from '../content/types'
 import { imageProjet } from '../lib/images'
 import { formatNumero } from '../lib/format'
+import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import RichText from '../ui/rich-text'
 import FicheHeroAnime from './fiche-hero-anime'
@@ -17,7 +18,9 @@ export default function FicheHero({ projet }: FicheHeroProps) {
   return (
     <header className={styles.hero}>
       <div className={styles.image} data-fiche="image">
-        <Photo image={image} cover priority />
+        <PartageImage slug={projet.slug}>
+          <Photo image={image} cover priority />
+        </PartageImage>
       </div>
       <div className={`lc-container ${styles.entete}`}>
         <p className="lc-mono lc-muted" data-fiche="entree">

@@ -1,10 +1,11 @@
-import Link from 'next/link'
+import LienTransition from '../layout/lien-transition'
 import { projets as tous } from '../content/projets'
 import { site } from '../content/site'
 import type { Projet } from '../content/types'
 import { imageProjet } from '../lib/images'
 import { formatNumero } from '../lib/format'
 import Apparition from '../ui/apparition'
+import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import styles from './grille-projets.module.css'
 
@@ -23,8 +24,10 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
         const image = imageProjet(projet, 0)
         return (
           <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }} data-flip-id={projet.slug}>
-            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien} data-curseur="view">
-              <Photo image={image} />
+            <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
+              <PartageImage slug={projet.slug}>
+                <Photo image={image} />
+              </PartageImage>
               <span className={styles.legende}>
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
                 <span className={styles.nom}>{projet.titre}</span>{' '}
@@ -32,7 +35,7 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
                   {projet.lieu} — {projet.annee}
                 </span>
               </span>
-            </Link>
+            </LienTransition>
           </li>
         )
       })}

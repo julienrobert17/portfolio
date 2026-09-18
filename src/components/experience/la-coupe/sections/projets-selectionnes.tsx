@@ -1,8 +1,9 @@
-import Link from 'next/link'
+import LienTransition from '../layout/lien-transition'
 import { projets } from '../content/projets'
 import { site } from '../content/site'
 import { imageProjet } from '../lib/images'
 import { formatNumero } from '../lib/format'
+import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import Empilement from './empilement'
 import styles from './projets-selectionnes.module.css'
@@ -29,10 +30,12 @@ export default function ProjetsSelectionnes() {
         const numero = formatNumero(projets.indexOf(projet))
         return (
           <article key={projet.slug} className={styles.bloc} data-bloc>
-            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien} data-curseur="view">
+            <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
               <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image} data-image-bloc>
-                <Photo image={image} cover />
+                <PartageImage slug={projet.slug}>
+                  <Photo image={image} cover />
+                </PartageImage>
               </div>
               <div className={styles.voile} data-voile aria-hidden="true" />
               <span className={`lc-mono ${styles.index}`}>
@@ -44,7 +47,7 @@ export default function ProjetsSelectionnes() {
                   {projet.lieu} — {projet.annee}
                 </p>
               </div>
-            </Link>
+            </LienTransition>
           </article>
         )
       })}

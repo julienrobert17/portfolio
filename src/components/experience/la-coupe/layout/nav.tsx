@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LienTransition from './lien-transition'
 import { site } from '../content/site'
 import LocalTime from './local-time'
 import NavComportement from './nav-comportement'
@@ -14,13 +14,13 @@ export default function Nav() {
   return (
     <header className={styles.nav}>
       <NavComportement />
-      <Link href={site.base} className={styles.nom}>
+      <LienTransition href={site.base} label="Accueil" className={styles.nom}>
         <span className={styles.nomLong}>{site.nom}</span>
         <span className="lc-visually-hidden">, accueil</span>
         <span className={styles.nomCourt} aria-hidden="true">
           {site.initiales}
         </span>
-      </Link>
+      </LienTransition>
       <nav aria-label="Navigation principale" className={styles.droite}>
         <NavLinks />
         <LocalTime className={`lc-mono ${styles.heure}`} />
