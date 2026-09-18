@@ -15,7 +15,9 @@ const MARGE_FOCUS = 16
  * Image 200 × 260 qui suit le curseur au survol des lignes `[data-image]`
  * du conteneur parent (lerp 0,12, rotation ±3° selon la vélocité, fondu
  * 250 ms), pointeur fin seulement. Au focus clavier, la même image apparaît
- * ancrée à droite de la ligne. Rien au tactile. À placer dans la liste.
+ * ancrée à droite de la ligne. Rien au tactile. À placer dans l'élément qui
+ * contient les lignes : les écouteurs sont délégués au parent, les lignes
+ * peuvent donc changer (filtres) sans réabonnement.
  */
 export default function ImageFlottante() {
   const ref = useRef<HTMLDivElement>(null)
@@ -23,7 +25,6 @@ export default function ImageFlottante() {
     const conteneur = racine.parentElement
     const img = racine.querySelector('img')
     if (!conteneur || !img) return
-    const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>('[data-image]'))
     const etat = { x: 0, y: 0, cx: 0, cy: 0, visible: false, ancree: false, vx: 0 }
     const montrer = (src: string, alt: string) => {
       if (img.getAttribute('src') !== src) {
@@ -50,8 +51,12 @@ export default function ImageFlottante() {
     const ecouteurs: Array<() => void> = [arret]
 
     if (fin) {
+      const ligneDe = (cible: EventTarget | null) =>
+        cible instanceof Element ? cible.closest<HTMLElement>('[data-image]') : null
       const entrer = (e: PointerEvent) => {
-        const ligne = e.currentTarget as HTMLElement
+        const ligne = ligneDe(e.target)
+        // Passage entre deux enfants d'une même ligne : rien à faire.
+        if (!ligne || ligne === ligneDe(e.relatedTarget)) return
         etat.ancree = false
         etat.cx = e.clientX
         etat.cy = e.clientY
@@ -64,17 +69,21 @@ export default function ImageFlottante() {
       const bouger = (e: PointerEvent) => {
         etat.cx = e.clientX
         etat.cy = e.clientY
+        // Ligne retirée sous le pointeur (filtre) : plus rien à suivre.
+        if (etat.visible && !etat.ancree && !ligneDe(e.target)) cacher()
       }
-      for (const ligne of lignes) {
-        ligne.addEventListener('pointerenter', entrer)
-        ligne.addEventListener('pointermove', bouger, { passive: true })
-        ligne.addEventListener('pointerleave', cacher)
-        ecouteurs.push(() => {
-          ligne.removeEventListener('pointerenter', entrer)
-          ligne.removeEventListener('pointermove', bouger)
-          ligne.removeEventListener('pointerleave', cacher)
-        })
+      const sortir = (e: PointerEvent) => {
+        const ligne = ligneDe(e.target)
+        if (ligne && ligne !== ligneDe(e.relatedTarget)) cacher()
       }
+      conteneur.addEventListener('pointerover', entrer)
+      conteneur.addEventListener('pointermove', bouger, { passive: true })
+      conteneur.addEventListener('pointerout', sortir)
+      ecouteurs.push(() => {
+        conteneur.removeEventListener('pointerover', entrer)
+        conteneur.removeEventListener('pointermove', bouger)
+        conteneur.removeEventListener('pointerout', sortir)
+      })
     }
 
     // Clavier : ancrée à droite de la ligne, sans suivi.

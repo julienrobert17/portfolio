@@ -1,4 +1,6 @@
 .grille {
+  /* Ancre des fantômes absolus pendant le réordonnancement (Flip). */
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;

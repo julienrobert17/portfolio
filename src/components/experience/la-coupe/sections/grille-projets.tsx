@@ -4,6 +4,7 @@ import { site } from '../content/site'
 import type { Projet } from '../content/types'
 import { imageProjet } from '../lib/images'
 import { formatNumero } from '../lib/format'
+import Apparition from '../ui/apparition'
 import Photo from '../ui/photo'
 import styles from './grille-projets.module.css'
 
@@ -14,13 +15,14 @@ interface GrilleProjetsProps {
 /** Colonnes 5/7, 4/8, 6/6 alternées : la largeur suit la position, pas le projet. */
 const PLACEMENTS = ['1 / span 5', '8 / span 5', '1 / span 4', '6 / span 7', '1 / span 6', '7 / span 6', '2 / span 5', '8 / span 5']
 
+/** Tuiles en entrée standard (fondu + 24 px, stagger 0,06) ; `data-flip-id` pour le réordonnancement. */
 export default function GrilleProjets({ projets }: GrilleProjetsProps) {
   return (
-    <ul className={`lc-grid ${styles.grille}`}>
+    <Apparition as="ul" className={`lc-grid ${styles.grille}`}>
       {projets.map((projet, i) => {
         const image = imageProjet(projet, 0)
         return (
-          <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }}>
+          <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }} data-flip-id={projet.slug}>
             <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
               <Photo image={image} />
               <span className={styles.legende}>
@@ -34,6 +36,6 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
           </li>
         )
       })}
-    </ul>
+    </Apparition>
   )
 }
