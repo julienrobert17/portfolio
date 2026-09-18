@@ -63,8 +63,8 @@ export default function PageTransition({ children }: PageTransitionProps) {
       if (label.current) label.current.textContent = demande.label
       gsap.fromTo(
         rideau.current,
-        { clipPath: 'inset(100% 0 0 0)' },
-        { clipPath: 'inset(0 0 0 0)', duration: DUREE_RIDEAU, ease: EASE_UI, onComplete: () => router.push(demande.href) },
+        { '--haut': '100%', '--bas': '0%' },
+        { '--haut': '0%', duration: DUREE_RIDEAU, ease: EASE_UI, onComplete: () => router.push(demande.href) },
       )
     })
     return () => setNavigateur(null)
@@ -80,7 +80,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       // Retour ou avant navigateur : le rideau tombe d'un coup, Next restaure le scroll.
       const { gsap } = registerGsap()
       if (label.current) label.current.textContent = nomDePage(pathname)
-      gsap.set(rideau.current, { clipPath: 'inset(0 0 0 0)' })
+      gsap.set(rideau.current, { '--haut': '0%', '--bas': '0%' })
       navigation.enCours = { href: pathname, type: 'rideau', label: nomDePage(pathname) }
       getLenis()?.stop()
     }
@@ -98,11 +98,11 @@ export default function PageTransition({ children }: PageTransitionProps) {
     navigation.arriveePartagee = false
     if (demande?.type === 'rideau' && rideau.current) {
       gsap.to(rideau.current, {
-        clipPath: 'inset(0 0 100% 0)',
+        '--bas': '100%',
         duration: DUREE_RIDEAU,
         ease: EASE_UI,
         onComplete: () => {
-          if (rideau.current) gsap.set(rideau.current, { clipPath: 'inset(100% 0 0 0)' })
+          if (rideau.current) gsap.set(rideau.current, { '--haut': '100%', '--bas': '0%' })
         },
       })
     }
@@ -113,7 +113,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
   return (
     <>
       <Wrapper pathname={pathname}>{children}</Wrapper>
-      <div ref={rideau} className={styles.rideau} aria-hidden="true" style={{ clipPath: 'inset(100% 0 0 0)' }}>
+      <div ref={rideau} className={styles.rideau} aria-hidden="true">
         <span ref={label} className={`lc-mono ${styles.label}`} />
       </div>
     </>
