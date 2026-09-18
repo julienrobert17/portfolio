@@ -20,6 +20,14 @@
   transform: translateY(-100%);
 }
 
+/* Menu ouvert : au-dessus du rideau encre, sans différence, jamais cachée. */
+.nav[data-menu='true'] {
+  z-index: 63;
+  mix-blend-mode: normal;
+  color: var(--paper);
+  transform: none;
+}
+
 .nav[data-reduite='true'] .nomLong {
   display: none;
 }
