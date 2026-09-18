@@ -43,6 +43,7 @@
 }
 
 .nav a,
+.nav button,
 .nav span {
   pointer-events: auto;
 }

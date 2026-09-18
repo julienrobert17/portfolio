@@ -12,7 +12,7 @@ interface RevealTextProps {
 }
 
 /**
- * Révélation par lignes : SplitText (type lines, masque, autoSplit, aria auto)
+ * Révélation par lignes : SplitText (type lines, masque, autoSplit)
  * et glissement yPercent 100 → 0 à l'entrée dans le viewport. Les italiques
  * imbriqués survivent au split. Sans JavaScript ou sous mouvement réduit, le
  * texte est simplement là.
@@ -24,7 +24,8 @@ export default function RevealText({ children, as: Tag = 'p', className, delay =
       type: 'lines',
       mask: 'lines',
       autoSplit: true,
-      aria: 'auto',
+      // 'none' : aria-label est interdit sur un <p> ; le texte reste lisible dans ses lignes.
+      aria: 'none',
       onSplit: (self) =>
         gsap.from(self.lines, {
           yPercent: 100,
