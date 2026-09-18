@@ -1,9 +1,12 @@
 import { atelier } from '../content/atelier'
+import Apparition from '../ui/apparition'
+import DessinTrace from '../ui/dessin-trace'
 import styles from './methode.module.css'
 
 /**
- * Trois temps, trois petits dessins au trait (relevé, calques, appareillage).
- * Tracé au scroll : Phase 3.
+ * Trois temps, trois petits dessins au trait (relevé, calques, appareillage),
+ * tracés au scroll ; numéros, titres et textes en entrée standard, en stagger
+ * d'un temps à l'autre.
  */
 const DESSINS: Record<string, string> = {
   ecouter: 'M4 52H92M20 52V24M20 24h-4l4-6 4 6h-4M60 52V36h18v16M60 44h18',
@@ -17,18 +20,28 @@ export default function Methode() {
       <h2 id="methode-titre" className={`lc-mono ${styles.titre}`}>
         Méthode
       </h2>
-      <ol className={`lc-grid ${styles.temps}`}>
+      <Apparition as="ol" className={`lc-grid ${styles.temps}`} selecteur=":scope > li > :not(svg, [hidden])">
         {atelier.methode.map((t, i) => (
           <li key={t.id} className={styles.temp}>
             <svg viewBox="0 0 96 64" className={styles.dessin} aria-hidden="true" focusable="false">
-              <path d={DESSINS[t.id]} fill="none" stroke="var(--ink)" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              <path
+                d={DESSINS[t.id]}
+                data-epaisseur="fort"
+                fill="none"
+                stroke="var(--ink)"
+                strokeWidth={1}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
             </svg>
+            <DessinTrace conteneur="li" duree={1.2} />
             <p className="lc-mono lc-muted">0{i + 1}</p>
             <h3 className="lc-display lc-h3">{t.titre}</h3>
             <p className={styles.texte}>{t.texte}</p>
           </li>
         ))}
-      </ol>
+      </Apparition>
     </section>
   )
 }

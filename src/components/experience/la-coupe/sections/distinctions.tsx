@@ -1,24 +1,25 @@
 import { atelier } from '../content/atelier'
 import type { Distinction } from '../content/types'
+import Apparition from '../ui/apparition'
 import styles from './distinctions.module.css'
 
 function Liste({ titre, items }: { titre: string; items: Distinction[] }) {
   return (
     <div className={styles.colonne}>
       <h2 className={`lc-mono ${styles.titre}`}>{titre}</h2>
-      <ul className={styles.liste}>
+      <Apparition as="ul" className={styles.liste}>
         {items.map((d) => (
           <li key={d.label} className={styles.item}>
             <span className="lc-mono">{d.annee}</span>
             <span className={styles.label}>{d.label}</span>
           </li>
         ))}
-      </ul>
+      </Apparition>
     </div>
   )
 }
 
-/** Distinctions et publications, deux listes mono par année. */
+/** Distinctions et publications, deux listes mono par année, items en stagger. */
 export default function Distinctions() {
   return (
     <section className={`lc-container lc-section ${styles.section}`} aria-label="Distinctions et publications">
