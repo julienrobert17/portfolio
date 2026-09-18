@@ -6,7 +6,12 @@ import { site } from '@/components/experience/la-coupe/content/site'
 import Footer from '@/components/experience/la-coupe/layout/footer'
 import Nav from '@/components/experience/la-coupe/layout/nav'
 import SkipLink from '@/components/experience/la-coupe/layout/skip-link'
+import Menu from '@/components/experience/la-coupe/layout/menu'
+import PageTransition from '@/components/experience/la-coupe/layout/page-transition'
+import Prechargeur from '@/components/experience/la-coupe/layout/prechargeur'
 import SmoothScroll from '@/components/experience/la-coupe/layout/smooth-scroll'
+import Curseur from '@/components/experience/la-coupe/ui/curseur'
+import Magnetisme from '@/components/experience/la-coupe/ui/magnetisme'
 import '@/components/experience/la-coupe/styles/la-coupe.css'
 
 const display = Instrument_Sans({
@@ -71,8 +76,14 @@ export default function LaCoupeLayout({ children }: { children: ReactNode }) {
       <CanvasHost />
       <SkipLink />
       <Nav />
-      <main id="contenu">{children}</main>
+      <main id="contenu">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <Footer />
+      <Menu />
+      <Prechargeur />
+      <Curseur />
+      <Magnetisme />
       <SmoothScroll />
     </div>
   )

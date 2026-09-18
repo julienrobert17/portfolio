@@ -37,7 +37,7 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
           const image = imageProjet(projet, 0)
           return (
             <li key={projet.slug} className={styles.item} data-flip-id={projet.slug} data-image={image.src} data-image-alt={image.alt}>
-              <Link href={`${site.base}/projets/${projet.slug}`} className={styles.ligne}>
+              <Link href={`${site.base}/projets/${projet.slug}`} className={styles.ligne} data-curseur="view">
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
                 <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>{' '}
                 <span className={styles.details}>
@@ -53,7 +53,7 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
       <ImageFlottante />
       {lien ? (
         <p className={styles.pied}>
-          <Link href={lien.href} className={`lc-mono lc-link ${styles.lien}`}>
+          <Link href={lien.href} className={`lc-mono lc-link ${styles.lien}`} data-magnetique>
             {lien.label}
           </Link>
         </p>

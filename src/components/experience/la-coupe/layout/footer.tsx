@@ -22,7 +22,7 @@ export default function Footer() {
         <RevealText as="p" className={`lc-display lc-h1 ${styles.titre}`}>
           {contact.cta}
         </RevealText>
-        <a href={`mailto:${contact.email}`} className={`lc-display lc-h3 ${styles.email}`}>
+        <a href={`mailto:${contact.email}`} className={`lc-display lc-h3 ${styles.email}`} data-magnetique>
           {contact.email}
         </a>
       </div>

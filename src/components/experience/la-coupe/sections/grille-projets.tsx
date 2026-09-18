@@ -23,7 +23,7 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
         const image = imageProjet(projet, 0)
         return (
           <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }} data-flip-id={projet.slug}>
-            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
+            <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien} data-curseur="view">
               <Photo image={image} />
               <span className={styles.legende}>
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}

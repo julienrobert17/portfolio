@@ -19,7 +19,7 @@ export default function ProjetSuivant({ projet }: ProjetSuivantProps) {
   const image = imageProjet(projet, 0)
   return (
     <div className={styles.conteneur}>
-      <Link href={`${site.base}/projets/${projet.slug}`} className={styles.bloc} aria-label={`Projet suivant : ${projet.titre}`}>
+      <Link href={`${site.base}/projets/${projet.slug}`} className={styles.bloc} aria-label={`Projet suivant : ${projet.titre}`} data-curseur="view">
         <div className={styles.image}>
           <Photo image={image} cover />
         </div>
