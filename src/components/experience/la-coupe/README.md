@@ -90,10 +90,29 @@ Contrastes vérifiés : `--ink-2` sur `--paper` 6,2 ; `--accent` sur `--paper` 4
 `--accent` sur `--paper-2` 4,3 (grands textes seulement) ; `--ink-2-inverse`
 sur `--ink` 7,0.
 
+## Mouvement et interactions
+
+`lib/animation.ts` : `useScrollAnimation` (gsap.matchMedia scoppé au composant, rien sous
+mouvement réduit, états initiaux posés par GSAP jamais par le CSS), `entree()`, constantes
+`ENTREE`. Composants clients minces montés dans les sections serveur (pattern « ancre »).
+
+Transitions (`layout/page-transition.tsx`, contrat dans `layout/transitions/`) : les liens passent
+par `LienTransition` → `naviguer()` (`lib/navigation-store.ts`). `partage` : élément partagé par
+React `<ViewTransition>` (`ui/partage-image.tsx`, nom `projet-<slug>`, 900 ms) ; `rideau` : couche
+maison (`--paper-2`, clip-path par variables CSS, 500 ms, nom de la page) — sous couverture :
+lenis.stop, scroll 0, montage, refresh, lenis.start, révélation. Retour navigateur : rideau posé
+d'un coup, scroll restauré par Next. Mouvement réduit : fondu 200 ms.
+
+Menu (`layout/menu.tsx`) : deux couches clipées ensemble (fond encre z 59, liens z 62) avec le
+canvas entre les deux (z 61) en mode `menu` (fil de fer, un tour / 40 s) ; SVG en repli tant que
+three n'a pas rendu. Focus piégé, `main` inerte, Lenis arrêté. Curseur (`ui/curseur.tsx`),
+magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/prechargeur.tsx`,
+`PRELOADER_ACTIF` dans `lib/prechargeur.ts`), navigation automatique en fin de projet suivant.
+
 ## Phases
 
 - [x] Phase 1 — site statique navigable, sans animation
 - [x] Phase 2 — hero R3F, plan de coupe au scroll, cote animée
-- [ ] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
-- [ ] Phase 4 — menu, transitions de page (`layout/page-transition.tsx`), curseur, préchargeur
+- [x] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
+- [x] Phase 4 — menu, transitions de page, curseur, magnétisme, préchargeur
 - [ ] Phase 5 — Lighthouse, clavier, reduced motion, navigateurs
