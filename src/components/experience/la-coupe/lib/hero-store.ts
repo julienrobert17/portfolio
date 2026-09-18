@@ -102,9 +102,12 @@ function webglDisponible(): boolean {
  * Tranche une fois pour toutes, au premier composant monté qui le demande :
  * repli statique si mouvement réduit ou sans WebGL, sinon on attend three.
  */
-export function deciderModeHero(mouvementReduit: boolean): ModeHero {
+export function deciderModeHero(): ModeHero {
   if (hero.mode === 'indecis') {
-    setModeHero(mouvementReduit || !webglDisponible() ? 'statique' : 'attente')
+    // Lu directement : le hook useReducedMotion rend d'abord la valeur serveur
+    // (faux) à l'hydratation, et la décision doit être juste du premier coup.
+    const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    setModeHero(reduit || !webglDisponible() ? 'statique' : 'attente')
   }
   return hero.mode
 }

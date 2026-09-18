@@ -33,7 +33,7 @@ export default function HeroScroll() {
   const pret = useSyncExternalStore(abonnerHero, lireCanvasPret, lireFaux)
 
   useEffect(() => {
-    deciderModeHero(reduit)
+    deciderModeHero()
   }, [reduit])
 
   // Repère de la maquette SVG, relatif au haut de la section (qui sera épinglée en haut).

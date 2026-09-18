@@ -42,7 +42,7 @@ export default function CanvasHost() {
 
   useEffect(() => {
     if (!accueil || SceneCanvas) return
-    if (deciderModeHero(reduit) !== 'attente') return
+    if (deciderModeHero() !== 'attente') return
     let annule = false
     const charger = () => {
       import('./scene-canvas')
