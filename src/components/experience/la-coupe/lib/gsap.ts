@@ -1,7 +1,10 @@
 'use client'
 
 import gsap from 'gsap'
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin'
+import { Flip } from 'gsap/Flip'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { SplitText } from 'gsap/SplitText'
 
 let enregistre = false
 
@@ -11,8 +14,8 @@ let enregistre = false
  */
 export function registerGsap() {
   if (!enregistre && typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger)
+    gsap.registerPlugin(ScrollTrigger, SplitText, Flip, DrawSVGPlugin)
     enregistre = true
   }
-  return { gsap, ScrollTrigger }
+  return { gsap, ScrollTrigger, SplitText, Flip, DrawSVGPlugin }
 }
