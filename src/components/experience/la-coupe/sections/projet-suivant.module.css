@@ -1,3 +1,19 @@
+/*
+ * Espace réservé de 100vh : le bloc y grandit de 40vh à 100vh au scroll sans
+ * jamais changer la hauteur du document. Sous mouvement réduit (rien n'est
+ * animé), le conteneur se resserre sur le bloc au repos.
+ */
+.conteneur {
+  height: 100vh;
+  min-height: 240px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conteneur {
+    height: 40vh;
+  }
+}
+
 .bloc {
   position: relative;
   display: block;

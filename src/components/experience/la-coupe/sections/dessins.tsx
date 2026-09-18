@@ -8,7 +8,7 @@ interface DessinsProps {
   projet: Projet
 }
 
-/** Plan et coupe sur fond calque. Tracé au scroll et cotes différées : Phase 3. */
+/** Plan et coupe sur fond calque, tracés au scroll (DrawSVG), cotes en dernier. */
 export default function Dessins({ projet }: DessinsProps) {
   if (projet.dessins.length === 0) return null
   return (
@@ -16,7 +16,7 @@ export default function Dessins({ projet }: DessinsProps) {
       <div className={`lc-grid ${styles.grille}`}>
         {projet.dessins.map((d, i) => (
           <div key={d.legende} className={styles.dessin}>
-            <DessinSvg dessin={rendreDessin(d)} numero={formatNumero(i)} />
+            <DessinSvg dessin={rendreDessin(d)} numero={formatNumero(i)} anime />
           </div>
         ))}
       </div>

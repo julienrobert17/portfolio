@@ -20,6 +20,11 @@
   gap: var(--s-2);
 }
 
+/* Cadre de l'image : masque le débordement du zoom d'entrée (scale 1,08) sans changer sa taille. */
+.cadre {
+  overflow: hidden;
+}
+
 @media (max-width: 720px) {
   .item {
     grid-column: 1 / -1 !important;
