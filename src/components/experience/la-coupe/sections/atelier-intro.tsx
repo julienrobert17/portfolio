@@ -15,7 +15,7 @@ export default function AtelierIntro() {
         <div className={styles.portrait}>
           {/* Le cadre réserve la taille (ratio de la photo) et masque le débord de la parallaxe. */}
           <div className={styles.cadre} style={{ aspectRatio: `${portrait.width} / ${portrait.height}` }}>
-            <Photo image={portrait} priority />
+            <Photo image={portrait} eager />
             <ParallaxePortrait />
           </div>
         </div>

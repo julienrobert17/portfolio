@@ -1,8 +1,13 @@
 import { site } from '../content/site'
 import { abonnerHero, lireCanvasPret, lireMode } from './hero-store'
 
-/** Coupe-circuit : passer à `false` pour retirer le préchargeur (Phase 5). */
-export const PRELOADER_ACTIF = true
+/**
+ * Coupe-circuit. Désactivé en Phase 5 : en 4G simulée (Lighthouse mobile), le
+ * préchargeur retarde le LCP du titre de 0,7 s et coûte cinq points de
+ * performance (90 contre 95). Tout le code reste en place : repasser à `true`
+ * le réactive, script inline du layout compris.
+ */
+export const PRELOADER_ACTIF = false
 
 /** Clé sessionStorage : le préchargeur ne se montre qu'une fois par session. */
 export const CLE_SESSION_PRECHARGEUR = 'lc-prechargeur'
