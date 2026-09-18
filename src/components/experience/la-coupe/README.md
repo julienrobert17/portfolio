@@ -33,9 +33,27 @@ Les images sont déclarées par ratio et alt ; les fichiers sont générés :
 npx tsx scripts/generate-la-coupe-placeholders.ts
 ```
 
-Pour passer aux vraies photos : remplacer les fichiers dans
-`public/experience/la-coupe/img/` en gardant les noms, ou changer `lib/images.ts`
-(un seul endroit) pour pointer vers `next/image`.
+## Remplacer le contenu (guide)
+
+1. **Identité** : `content/site.ts` (nom, initiales, baseline, nav, manifeste, chiffres,
+   contact, réseaux, mentions). Le nom apparaît aussi dans les metadata du layout via `site`.
+2. **Projets** : `content/projets.ts`, un objet par projet dans l'ordre de l'index. Le slug
+   fait l'URL ; `categorie` alimente les filtres ; `images` (ratio + alt) et `dessins`
+   (descripteurs plan/coupe en mètres) sont rendus sans autre code. Le projet phare doit
+   garder le slug `maison-des-vignes` ou changer `construireMaquette()` dans `canvas/geometrie.ts`.
+3. **Images** : déposer les vraies photos dans `public/experience/la-coupe/img/` sous les noms
+   `<slug>-01.svg`… (ou changer l'extension et les dimensions dans `lib/images.ts`, un seul
+   endroit ; `ui/photo.tsx` est le seul `<img>` : passer à `next/image` s'y fait en une fois).
+   Le script `scripts/generate-la-coupe-placeholders.ts` n'est plus à lancer ensuite.
+4. **Maquette 3D** : `canvas/maquette.ts` décrit les volumes en mètres (source des dessins de la
+   fiche et du hero). Pour un vrai modèle, implémenter `loadModel()` (retourner une géométrie
+   fusionnée, non indexée, en repère X = x, Y = z, Z = y) et le copier dans
+   `public/experience/la-coupe/models/` avec le décodeur Draco dans `public/draco/`.
+5. **Atelier** : `content/atelier.ts` (intro, méthode, équipe avec photos `atelier-<id>.svg`,
+   distinctions, publications).
+6. **Préchargeur** : `PRELOADER_ACTIF` dans `lib/prechargeur.ts` (désactivé par défaut depuis la
+   Phase 5 : il coûte cinq points de performance mobile et 0,7 s de LCP en 4G simulée ; tout est
+   prêt pour le réactiver, script inline du layout compris).
 
 ## Dessins
 
@@ -109,10 +127,21 @@ three n'a pas rendu. Focus piégé, `main` inerte, Lenis arrêté. Curseur (`ui/
 magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/prechargeur.tsx`,
 `PRELOADER_ACTIF` dans `lib/prechargeur.ts`), navigation automatique en fin de projet suivant.
 
+## Mesures et limites connues
+
+- Lighthouse (headless, simulation 4G) : desktop 100 / 100 / 100 / 100 ; mobile 95 / 100 / 100 / 100,
+  LCP 2,9 s dont 0,45 s de TTFB simulé et 2,5 s de « render delay » attribué par la simulation aux
+  ressources terminées avant le premier paint local (polices préchargées du layout racine, CSS,
+  premiers chunks). Sur Chrome réellement bridé en 4G, le LCP mesuré est de 1,1 s.
+- Console : un avertissement `THREE.Clock deprecated` émis par fiber 9.7 avec three 0.185, et un
+  préchargement CSS Next non consommé ; rien qui vienne de l'expérience.
+- Navigateurs : Chrome et Firefox 147 vérifiés (sticky, clip-path, stencil, mix-blend, transitions) ;
+  Safari et iOS n'ont pas pu être observés sur cette machine (pas d'automatisation ni de simulateur).
+
 ## Phases
 
 - [x] Phase 1 — site statique navigable, sans animation
 - [x] Phase 2 — hero R3F, plan de coupe au scroll, cote animée
 - [x] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
 - [x] Phase 4 — menu, transitions de page, curseur, magnétisme, préchargeur
-- [ ] Phase 5 — Lighthouse, clavier, reduced motion, navigateurs
+- [x] Phase 5 — Lighthouse, accessibilité, navigateurs, SEO, préparation de la fusion
