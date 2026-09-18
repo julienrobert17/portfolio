@@ -108,6 +108,10 @@ export default function HeroScroll() {
       hero.sale = true
       titre.style.opacity = ''
       cote.textContent = formatMetres(HAUTEUR_COUPE)
+      // Bascule en repli en cours de route (contexte WebGL perdu) : la section
+      // perd sa course, les autres déclencheurs de la page doivent se remesurer
+      // une fois le nouveau layout posé.
+      if (hero.mode === 'statique') requestAnimationFrame(() => ScrollTrigger.refresh())
     }
   }, [mode])
 
