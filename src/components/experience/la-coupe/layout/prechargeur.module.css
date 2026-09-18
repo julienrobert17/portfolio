@@ -1,0 +1,78 @@
+/* Calque au-dessus de tout (nav : 50, canvas : -1) ; le lien d'évitement (100) reste accessible. */
+.calque {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding-inline: var(--margin);
+  background: var(--paper);
+  color: var(--ink);
+  clip-path: inset(0 0 0 0);
+}
+
+/* Sortie : le calque se lève, du bas vers le haut (le titre du hero est révélé en premier). */
+.calque[data-sortie='true'] {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 900ms var(--ease-ui);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calque[data-sortie='true'] {
+    transition: none;
+  }
+}
+
+/* Une cote de dessin : trait, deux tirets d'extrémité, libellé et valeur. --p est piloté par GSAP. */
+.cote {
+  --p: 0;
+  width: min(60vw, 720px);
+}
+
+.trait {
+  position: relative;
+  height: 11px;
+}
+
+.ligne {
+  position: absolute;
+  inset-inline: 0;
+  top: 5px;
+  height: 1px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--p));
+}
+
+.tiret {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--ink);
+}
+
+.tiretDebut {
+  left: 0;
+}
+
+/* Le tiret de fin voyage avec la tête du trait, comme la plume d'une cote qu'on trace. */
+.tiretFin {
+  left: calc(var(--p) * 100%);
+  margin-left: -1px;
+}
+
+.legende {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+.compteur {
+  min-width: 3ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
