@@ -15,12 +15,21 @@ import Curseur from '@/components/experience/la-coupe/ui/curseur'
 import Magnetisme from '@/components/experience/la-coupe/ui/magnetisme'
 import '@/components/experience/la-coupe/styles/la-coupe.css'
 
+// Seule la graisse du titre (500) est préchargée : c'est elle qui fait le LCP. Le texte
+// courant (400) et l'italique serif arrivent via le CSS, sans peser sur le chemin critique.
 const display = Instrument_Sans({
   subsets: ['latin'],
-  // Deux graisses statiques plutôt que la variable : deux fichiers plus petits, le titre arrive plus tôt.
-  weight: ['400', '500'],
+  weight: '500',
   variable: '--lc-font-display',
   display: 'swap',
+})
+
+const texte = Instrument_Sans({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--lc-font-texte',
+  display: 'swap',
+  preload: false,
 })
 
 const serif = Instrument_Serif({
@@ -29,24 +38,39 @@ const serif = Instrument_Serif({
   style: 'italic',
   variable: '--lc-font-serif',
   display: 'swap',
+  preload: false,
 })
 
 const URL_SITE = 'https://portfolio-eight-sable-66.vercel.app'
+const TITRE = `${site.nom} — ${site.activite}`
 
+/**
+ * Métadonnées communes. openGraph et twitter ne sont pas fusionnés par Next
+ * entre layout et page (une page qui les définit remplace l'objet entier) :
+ * les pages en redonnent donc une version complète avec leur propre url.
+ * L'image og:image vient du fichier opengraph-image.tsx, ajoutée par Next.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(URL_SITE),
   title: {
-    default: `${site.nom} — ${site.activite}`,
+    default: TITRE,
     template: `%s — ${site.nom}`,
   },
   description: site.description,
+  alternates: { canonical: site.base },
+  robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     siteName: site.nom,
-    title: `${site.nom} — ${site.activite}`,
+    title: TITRE,
     description: site.description,
     url: site.base,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITRE,
+    description: site.description,
   },
 }
 
@@ -60,11 +84,15 @@ const scriptPrechargeur = PRELOADER_ACTIF
   ? `(function(){try{var h=document.documentElement;if(location.pathname!==${JSON.stringify(site.base)})return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(sessionStorage.getItem(${JSON.stringify(CLE_SESSION_PRECHARGEUR)})==='1')return;h.setAttribute('data-prechargeur','');setTimeout(function(){h.removeAttribute('data-prechargeur')},4000)}catch(e){}})()`
   : ''
 
+/** JSON-LD schema.org : Organization avec adresse postale et réseaux (sameAs). */
 const organisation = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': `${URL_SITE}${site.base}#organisation`,
   name: site.nom,
+  description: site.description,
   url: `${URL_SITE}${site.base}`,
+  image: `${URL_SITE}${site.base}/opengraph-image`,
   email: site.contact.email,
   telephone: site.contact.telephone,
   foundingDate: String(site.depuis),
@@ -75,6 +103,7 @@ const organisation = {
     addressLocality: site.ville,
     addressCountry: 'FR',
   },
+  sameAs: site.reseaux.map((r) => r.href),
 }
 
 /**
@@ -84,7 +113,7 @@ const organisation = {
  */
 export default function LaCoupeLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`lc ${display.variable} ${serif.variable}`} lang="fr">
+    <div className={`lc ${display.variable} ${texte.variable} ${serif.variable}`} lang="fr">
       {scriptPrechargeur ? <script dangerouslySetInnerHTML={{ __html: scriptPrechargeur }} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organisation) }} />
       <CanvasHost />
