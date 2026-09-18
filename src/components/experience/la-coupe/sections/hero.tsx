@@ -12,7 +12,9 @@ import styles from './hero.module.css'
 export default function Hero() {
   const [ligne1, ligne2] = site.hero.titre
   return (
-    <section className={`lc-container ${styles.hero}`} aria-labelledby="hero-titre">
+    <section className={styles.hero} aria-labelledby="hero-titre">
+      {/* Collant sur toute la hauteur de la section : la coupe se déroule sans pin ScrollTrigger. */}
+      <div className={`lc-container ${styles.scene}`} data-hero="scene">
       <p className={`lc-mono ${styles.ligne}`}>{site.hero.ligne}</p>
 
       <p className="lc-visually-hidden">{site.hero.canvasLabel}</p>
@@ -33,6 +35,7 @@ export default function Hero() {
           {formatMetres(HAUTEUR_COUPE)}
         </span>
       </p>
+      </div>
     </section>
   )
 }

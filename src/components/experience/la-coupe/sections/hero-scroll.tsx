@@ -21,8 +21,9 @@ const OPACITE_TITRE_FIN = 0.15
 
 /**
  * Côté client du hero. Décide du mode (canvas ou repli), mesure le repère de
- * la maquette SVG pour cadrer la caméra, épingle la section sur 300vh (220vh
- * au tactile) et pousse la progression lissée au store : le canvas, la cote
+ * la maquette SVG pour cadrer la caméra, fait défiler la coupe sur les 300vh
+ * de course de la section (220vh au tactile, scène en position sticky, sans
+ * pin) et pousse la progression lissée au store : le canvas, la cote
  * et l'opacité du titre la lisent sans setState. Parallaxe souris au pointeur fin.
  */
 export default function HeroScroll() {
@@ -38,11 +39,12 @@ export default function HeroScroll() {
   // Repère de la maquette SVG, relatif au haut de la section (qui sera épinglée en haut).
   useEffect(() => {
     const section = ancre.current?.closest('section')
+    const scene = section?.querySelector<HTMLElement>('[data-hero="scene"]')
     const maquette = section?.querySelector<HTMLElement>('[data-hero="maquette"]')
-    if (!section || !maquette) return
+    if (!section || !scene || !maquette) return
     const mesurer = () => {
       const rs = maquette.getBoundingClientRect()
-      const rh = section.getBoundingClientRect()
+      const rh = scene.getBoundingClientRect()
       hero.cadre = { cx: rs.left + rs.width / 2, cy: rs.top - rh.top + rs.height / 2, largeur: rs.width }
       hero.sale = true
     }
@@ -64,7 +66,7 @@ export default function HeroScroll() {
     }
   }, [mode, pret])
 
-  // Pin et scrub : seulement quand le canvas est prévu ou monté.
+  // Scrub sur la course de la section : seulement quand le canvas est prévu ou monté.
   useEffect(() => {
     if (mode !== 'attente' && mode !== 'canvas') return
     const section = ancre.current?.closest('section')
@@ -72,7 +74,6 @@ export default function HeroScroll() {
     const cote = section?.querySelector<HTMLElement>('[data-hero="cote"]')
     if (!section || !titre || !cote) return
     const { gsap, ScrollTrigger } = registerGsap()
-    const tactile = window.matchMedia('(pointer: coarse)').matches
     const proxy = { p: hero.progression }
 
     const tween = gsap.to(proxy, {
@@ -81,9 +82,7 @@ export default function HeroScroll() {
       scrollTrigger: {
         trigger: section,
         start: 'top top',
-        end: tactile ? '+=220%' : '+=300%',
-        pin: true,
-        anticipatePin: 1,
+        end: 'bottom bottom',
         scrub: 0.4,
         onRefresh: (st) => {
           hero.finPin = st.end
@@ -102,7 +101,7 @@ export default function HeroScroll() {
     ScrollTrigger.refresh()
 
     return () => {
-      declencheur?.kill(true)
+      declencheur?.kill()
       tween.kill()
       hero.finPin = Infinity
       hero.progression = 0

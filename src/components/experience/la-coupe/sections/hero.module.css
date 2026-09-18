@@ -1,6 +1,30 @@
+/* La section fait 100svh + 300svh de course (220svh au tactile) ; la scène reste collée. */
 .hero {
   position: relative;
-  min-height: 100svh;
+  height: 400svh;
+}
+
+@media (pointer: coarse) {
+  .hero {
+    height: 320svh;
+  }
+}
+
+/* Repli statique ou mouvement réduit : plus de course, un simple écran. */
+.hero[data-mode='statique'] {
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    height: auto;
+  }
+}
+
+.scene {
+  position: sticky;
+  top: 0;
+  height: 100svh;
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding-top: calc(var(--nav-h) + var(--s-4));
