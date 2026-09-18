@@ -1,18 +1,20 @@
-/* La section fait 100svh + 300svh de course (220svh au tactile) ; la scène reste collée. */
+/* Un écran par défaut (sans JavaScript, repli statique). Avec le canvas :
+ * 100svh + 300svh de course (220svh au tactile), la scène reste collée. */
 .hero {
   position: relative;
+  height: auto;
+}
+
+.hero[data-mode='attente'],
+.hero[data-mode='canvas'] {
   height: 400svh;
 }
 
 @media (pointer: coarse) {
-  .hero {
+  .hero[data-mode='attente'],
+  .hero[data-mode='canvas'] {
     height: 320svh;
   }
-}
-
-/* Repli statique ou mouvement réduit : plus de course, un simple écran. */
-.hero[data-mode='statique'] {
-  height: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
