@@ -11,6 +11,7 @@ const FILLS: Record<TeinteFace, string> = {
   est: 'var(--paper-2)',
   sud: '#dcd5c9',
   ombre: 'var(--line)',
+  coupe: 'var(--accent)',
 }
 
 export default function MaquetteStatique({ className }: { className?: string }) {

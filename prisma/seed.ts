@@ -86,6 +86,24 @@ async function main() {
     },
   })
 
+  await prisma.project.upsert({
+    where: { slug: 'la-coupe' },
+    update: {
+      liveUrl: '/experience/la-coupe',
+      imageUrl: '/experience/la-coupe/tuile.svg',
+    },
+    create: {
+      slug: 'la-coupe',
+      title: 'La Coupe',
+      description: "Le site d'un atelier d'architecture dont le scroll tranche la maquette : une coupe qui traverse l'œuvre, du faîtage au sol.",
+      tags: ['Next.js', 'Three.js', 'GSAP', 'Lenis'],
+      liveUrl: '/experience/la-coupe',
+      imageUrl: '/experience/la-coupe/tuile.svg',
+      featured: true,
+      publishedAt: new Date('2026-09-19'),
+    },
+  })
+
   await prisma.experience.upsert({
     where: { id: 'exp-current' },
     update: {},

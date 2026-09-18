@@ -11,7 +11,7 @@ const ECHELLE = 24
 
 export type Point = [number, number]
 
-export type TeinteFace = 'haut' | 'est' | 'sud' | 'ombre'
+export type TeinteFace = 'haut' | 'est' | 'sud' | 'ombre' | 'coupe'
 
 export interface Face {
   points: Point[]
@@ -37,12 +37,12 @@ export function polygone(points: Point[]): string {
   return points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ')
 }
 
-function facesBoite(v: Volume): Face[] {
+function facesBoite(v: Volume, dessus: TeinteFace = 'haut'): Face[] {
   const zt = v.z + v.h
   return [
     { teinte: 'sud', points: [projeter(v.x, v.y + v.p, v.z), projeter(v.x + v.l, v.y + v.p, v.z), projeter(v.x + v.l, v.y + v.p, zt), projeter(v.x, v.y + v.p, zt)] },
     { teinte: 'est', points: [projeter(v.x + v.l, v.y, v.z), projeter(v.x + v.l, v.y + v.p, v.z), projeter(v.x + v.l, v.y + v.p, zt), projeter(v.x + v.l, v.y, zt)] },
-    { teinte: 'haut', points: [projeter(v.x, v.y, zt), projeter(v.x + v.l, v.y, zt), projeter(v.x + v.l, v.y + v.p, zt), projeter(v.x, v.y + v.p, zt)] },
+    { teinte: dessus, points: [projeter(v.x, v.y, zt), projeter(v.x + v.l, v.y, zt), projeter(v.x + v.l, v.y + v.p, zt), projeter(v.x, v.y + v.p, zt)] },
   ]
 }
 
@@ -55,8 +55,13 @@ function facesToit(v: Volume): Face[] {
   ]
 }
 
-/** Calcule faces, emprise et plan de coupe de la maquette procédurale. */
-export function geometrieMaquette(): GeometrieMaquette {
+/**
+ * Calcule faces, emprise et plan de coupe de la maquette procédurale.
+ * `coupe` (mètres) tranche la maquette : ce qui est au-dessus disparaît, les
+ * volumes traversés sont tronqués et leur dessus prend la teinte `coupe`
+ * (terre cuite). Sert à la tuile du carrousel du portfolio.
+ */
+export function geometrieMaquette(options: { coupe?: number } = {}): GeometrieMaquette {
   const volumes = [...MAQUETTE.volumes]
     .filter((v) => v.role !== 'vide' && v.role !== 'escalier')
     .sort((a, b) => profondeur(a.x + a.l / 2, a.y + a.p / 2, 0) - profondeur(b.x + b.l / 2, b.y + b.p / 2, 0) || a.z - b.z)
@@ -74,7 +79,16 @@ export function geometrieMaquette(): GeometrieMaquette {
       ],
     })
   }
-  for (const v of volumes) faces.push(...(v.role === 'toit' ? facesToit(v) : facesBoite(v)))
+  const { coupe } = options
+  for (const v of volumes) {
+    if (coupe !== undefined && v.z >= coupe) continue
+    if (coupe !== undefined && v.z + v.h > coupe) {
+      // Traversé par la coupe : tronqué, dessus en face coupée (un toit tranché se lit comme un bloc).
+      faces.push(...facesBoite({ ...v, h: coupe - v.z }, 'coupe'))
+      continue
+    }
+    faces.push(...(v.role === 'toit' ? facesToit(v) : facesBoite(v)))
+  }
   const xs = faces.flatMap((f) => f.points.map((p) => p[0]))
   const ys = faces.flatMap((f) => f.points.map((p) => p[1]))
   const marge = 12

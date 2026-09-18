@@ -20,7 +20,7 @@ const ENCRE_2 = '#5c5853'
 const FILET = '#c9c3b8'
 const ACCENT = '#b5452d'
 
-const FILLS: Record<TeinteFace, string> = { haut: PAPIER, est: PAPIER_2, sud: '#dcd5c9', ombre: FILET }
+const FILLS: Record<TeinteFace, string> = { haut: PAPIER, est: PAPIER_2, sud: '#dcd5c9', ombre: FILET, coupe: '#b5452d' }
 
 interface Police {
   name: string
