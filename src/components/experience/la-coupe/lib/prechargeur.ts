@@ -77,9 +77,14 @@ function marquerSession(): void {
  */
 export function deciderPrechargeur(pathname: string): PhasePrechargeur {
   if (phase !== 'indecis') return phase
+  const html = document.documentElement
+  // Le script inline du layout a déjà tranché avant le premier paint (data-prechargeur) ;
+  // on le suit, et on retire l'attribut : le calque React prend le relais du voile CSS.
+  const voile = html.hasAttribute('data-prechargeur')
   const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const afficher = PRELOADER_ACTIF && pathname === site.base && !reduit && !sessionMarquee()
+  const afficher = voile && PRELOADER_ACTIF && pathname === site.base && !reduit && !sessionMarquee()
   if (afficher) marquerSession()
+  html.removeAttribute('data-prechargeur')
   setPhasePrechargeur(afficher ? 'affiche' : 'fini')
   return phase
 }

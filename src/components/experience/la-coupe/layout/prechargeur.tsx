@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
-import { registerGsap } from '../lib/gsap'
+import { chargerSplitText, registerGsap } from '../lib/gsap'
 import { getLenis, scrollEnHaut } from '../lib/lenis-store'
 import {
   abonnerPrechargeur,
@@ -19,7 +19,9 @@ import {
 } from '../lib/prechargeur'
 import styles from './prechargeur.module.css'
 
-type Split = InstanceType<ReturnType<typeof registerGsap>['SplitText']>
+type Split = { lines: Element[]; revert: () => void }
+/** SplitText chargé pendant l'affichage, prêt pour la sortie ; sinon le titre apparaît sans révélation. */
+let SplitTextPret: Awaited<ReturnType<typeof chargerSplitText>> | null = null
 
 /** Palier visuel atteint tant que le réel n'est pas prêt. */
 const PALIER_ATTENTE = 90
@@ -60,6 +62,9 @@ export default function Prechargeur() {
   // Affichage : scroll gelé en haut, progression tweenée qui suit le réel.
   useEffect(() => {
     if (phase !== 'affiche') return
+    chargerSplitText().then((m) => {
+      SplitTextPret = m
+    })
     const racine = calque.current
     const laCote = cote.current
     const leCompteur = compteur.current
@@ -134,14 +139,14 @@ export default function Prechargeur() {
   // Sortie : le calque se lève (CSS), le hero se révèle (GSAP), puis démontage.
   useEffect(() => {
     if (phase !== 'sortie') return
-    const { gsap, SplitText } = registerGsap()
+    const { gsap } = registerGsap()
     const titre = document.querySelector<HTMLElement>('[data-hero="titre"]')
     const scene = document.querySelector<HTMLElement>('[data-hero="scene"]')
     const tl = gsap.timeline()
     let split: Split | null = null
 
-    if (titre) {
-      split = SplitText.create(titre, { type: 'lines', mask: 'lines', aria: 'auto' })
+    if (titre && SplitTextPret) {
+      split = SplitTextPret.create(titre, { type: 'lines', mask: 'lines', aria: 'auto' })
       tl.from(
         split.lines,
         {
