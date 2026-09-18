@@ -16,7 +16,7 @@ export default function DessinAnime({ trigger }: DessinAnimeProps) {
     const figure = racine.closest('figure')
     const svg = figure?.querySelector('svg')
     if (!figure || !svg) return
-    tracerDessin(gsap, svg, { conteneur: figure, trigger: trigger ? (racine.closest(trigger) ?? undefined) : undefined })
+    return tracerDessin(gsap, svg, { conteneur: figure, trigger: trigger ? (racine.closest(trigger) ?? undefined) : undefined })
   })
   return <span ref={ref} hidden />
 }

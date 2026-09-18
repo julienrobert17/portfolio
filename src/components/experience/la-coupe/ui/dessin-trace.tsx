@@ -18,7 +18,7 @@ export default function DessinTrace({ conteneur, duree }: DessinTraceProps) {
     const parent = racine.closest<HTMLElement>(conteneur)
     const svg = parent?.querySelector('svg')
     if (!parent || !svg) return
-    tracerDessin(gsap, svg, { trigger: parent, conteneur: parent, duree })
+    return tracerDessin(gsap, svg, { trigger: parent, conteneur: parent, duree })
   })
   return <span ref={ref} hidden />
 }

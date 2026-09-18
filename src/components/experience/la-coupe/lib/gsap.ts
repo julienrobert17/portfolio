@@ -1,10 +1,7 @@
 'use client'
 
 import gsap from 'gsap'
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin'
-import { Flip } from 'gsap/Flip'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SplitText } from 'gsap/SplitText'
 
 let enregistre = false
 
@@ -16,14 +13,34 @@ declare global {
 }
 
 /**
- * Enregistre les plugins une seule fois. À appeler depuis un composant client
- * uniquement : les plugins touchent `window` à l'enregistrement.
+ * Enregistre ScrollTrigger une seule fois. À appeler depuis un composant
+ * client uniquement. Les plugins optionnels (SplitText, Flip, DrawSVG) sont
+ * chargés à la demande par `chargerSplitText`, `chargerFlip`, `chargerDrawSvg`
+ * : ils ne pèsent rien dans le JS initial.
  */
 export function registerGsap() {
   if (!enregistre && typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger, SplitText, Flip, DrawSVGPlugin)
+    gsap.registerPlugin(ScrollTrigger)
     enregistre = true
     if (process.env.NODE_ENV !== 'production') window.__laCoupeGsap = { gsap, ScrollTrigger }
   }
-  return { gsap, ScrollTrigger, SplitText, Flip, DrawSVGPlugin }
+  return { gsap, ScrollTrigger }
+}
+
+export async function chargerSplitText() {
+  const { SplitText } = await import('gsap/SplitText')
+  gsap.registerPlugin(SplitText)
+  return SplitText
+}
+
+export async function chargerFlip() {
+  const { Flip } = await import('gsap/Flip')
+  gsap.registerPlugin(Flip)
+  return Flip
+}
+
+export async function chargerDrawSvg() {
+  const { DrawSVGPlugin } = await import('gsap/DrawSVGPlugin')
+  gsap.registerPlugin(DrawSVGPlugin)
+  return DrawSVGPlugin
 }

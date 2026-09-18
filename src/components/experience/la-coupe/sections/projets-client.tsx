@@ -1,16 +1,19 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useLayoutEffect, useRef, type Ref } from 'react'
+import { useEffect, useLayoutEffect, useRef, type Ref } from 'react'
 import { categories, projets } from '../content'
 import type { Categorie } from '../content/types'
 import { ENTREE, MEDIA } from '../lib/animation'
-import { registerGsap } from '../lib/gsap'
+import { chargerFlip, registerGsap } from '../lib/gsap'
 import FiltresIndex, { type Vue } from './filtres-index'
 import GrilleProjets from './grille-projets'
 import IndexProjets from './index-projets'
 
-type EtatFlip = ReturnType<ReturnType<typeof registerGsap>['Flip']['getState']>
+type PluginFlip = Awaited<ReturnType<typeof chargerFlip>>
+type EtatFlip = ReturnType<PluginFlip['getState']>
+/** Flip chargé au montage, à la demande ; tant qu'il n'est pas là, le filtre change sans réordonnancement animé. */
+let FlipPret: PluginFlip | null = null
 
 /** Une ligne avant le changement, placée dans son parent : de quoi la laisser s'estomper une fois retirée. */
 interface Position {
@@ -83,9 +86,10 @@ export default function ProjetsClient() {
     const conteneur = conteneurRef.current
     const cible = lireEtat(new URL(url, window.location.origin).searchParams)
     // Flip seulement quand la vue reste : lignes vers lignes, tuiles vers tuiles.
-    const anime = conteneur && cible.vue === vue && cible.categorie !== categorie && window.matchMedia(MEDIA.anime).matches
+    const Flip = FlipPret
+    const anime = conteneur && Flip && cible.vue === vue && cible.categorie !== categorie && window.matchMedia(MEDIA.anime).matches
     if (anime) {
-      const { gsap, Flip } = registerGsap()
+      const { gsap } = registerGsap()
       const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>(CIBLES))
       // Un Flip ou une entrée encore en cours serait mesuré à mi-chemin : on les termine.
       Flip.killFlipsOf(lignes)
@@ -106,12 +110,20 @@ export default function ProjetsClient() {
     router.replace(url, { scroll: false })
   }
 
+  // Flip arrive après le premier rendu, à la demande : le premier filtre est parfois sans Flip.
+  useEffect(() => {
+    chargerFlip().then((m) => {
+      FlipPret = m
+    })
+  }, [])
+
   useLayoutEffect(() => {
     const capture = captureRef.current
     const conteneur = conteneurRef.current
     captureRef.current = null
-    if (!capture || !conteneur) return
-    const { gsap, Flip } = registerGsap()
+    const Flip = FlipPret
+    if (!capture || !conteneur || !Flip) return
+    const { gsap } = registerGsap()
     const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>(CIBLES))
 
     // Fantômes : les lignes retirées par React, réinsérées en absolu (donc sans

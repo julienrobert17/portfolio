@@ -25,7 +25,7 @@ export default function ProjetsSelectionnes() {
         </h2>
       </div>
       <Empilement />
-      {selection.map((projet) => {
+      {selection.map((projet, i) => {
         const image = imageProjet(projet, 0)
         const numero = formatNumero(projets.indexOf(projet))
         return (
@@ -34,7 +34,8 @@ export default function ProjetsSelectionnes() {
               <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image} data-image-bloc>
                 <PartageImage slug={projet.slug}>
-                  <Photo image={image} cover />
+                  {/* Le premier bloc est proche du pli : priorité haute, les suivants différés. */}
+                  <Photo image={image} cover priority={i === 0} />
                 </PartageImage>
               </div>
               <div className={styles.voile} data-voile aria-hidden="true" />

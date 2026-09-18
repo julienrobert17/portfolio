@@ -3,6 +3,7 @@ import { Instrument_Sans, Instrument_Serif } from 'next/font/google'
 import type { ReactNode } from 'react'
 import CanvasHost from '@/components/experience/la-coupe/canvas/canvas-host'
 import { site } from '@/components/experience/la-coupe/content/site'
+import { CLE_SESSION_PRECHARGEUR, PRELOADER_ACTIF } from '@/components/experience/la-coupe/lib/prechargeur'
 import Footer from '@/components/experience/la-coupe/layout/footer'
 import Nav from '@/components/experience/la-coupe/layout/nav'
 import SkipLink from '@/components/experience/la-coupe/layout/skip-link'
@@ -16,6 +17,8 @@ import '@/components/experience/la-coupe/styles/la-coupe.css'
 
 const display = Instrument_Sans({
   subsets: ['latin'],
+  // Deux graisses statiques plutôt que la variable : deux fichiers plus petits, le titre arrive plus tôt.
+  weight: ['400', '500'],
   variable: '--lc-font-display',
   display: 'swap',
 })
@@ -47,6 +50,16 @@ export const metadata: Metadata = {
   },
 }
 
+/**
+ * Décision du préchargeur avant le premier paint : pose data-prechargeur sur
+ * <html> (le CSS couvre alors la page d'un voile papier) si accueil, session
+ * vierge et pas de mouvement réduit. Si le script échoue, l'attribut est
+ * absent et rien n'est couvert ; s'il reste, un filet de 4 s le retire.
+ */
+const scriptPrechargeur = PRELOADER_ACTIF
+  ? `(function(){try{var h=document.documentElement;if(location.pathname!==${JSON.stringify(site.base)})return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(sessionStorage.getItem(${JSON.stringify(CLE_SESSION_PRECHARGEUR)})==='1')return;h.setAttribute('data-prechargeur','');setTimeout(function(){h.removeAttribute('data-prechargeur')},4000)}catch(e){}})()`
+  : ''
+
 const organisation = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -72,6 +85,7 @@ const organisation = {
 export default function LaCoupeLayout({ children }: { children: ReactNode }) {
   return (
     <div className={`lc ${display.variable} ${serif.variable}`} lang="fr">
+      {scriptPrechargeur ? <script dangerouslySetInnerHTML={{ __html: scriptPrechargeur }} /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organisation) }} />
       <CanvasHost />
       <SkipLink />

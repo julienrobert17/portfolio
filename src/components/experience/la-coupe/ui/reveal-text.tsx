@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from 'react'
 import { ENTREE, useScrollAnimation } from '../lib/animation'
+import { chargerSplitText } from '../lib/gsap'
 
 interface RevealTextProps {
   children: ReactNode
@@ -12,31 +13,40 @@ interface RevealTextProps {
 }
 
 /**
- * Révélation par lignes : SplitText (type lines, masque, autoSplit)
- * et glissement yPercent 100 → 0 à l'entrée dans le viewport. Les italiques
- * imbriqués survivent au split. Sans JavaScript ou sous mouvement réduit, le
- * texte est simplement là.
+ * Révélation par lignes : SplitText (type lines, masque, autoSplit), chargé
+ * à la demande, et glissement yPercent 100 → 0 à l'entrée dans le viewport.
+ * Les italiques imbriqués survivent au split. Sans JavaScript ou sous
+ * mouvement réduit, le texte est simplement là.
  */
 export default function RevealText({ children, as: Tag = 'p', className, delay = 0 }: RevealTextProps) {
   const ref = useRef<HTMLElement>(null)
-  useScrollAnimation(ref, ({ gsap, SplitText, racine }) => {
-    const split = SplitText.create(racine, {
-      type: 'lines',
-      mask: 'lines',
-      autoSplit: true,
-      // 'none' : aria-label est interdit sur un <p> ; le texte reste lisible dans ses lignes.
-      aria: 'none',
-      onSplit: (self) =>
-        gsap.from(self.lines, {
-          yPercent: 100,
-          duration: ENTREE.duree,
-          ease: ENTREE.ease,
-          stagger: ENTREE.stagger,
-          delay,
-          scrollTrigger: { trigger: racine, start: ENTREE.start, once: true },
-        }),
+  useScrollAnimation(ref, ({ gsap, racine }) => {
+    let annule = false
+    let revert: (() => void) | null = null
+    chargerSplitText().then((SplitText) => {
+      if (annule) return
+      const split = SplitText.create(racine, {
+        type: 'lines',
+        mask: 'lines',
+        autoSplit: true,
+        // 'none' : aria-label est interdit sur un <p> ; le texte reste lisible dans ses lignes.
+        aria: 'none',
+        onSplit: (self) =>
+          gsap.from(self.lines, {
+            yPercent: 100,
+            duration: ENTREE.duree,
+            ease: ENTREE.ease,
+            stagger: ENTREE.stagger,
+            delay,
+            scrollTrigger: { trigger: racine, start: ENTREE.start, once: true },
+          }),
+      })
+      revert = () => split.revert()
     })
-    return () => split.revert()
+    return () => {
+      annule = true
+      revert?.()
+    }
   })
   // Le ref est typé HTMLElement : l'élément réel dépend de `as`.
   const Balise = Tag as 'p'
