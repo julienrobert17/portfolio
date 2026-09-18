@@ -20,12 +20,37 @@
   transform: translateY(-100%);
 }
 
+/* Garde de contraste (NavComportement) : au-dessus d'une image, la différence
+ * tombe sous 4,5:1 sur les tons moyens. La nav passe alors en couleur pleine :
+ * encre sur image claire, papier sur voile encre à 35 % sur image sombre. */
+.nav[data-image] {
+  mix-blend-mode: normal;
+  transition:
+    transform 300ms var(--ease-ui),
+    background-color var(--t-micro) var(--ease-ui);
+}
+
+.nav[data-image='clair'] {
+  color: var(--ink);
+}
+
+.nav[data-image='sombre'] {
+  color: var(--paper);
+  background-color: rgba(21, 20, 18, 0.35);
+}
+
 /* Menu ouvert : au-dessus du rideau encre, sans différence, jamais cachée. */
 .nav[data-menu='true'] {
   z-index: 63;
   mix-blend-mode: normal;
   color: var(--paper);
+  background-color: transparent;
   transform: none;
+}
+
+/* Sur l'encre du menu, l'accent ne fait que 3,1:1 : anneau papier. */
+.nav[data-menu='true'] :focus-visible {
+  outline-color: var(--paper);
 }
 
 .nav[data-reduite='true'] .nomLong {

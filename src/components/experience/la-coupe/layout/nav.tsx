@@ -15,9 +15,12 @@ export default function Nav() {
   return (
     <header className={styles.nav}>
       <NavComportement />
+      {/* Nom accessible d'un seul tenant (« Atelier Mireille Vasseur, accueil ») : le texte visible, nom long ou initiales, est décoratif. */}
       <LienTransition href={site.base} label="Accueil" className={styles.nom}>
-        <span className={styles.nomLong}>{site.nom}</span>
-        <span className="lc-visually-hidden">, accueil</span>
+        <span className="lc-visually-hidden">{site.nom}, accueil</span>
+        <span className={styles.nomLong} aria-hidden="true">
+          {site.nom}
+        </span>
         <span className={styles.nomCourt} aria-hidden="true">
           {site.initiales}
         </span>

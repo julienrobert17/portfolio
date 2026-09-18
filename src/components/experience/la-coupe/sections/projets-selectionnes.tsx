@@ -30,24 +30,26 @@ export default function ProjetsSelectionnes() {
         const numero = formatNumero(projets.indexOf(projet))
         return (
           <article key={projet.slug} className={styles.bloc} data-bloc>
+            {/* Nom du lien : « Voir le projet Maison des Vignes Meursault, Bourgogne — 2023 01 / 08 ».
+                L'image est décorative ici (le titre la nomme), l'index vient en dernier : il est positionné en absolu. */}
             <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
               <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image} data-image-bloc>
                 <PartageImage slug={projet.slug}>
                   {/* Le premier bloc est proche du pli : priorité haute, les suivants différés. */}
-                  <Photo image={image} cover priority={i === 0} />
+                  <Photo image={{ ...image, alt: '' }} cover priority={i === 0} />
                 </PartageImage>
               </div>
               <div className={styles.voile} data-voile aria-hidden="true" />
-              <span className={`lc-mono ${styles.index}`}>
-                {numero} / {total}
-              </span>
               <div className={styles.legende}>
                 <h3 className={`lc-display lc-h2 ${styles.titre}`}>{projet.titre}</h3>
                 <p className={`lc-mono ${styles.meta}`}>
                   {projet.lieu} — {projet.annee}
                 </p>
               </div>
+              <span className={`lc-mono ${styles.index}`}>
+                {numero} / {total}
+              </span>
             </LienTransition>
           </article>
         )
