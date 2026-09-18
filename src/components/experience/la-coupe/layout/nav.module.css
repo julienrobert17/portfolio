@@ -87,6 +87,16 @@
   white-space: nowrap;
 }
 
+.menuBouton {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-width: 44px;
+}
+
 @media (max-width: 720px) {
   .nomLong {
     display: none;

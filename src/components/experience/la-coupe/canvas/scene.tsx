@@ -1,16 +1,17 @@
 'use client'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { Group, Mesh, OrthographicCamera } from 'three'
 import { hero } from '../lib/hero-store'
+import { abonnerMenu, lireMenu, lireMenuServeur } from '../lib/navigation-store'
 import Coupe from './coupe'
 import { construireMaquette } from './geometrie'
 import { MAQUETTE } from './maquette'
 import { RigHero } from './rig'
 
 export interface SceneProps {
-  /** `menu` : fil de fer tournant derrière le menu (Phase 4, non implémenté). */
+  /** Mode initial ; le menu ouvert bascule en fil de fer tournant. */
   mode: 'hero' | 'menu'
 }
 
@@ -23,6 +24,7 @@ export default function Scene({ mode }: SceneProps) {
   const racine = useRef<Group>(null)
   const quad = useRef<Mesh>(null)
   const size = useThree((s) => s.size)
+  const menu = useSyncExternalStore(abonnerMenu, lireMenu, lireMenuServeur)
   const maquette = useMemo(() => construireMaquette(), [])
   const rig = useMemo(() => new RigHero(maquette), [maquette])
 
@@ -33,10 +35,15 @@ export default function Scene({ mode }: SceneProps) {
     hero.sale = true
   }, [size])
 
-  useFrame(({ camera, size: taille }) => rig.frame(camera as OrthographicCamera, taille, racine.current, quad.current))
+  useFrame(({ camera, size: taille }, delta) =>
+    rig.frame(camera as OrthographicCamera, taille, racine.current, quad.current, {
+      mode: menu ? 'menu' : mode,
+      delta: Math.min(delta, 0.1),
+      tourne: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    }),
+  )
 
   const [cx, cz] = maquette.centre
-  void mode
 
   return (
     <>
@@ -46,7 +53,9 @@ export default function Scene({ mode }: SceneProps) {
         <group position={[-cx, 0, -cz]}>
           <mesh geometry={maquette.geometrie} material={rig.materiau} renderOrder={2} />
           <lineSegments geometry={rig.aretes} material={rig.materiauAretes} renderOrder={3} />
-          <Coupe geometrie={maquette.geometrie} plan={rig.plan} centre={maquette.centre} emprise={[MAQUETTE.socle.l, MAQUETTE.socle.p]} quadRef={quad} />
+          <group visible={!menu}>
+            <Coupe geometrie={maquette.geometrie} plan={rig.plan} centre={maquette.centre} emprise={[MAQUETTE.socle.l, MAQUETTE.socle.p]} quadRef={quad} />
+          </group>
         </group>
       </group>
     </>

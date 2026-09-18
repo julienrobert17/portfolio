@@ -1,6 +1,7 @@
 import LienTransition from './lien-transition'
 import { site } from '../content/site'
 import LocalTime from './local-time'
+import MenuBouton from './menu-bouton'
 import NavComportement from './nav-comportement'
 import NavLinks from './nav-links'
 import styles from './nav.module.css'
@@ -24,6 +25,7 @@ export default function Nav() {
       <nav aria-label="Navigation principale" className={styles.droite}>
         <NavLinks />
         <LocalTime className={`lc-mono ${styles.heure}`} />
+        <MenuBouton />
       </nav>
     </header>
   )

@@ -1,0 +1,139 @@
+/* Deux couches clipées ensemble : le fond encre sous le canvas (z 61), les liens au-dessus. */
+.fond,
+.menu {
+  --bas: 100%;
+  position: fixed;
+  inset: 0;
+  clip-path: inset(0 0 var(--bas) 0);
+}
+
+.fond {
+  z-index: 59;
+  background: var(--ink);
+}
+
+.menu {
+  z-index: 62;
+  color: var(--paper);
+  overflow: hidden;
+}
+
+.fond[hidden],
+.menu[hidden] {
+  display: none;
+}
+
+.menu ::selection {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Maquette SVG en fil de fer, repli tant que le canvas n'a pas rendu (ou sans WebGL). */
+.maquette {
+  position: absolute;
+  right: var(--margin);
+  top: 50%;
+  width: min(44vw, 560px);
+  transform: translateY(-50%);
+  opacity: 1;
+  transition: opacity 600ms var(--ease-ui);
+  pointer-events: none;
+}
+
+.menu[data-canvas='pret'] .maquette {
+  opacity: 0;
+}
+
+.filDeFer polygon {
+  fill: none;
+  stroke: var(--paper);
+  stroke-opacity: 0.4;
+}
+
+.filDeFer [data-plan-coupe] {
+  display: none;
+}
+
+.contenu {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  column-gap: var(--gutter);
+  align-content: center;
+  padding-block: calc(var(--nav-h) + var(--s-5)) var(--s-6);
+}
+
+.pages,
+.projets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.page {
+  font-size: clamp(2.5rem, 7vw, 7rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  transition: color var(--t-micro) var(--ease-ui);
+}
+
+.page:hover,
+.page:focus-visible {
+  color: var(--accent);
+}
+
+.projets {
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line-inverse);
+}
+
+.projet {
+  display: flex;
+  gap: var(--s-3);
+  min-height: 44px;
+  align-items: center;
+  border-bottom: 1px solid var(--line-inverse);
+}
+
+.numero {
+  color: var(--ink-2-inverse);
+  transition: color var(--t-micro) var(--ease-ui);
+}
+
+.projet:hover .numero,
+.projet:focus-visible .numero {
+  color: var(--accent);
+}
+
+.menu :focus-visible {
+  outline-color: var(--paper);
+}
+
+@media (max-width: 900px) {
+  .contenu {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-6);
+    align-content: start;
+  }
+
+  .maquette {
+    width: min(70vw, 360px);
+    top: auto;
+    bottom: var(--s-4);
+    transform: none;
+    opacity: 0.6;
+  }
+}

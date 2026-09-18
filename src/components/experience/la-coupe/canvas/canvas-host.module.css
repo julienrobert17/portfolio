@@ -12,6 +12,17 @@
   opacity: 1;
 }
 
+/* Hors accueil et menu fermé : la dernière frame ne doit pas traîner derrière la page. */
+.hote[data-visible='false'] {
+  visibility: hidden;
+}
+
+/* Menu ouvert : entre le fond encre (z 59) et les liens (z 62). */
+.hote[data-menu] {
+  z-index: 61;
+  transform: none !important;
+}
+
 .hote canvas {
   display: block;
 }

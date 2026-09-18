@@ -14,6 +14,8 @@ const MARGE_SVG_M = 1
 /** Au-dessus du faîtage à progression 0 : rien n'est coupé. */
 const MARGE_COUPE = 0.05
 const MARGE_COUPE_SOL = 0.03
+/** Un tour en 40 s dans le menu. */
+const VITESSE_MENU = (Math.PI * 2) / 40
 
 const DIRECTION = new Vector3(...DIRECTION_CAMERA)
 const HAUT_MONDE = new Vector3(0, 1, 0)
@@ -23,6 +25,14 @@ const HAUT = new Vector3().crossVectors(DIRECTION, DROITE).normalize()
 interface Taille {
   width: number
   height: number
+}
+
+export interface OptionsFrame {
+  mode: 'hero' | 'menu'
+  /** Secondes depuis la frame précédente. */
+  delta: number
+  /** Faux sous mouvement réduit : la maquette du menu reste immobile. */
+  tourne: boolean
 }
 
 /**
@@ -39,8 +49,11 @@ export class RigHero {
   /** Point du monde dont la projection tombe au centre du SVG statique. */
   readonly cible: Vector3
   readonly largeurProjetee: number
+  readonly hauteurProjetee: number
   private souris = { x: 0, y: 0 }
   private frames = 0
+  private angleMenu = 0
+  private modeCourant: 'hero' | 'menu' = 'hero'
 
   constructor(private maquette: MaquetteConstruite) {
     this.materiau = new MeshStandardMaterial({
@@ -60,10 +73,45 @@ export class RigHero {
     const cy = (bornes.minY + bornes.maxY) / 2
     this.cible = new Vector3().addScaledVector(DROITE, cx).addScaledVector(HAUT, -cy)
     this.largeurProjetee = bornes.maxX - bornes.minX + MARGE_SVG_M
+    this.hauteurProjetee = bornes.maxY - bornes.minY
   }
 
-  frame(camera: OrthographicCamera, taille: Taille, groupe: Group | null, quad: Mesh | null): void {
+  /** Bascule des matériaux : plâtre et coupe pour le hero, fil de fer papier à 40 % pour le menu. */
+  private appliquerMode(mode: 'hero' | 'menu'): void {
+    if (mode === this.modeCourant) return
+    this.modeCourant = mode
+    const menu = mode === 'menu'
+    this.materiau.visible = !menu
+    this.materiauAretes.color.set(menu ? '#f3f0ea' : '#151412')
+    this.materiauAretes.opacity = menu ? 0.4 : 0.35
+    this.materiauAretes.clippingPlanes = menu ? [] : [this.plan]
+    this.materiauAretes.needsUpdate = true
+    hero.sale = true
+  }
+
+  /** Menu : rotation lente continue, cadrage centré, sans coupe. */
+  private frameMenu(camera: OrthographicCamera, taille: Taille, groupe: Group, options: OptionsFrame): void {
+    if (options.tourne) {
+      this.angleMenu += options.delta * VITESSE_MENU
+      hero.sale = true
+    }
+    groupe.rotation.set(0, this.angleMenu, 0)
+    groupe.updateMatrixWorld(true)
+    camera.zoom = Math.min((taille.height * 0.5) / this.hauteurProjetee, (taille.width * 0.8) / this.largeurProjetee)
+    camera.position.copy(this.cible).addScaledVector(DIRECTION, DISTANCE_CAMERA)
+    camera.up.copy(HAUT_MONDE)
+    camera.lookAt(this.cible)
+    camera.clearViewOffset()
+    camera.updateProjectionMatrix()
+  }
+
+  frame(camera: OrthographicCamera, taille: Taille, groupe: Group | null, quad: Mesh | null, options: OptionsFrame): void {
     if (!groupe) return
+    this.appliquerMode(options.mode)
+    if (options.mode === 'menu') {
+      this.frameMenu(camera, taille, groupe, options)
+      return
+    }
     const p = hero.progression
 
     // Les deux premières frames rendues : le canvas est prêt, le SVG peut s'effacer.
