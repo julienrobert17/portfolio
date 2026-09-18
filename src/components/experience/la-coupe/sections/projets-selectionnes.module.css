@@ -13,9 +13,12 @@
 }
 
 .bloc {
-  position: relative;
+  position: sticky;
+  top: 0;
   height: 100svh;
   overflow: hidden;
+  transform-origin: center;
+  background: var(--paper);
 }
 
 .lien {
@@ -28,6 +31,14 @@
 .image {
   position: absolute;
   inset: 0;
+}
+
+.voile {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .image::after {

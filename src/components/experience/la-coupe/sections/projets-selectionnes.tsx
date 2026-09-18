@@ -4,11 +4,12 @@ import { site } from '../content/site'
 import { imageProjet } from '../lib/images'
 import { formatNumero } from '../lib/format'
 import Photo from '../ui/photo'
+import Empilement from './empilement'
 import styles from './projets-selectionnes.module.css'
 
 /**
- * Les projets phares, un écran chacun. Sticky stacking, distorsion et curseur
- * « Voir le projet » : Phase 3 et 4. Ici, une suite d'écrans pleins.
+ * Les projets phares, un écran chacun, en sticky stacking (voir Empilement).
+ * Curseur « Voir le projet » : Phase 4.
  */
 export default function ProjetsSelectionnes() {
   const selection = site.selection
@@ -21,20 +22,19 @@ export default function ProjetsSelectionnes() {
         <h2 id="selection-titre" className="lc-mono">
           Projets sélectionnés
         </h2>
-        <p className="lc-mono lc-muted">
-          {formatNumero(selection.length - 1)} / {total}
-        </p>
       </div>
+      <Empilement />
       {selection.map((projet) => {
         const image = imageProjet(projet, 0)
         const numero = formatNumero(projets.indexOf(projet))
         return (
-          <article key={projet.slug} className={styles.bloc}>
+          <article key={projet.slug} className={styles.bloc} data-bloc>
             <Link href={`${site.base}/projets/${projet.slug}`} className={styles.lien}>
               <span className="lc-visually-hidden">Voir le projet</span>
-              <div className={styles.image}>
+              <div className={styles.image} data-image-bloc>
                 <Photo image={image} cover />
               </div>
+              <div className={styles.voile} data-voile aria-hidden="true" />
               <span className={`lc-mono ${styles.index}`}>
                 {numero} / {total}
               </span>

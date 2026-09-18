@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { imagesAtelier, site } from '../content/site'
 import { imageAtelier } from '../lib/images'
+import Apparition from '../ui/apparition'
 import Photo from '../ui/photo'
+import RevealText from '../ui/reveal-text'
 import styles from './atelier-teaser.module.css'
 
 export default function AtelierTeaser() {
@@ -9,14 +11,18 @@ export default function AtelierTeaser() {
   return (
     <section className={`lc-container lc-section ${styles.section}`} aria-labelledby="teaser-titre">
       <div className="lc-grid">
-        <div className={styles.photo}>
+        <Apparition className={styles.photo} bloc>
           <Photo image={image} />
-        </div>
+        </Apparition>
         <div className={styles.texte}>
-          <h2 id="teaser-titre" className={`lc-display lc-h2`}>
-            {site.atelierTeaser.titre}
+          <h2 id="teaser-titre" className="lc-display lc-h2">
+            <RevealText as="span" className={styles.titreLigne}>
+              {site.atelierTeaser.titre}
+            </RevealText>
           </h2>
-          <p className="lc-body">{site.atelierTeaser.texte}</p>
+          <RevealText as="p" className="lc-body" delay={0.1}>
+            {site.atelierTeaser.texte}
+          </RevealText>
           <Link href={`${site.base}/atelier`} className={`lc-mono lc-link ${styles.lien}`}>
             {site.atelierTeaser.lien}
           </Link>
