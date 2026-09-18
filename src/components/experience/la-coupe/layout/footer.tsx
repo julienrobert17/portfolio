@@ -2,7 +2,9 @@ import { projets } from '../content/projets'
 import { site } from '../content/site'
 import { rendreDessin } from '../lib/dessins'
 import { formatGps } from '../lib/format'
+import Apparition from '../ui/apparition'
 import DessinSvg from '../ui/dessin-svg'
+import RevealText from '../ui/reveal-text'
 import LocalTime from './local-time'
 import styles from './footer.module.css'
 
@@ -17,13 +19,15 @@ export default function Footer() {
   return (
     <footer className={`lc-container ${styles.footer}`}>
       <div className={styles.cta}>
-        <p className={`lc-display lc-h1 ${styles.titre}`}>{contact.cta}</p>
+        <RevealText as="p" className={`lc-display lc-h1 ${styles.titre}`}>
+          {contact.cta}
+        </RevealText>
         <a href={`mailto:${contact.email}`} className={`lc-display lc-h3 ${styles.email}`}>
           {contact.email}
         </a>
       </div>
 
-      <div className={`lc-grid ${styles.colonnes}`}>
+      <Apparition className={`lc-grid ${styles.colonnes}`}>
         <div className={styles.colonne}>
           <h2 className={`lc-mono ${styles.intitule}`}>Adresse</h2>
           <address className={styles.adresse}>
@@ -67,11 +71,11 @@ export default function Footer() {
             <LocalTime />
           </p>
         </div>
-      </div>
+      </Apparition>
 
       {dessin ? (
         <div className={styles.dessin}>
-          <DessinSvg dessin={dessin} encre="paper" />
+          <DessinSvg dessin={dessin} encre="paper" anime trigger="footer" />
         </div>
       ) : null}
 

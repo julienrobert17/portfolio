@@ -13,6 +13,25 @@
   color: var(--paper);
   mix-blend-mode: difference;
   pointer-events: none;
+  transition: transform 300ms var(--ease-ui);
+}
+
+.nav[data-cachee='true'] {
+  transform: translateY(-100%);
+}
+
+.nav[data-reduite='true'] .nomLong {
+  display: none;
+}
+
+.nav[data-reduite='true'] .nomCourt {
+  display: inline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav {
+    transition: none;
+  }
 }
 
 .nav a,
