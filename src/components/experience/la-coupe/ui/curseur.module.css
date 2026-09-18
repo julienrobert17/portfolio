@@ -1,0 +1,94 @@
+/*
+ * Curseur personnalisé : un conteneur fixe positionné par le ticker (jamais
+ * de transition sur sa position), un point dont la taille et la bordure
+ * transitionnent selon l'état. Le natif est masqué par la classe `actif`
+ * posée sur <html> seulement quand le composant est monté et actif.
+ */
+.actif,
+.actif * {
+  cursor: none;
+}
+
+.curseur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity var(--t-micro) var(--ease-ui);
+}
+
+.curseur[data-visible='true'] {
+  opacity: 1;
+}
+
+/*
+ * Le point est peint en --paper sous `difference` : sur le papier il se lit
+ * --ink, sur le fond --ink du footer il se lit --paper. Peint en --ink, la
+ * différence donnerait un gris presque identique au papier (invisible).
+ */
+.point {
+  --taille: 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--taille);
+  height: var(--taille);
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 0 solid var(--paper);
+  background: var(--paper);
+  mix-blend-mode: difference;
+  transition:
+    width var(--t-micro) var(--ease-ui),
+    height var(--t-micro) var(--ease-ui),
+    border-width var(--t-micro) var(--ease-ui),
+    background-color var(--t-micro) var(--ease-ui);
+}
+
+.curseur[data-etat='link'] .point {
+  --taille: 40px;
+  border-width: 1px;
+  background: transparent;
+}
+
+.curseur[data-etat='view'] .point {
+  --taille: 88px;
+  background: var(--ink);
+  mix-blend-mode: normal;
+}
+
+.libelle {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--paper);
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--ease-ui);
+}
+
+.curseur[data-etat='view'] .libelle {
+  opacity: 1;
+}
+
+/* Jamais au tactile : le JavaScript ne s'active pas non plus. */
+@media (pointer: coarse) {
+  .curseur {
+    display: none;
+  }
+}
+
+/* Reduced motion : le curseur reste, sans lerp (JS) ni transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .curseur,
+  .point,
+  .libelle {
+    transition: none;
+  }
+}
