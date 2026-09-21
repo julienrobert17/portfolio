@@ -34,13 +34,41 @@ function placement(cx: number, cy: number, largeur: number, hauteur: number): [n
  * contient les lignes : les écouteurs sont délégués au parent, les lignes
  * peuvent donc changer (filtres) sans réabonnement.
  */
-export default function ImageFlottante() {
+interface ImageFlottanteProps {
+  /**
+   * Colle l'image dans la colonne vide entre les `[data-nom]` et les `[data-role]`
+   * des lignes : x fixe au centre de cette colonne, y seul suit le pointeur, borné
+   * au haut et au bas de la liste. Elle ne recouvre alors ni nom ni rôle.
+   */
+  colonne?: boolean
+}
+
+export default function ImageFlottante({ colonne = false }: ImageFlottanteProps) {
   const ref = useRef<HTMLDivElement>(null)
-  useScrollAnimation(ref, ({ gsap, racine, fin }) => {
+  useScrollAnimation(
+    ref,
+    ({ gsap, racine, fin }) => {
     const conteneur = racine.parentElement
     const img = racine.querySelector('img')
     if (!conteneur || !img) return
     const etat = { x: 0, y: 0, cx: 0, cy: 0, visible: false, ancree: false, vx: 0 }
+    /** Centre de la colonne vide (entre la fin des noms et le début des rôles), mesuré à la demande. */
+    let colonneX: number | null = null
+    // Le rectangle du texte, pas celui de la cellule : un nom court laisse sa colonne vide à droite.
+    const rectTexte = (e: Element): DOMRect => {
+      const plage = document.createRange()
+      plage.selectNodeContents(e)
+      return plage.getBoundingClientRect()
+    }
+    const mesurerColonne = () => {
+      const noms = conteneur.querySelectorAll<HTMLElement>('[data-nom]')
+      const roles = conteneur.querySelectorAll<HTMLElement>('[data-role]')
+      if (!noms.length || !roles.length) return
+      const fin = Math.max(...Array.from(noms, (e) => rectTexte(e).right))
+      const debut = Math.min(...Array.from(roles, (e) => rectTexte(e).left))
+      colonneX = (fin + debut) / 2
+    }
+
     // Taille courante du cadre : le décalage et la bascule au bord se calculent toujours avec elle.
     const taille = { w: LARGEUR, h: HAUTEUR }
     const appliquerTaille = () => {
@@ -74,7 +102,13 @@ export default function ImageFlottante() {
     const arret = onTick(() => {
       if (!etat.visible || etat.ancree) return
       // `x, y` : coin haut-gauche de l'image, qui rejoint son placement en douceur (bascule comprise).
-      const [tx, ty] = placement(etat.cx, etat.cy, taille.w, taille.h)
+      let [tx, ty] = placement(etat.cx, etat.cy, taille.w, taille.h)
+      if (colonne) {
+        if (colonneX === null) mesurerColonne()
+        const liste = conteneur.getBoundingClientRect()
+        tx = (colonneX ?? etat.cx) - taille.w / 2
+        ty = gsap.utils.clamp(liste.top, Math.max(liste.top, liste.bottom - taille.h), etat.cy - taille.h / 2)
+      }
       const dx = tx - etat.x
       etat.x += dx * LERP
       etat.y += (ty - etat.y) * LERP
@@ -96,6 +130,13 @@ export default function ImageFlottante() {
         etat.cy = e.clientY
         if (!etat.visible) {
           ;[etat.x, etat.y] = placement(e.clientX, e.clientY, ...tailleDe(ligne))
+          if (colonne) {
+            mesurerColonne()
+            const [w, h] = tailleDe(ligne)
+            const liste = conteneur.getBoundingClientRect()
+            etat.x = (colonneX ?? e.clientX) - w / 2
+            etat.y = Math.min(Math.max(liste.top, e.clientY - h / 2), Math.max(liste.top, liste.bottom - h))
+          }
         }
         montrer(ligne)
       }
@@ -139,11 +180,22 @@ export default function ImageFlottante() {
       conteneur.removeEventListener('focusin', focus)
       conteneur.removeEventListener('focusout', blur)
     })
+    // Le centre de la colonne dépend de la largeur : il se remesure au redimensionnement.
+    if (colonne) {
+      const auResize = () => {
+        colonneX = null
+      }
+      window.addEventListener('resize', auResize)
+      ecouteurs.push(() => window.removeEventListener('resize', auResize))
+    }
+
     return () => {
       gsap.killTweensOf(taille)
       ecouteurs.forEach((fn) => fn())
     }
-  })
+    },
+    [colonne],
+  )
   return (
     <div ref={ref} className={styles.flottante} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element -- source changée à la volée */}

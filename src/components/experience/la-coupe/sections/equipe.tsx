@@ -10,7 +10,8 @@ import { insecable } from '../lib/typo'
 /**
  * Liste typographique. Desktop : pas de vignette, un tiret paraît devant le
  * nom au survol et l'image flottante montre le portrait (pointeur fin, ou
- * focus clavier). Mobile : la vignette est là, l'image flottante ne l'est pas.
+ * focus clavier), calée dans la colonne vide entre les noms et les rôles.
+ * Mobile : la vignette est là, l'image flottante ne l'est pas.
  */
 export default function Equipe() {
   return (
@@ -31,13 +32,13 @@ export default function Equipe() {
                     <Photo image={photo} sizes="56px" />
                   </span>
                 ) : null}
-                <span className={`lc-display lc-h3 ${styles.nom}`}>{insecable(m.nom)}</span>{' '}
-                <span className={`lc-mono lc-muted ${styles.role}`}>{m.role}</span>
+                <span className={`lc-display lc-h3 ${styles.nom}`} data-nom>{insecable(m.nom)}</span>{' '}
+                <span className={`lc-mono lc-muted ${styles.role}`} data-role>{m.role}</span>
               </li>
             )
           })}
         </Apparition>
-        <ImageFlottante />
+        <ImageFlottante colonne />
       </div>
     </section>
   )
