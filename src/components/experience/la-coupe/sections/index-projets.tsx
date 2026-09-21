@@ -36,7 +36,7 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
         {projets.map((projet) => {
           const image = imageProjet(projet, 0)
           return (
-            <li key={projet.slug} className={styles.item} data-flip-id={projet.slug} data-image={image.vignette} data-image-alt={image.alt}>
+            <li key={projet.slug} className={styles.item} data-flip-id={projet.slug} data-image={image.vignette} data-image-alt={image.alt} data-image-ratio={image.ratio}>
               <LienTransition href={`${site.base}/projets/${projet.slug}`} label={projet.titre} className={styles.ligne} data-curseur="default">
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
                 <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>{' '}

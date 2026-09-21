@@ -1,12 +1,16 @@
 'use client'
 
 import { useRef } from 'react'
+import type { Ratio } from '../content/types'
 import { useScrollAnimation } from '../lib/animation'
+import { EASE_UI_GSAP } from '../lib/easings'
 import { onTick } from '../lib/ticker'
 import styles from './image-flottante.module.css'
 
-const LARGEUR = 200
-const HAUTEUR = 260
+/** Le cadre prend le ratio de la photo, à surface constante (≈ 52 000 px²). */
+const TAILLES: Record<Ratio, [number, number]> = { '4:5': [200, 260], '3:2': [280, 187], '16:9': [304, 171], '1:1': [228, 228] }
+const [LARGEUR, HAUTEUR] = TAILLES['4:5']
+const tailleDe = (ligne: HTMLElement): [number, number] => TAILLES[ligne.dataset.imageRatio as Ratio] ?? TAILLES['4:5']
 const LERP = 0.12
 const ROTATION_MAX = 3
 const MARGE_FOCUS = 16
@@ -15,14 +19,15 @@ const DECALAGE = 32
 const MARGE_BORD = 8
 
 /** Coin haut-gauche de l'image pour un pointeur donné ; bascule à gauche ou au-dessus faute de place. */
-function placement(cx: number, cy: number): [number, number] {
-  const x = cx + DECALAGE + LARGEUR > window.innerWidth - MARGE_BORD ? cx - DECALAGE - LARGEUR : cx + DECALAGE
-  const y = cy + DECALAGE + HAUTEUR > window.innerHeight - MARGE_BORD ? cy - DECALAGE - HAUTEUR : cy + DECALAGE
+function placement(cx: number, cy: number, largeur: number, hauteur: number): [number, number] {
+  const x = cx + DECALAGE + largeur > window.innerWidth - MARGE_BORD ? cx - DECALAGE - largeur : cx + DECALAGE
+  const y = cy + DECALAGE + hauteur > window.innerHeight - MARGE_BORD ? cy - DECALAGE - hauteur : cy + DECALAGE
   return [x, y]
 }
 
 /**
- * Image 200 × 260 qui accompagne le curseur au survol des lignes `[data-image]`
+ * Image au ratio de la photo (surface constante, `data-image-ratio` ; largeur et hauteur
+ * s'interpolent en 250 ms d'une ligne à l'autre, pendant le fondu) qui accompagne le curseur au survol des lignes `[data-image]`
  * du conteneur parent, ancrée à 32 px à droite et sous le point (lerp 0,12, rotation ±3° selon la vélocité, fondu
  * 250 ms), pointeur fin seulement. Au focus clavier, la même image apparaît
  * ancrée à droite de la ligne. Rien au tactile. À placer dans l'élément qui
@@ -36,10 +41,27 @@ export default function ImageFlottante() {
     const img = racine.querySelector('img')
     if (!conteneur || !img) return
     const etat = { x: 0, y: 0, cx: 0, cy: 0, visible: false, ancree: false, vx: 0 }
-    const montrer = (src: string, alt: string) => {
+    // Taille courante du cadre : le décalage et la bascule au bord se calculent toujours avec elle.
+    const taille = { w: LARGEUR, h: HAUTEUR }
+    const appliquerTaille = () => {
+      racine.style.width = `${taille.w}px`
+      racine.style.height = `${taille.h}px`
+    }
+    const montrer = (ligne: HTMLElement) => {
+      const src = ligne.dataset.image ?? ''
+      const [w, h] = tailleDe(ligne)
+      if (!etat.visible) {
+        gsap.killTweensOf(taille)
+        taille.w = w
+        taille.h = h
+        appliquerTaille()
+      } else if (taille.w !== w || taille.h !== h) {
+        gsap.to(taille, { w, h, duration: 0.25, ease: EASE_UI_GSAP, overwrite: true, onUpdate: appliquerTaille })
+      }
       if (img.getAttribute('src') !== src) {
         img.src = src
-        img.alt = alt
+        img.alt = ligne.dataset.imageAlt ?? ''
+        if (etat.visible) gsap.fromTo(img, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out', overwrite: true })
       }
       etat.visible = true
       gsap.to(racine, { opacity: 1, duration: 0.25, ease: 'power2.out', overwrite: true })
@@ -52,7 +74,7 @@ export default function ImageFlottante() {
     const arret = onTick(() => {
       if (!etat.visible || etat.ancree) return
       // `x, y` : coin haut-gauche de l'image, qui rejoint son placement en douceur (bascule comprise).
-      const [tx, ty] = placement(etat.cx, etat.cy)
+      const [tx, ty] = placement(etat.cx, etat.cy, taille.w, taille.h)
       const dx = tx - etat.x
       etat.x += dx * LERP
       etat.y += (ty - etat.y) * LERP
@@ -73,9 +95,9 @@ export default function ImageFlottante() {
         etat.cx = e.clientX
         etat.cy = e.clientY
         if (!etat.visible) {
-          ;[etat.x, etat.y] = placement(e.clientX, e.clientY)
+          ;[etat.x, etat.y] = placement(e.clientX, e.clientY, ...tailleDe(ligne))
         }
-        montrer(ligne.dataset.image ?? '', ligne.dataset.imageAlt ?? '')
+        montrer(ligne)
       }
       const bouger = (e: PointerEvent) => {
         etat.cx = e.clientX
@@ -103,8 +125,9 @@ export default function ImageFlottante() {
       if (!ligne) return
       const r = ligne.getBoundingClientRect()
       etat.ancree = true
-      racine.style.transform = `translate3d(${r.right - LARGEUR - MARGE_FOCUS}px, ${r.top + r.height / 2 - HAUTEUR / 2}px, 0) rotate(0deg)`
-      montrer(ligne.dataset.image ?? '', ligne.dataset.imageAlt ?? '')
+      const [w, h] = tailleDe(ligne)
+      racine.style.transform = `translate3d(${r.right - w - MARGE_FOCUS}px, ${r.top + r.height / 2 - h / 2}px, 0) rotate(0deg)`
+      montrer(ligne)
     }
     const blur = (e: FocusEvent) => {
       const suivant = e.relatedTarget as HTMLElement | null
@@ -116,7 +139,10 @@ export default function ImageFlottante() {
       conteneur.removeEventListener('focusin', focus)
       conteneur.removeEventListener('focusout', blur)
     })
-    return () => ecouteurs.forEach((fn) => fn())
+    return () => {
+      gsap.killTweensOf(taille)
+      ecouteurs.forEach((fn) => fn())
+    }
   })
   return (
     <div ref={ref} className={styles.flottante} aria-hidden="true">
