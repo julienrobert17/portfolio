@@ -89,7 +89,8 @@ export const site = typographier({
         { id: 'autre', sujet: 'Un projet à part', objet: 'autre chose' },
       ],
       /** La phrase à compléter, en trois morceaux : le nom et le sujet se glissent entre eux. */
-      phrase: { debut: 'Bonjour, je m’appelle ', milieu: ' et je vous écris au sujet d’', fin: '.' },
+      /** `elision` reste collée au sujet : « d’une maison » ne se coupe jamais. */
+      phrase: { debut: 'Bonjour, je m’appelle ', milieu: ' et je vous écris au sujet ', elision: 'd’', fin: '.' },
       /** Corps du message quand le nom n'est pas renseigné. */
       phraseSansNom: 'Bonjour, je vous écris au sujet d’{objet}.',
       nom: 'Votre nom',

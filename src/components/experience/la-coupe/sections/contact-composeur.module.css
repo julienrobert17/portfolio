@@ -14,14 +14,35 @@
   text-wrap: pretty;
 }
 
+/*
+ * Une seule case de grille : le miroir invisible la dimensionne, l'input s'y étire. La largeur
+ * suit donc le texte au pixel, capitales comprises, sans rien mesurer en JavaScript. Les 2 px
+ * de droite laissent la place au curseur de saisie.
+ */
 .champ {
-  display: inline-block;
+  display: inline-grid;
+  padding-right: 2px;
+  vertical-align: baseline;
+}
+
+.miroir,
+.saisie {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* `size={1}` sur le champ, sinon sa largeur intrinsèque (vingt caractères) l'emporterait. */
+.saisie {
+  width: 100%;
+}
+
+.miroir {
+  visibility: hidden;
+  white-space: pre;
 }
 
 /* Champ en ligne : pas de cadre, un soulignement, la largeur suit la saisie (ch). */
 .saisie {
-  display: inline-block;
-  min-width: 0;
   padding: 0;
   font: inherit;
   color: inherit;

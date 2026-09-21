@@ -10,9 +10,6 @@ type Copie = 'repos' | 'copie' | 'echec'
 const RETOUR = 2400
 /** Révélation verticale du sujet ; doit valoir la durée de l'animation CSS. */
 const DEFILE = 300
-/** Le champ suit la saisie, entre ces bornes (en ch). */
-const NOM_MIN = 9
-const NOM_MAX = 22
 
 const { email, composeur } = site.contact
 const TYPES = composeur.types
@@ -21,7 +18,7 @@ const TYPES = composeur.types
 function corpsDe(objet: string, nom: string): string {
   const signature = nom.trim()
   if (!signature) return composeur.phraseSansNom.replace('{objet}', objet)
-  return `${composeur.phrase.debut}${signature}${composeur.phrase.milieu}${objet}${composeur.phrase.fin}`
+  return `${composeur.phrase.debut}${signature}${composeur.phrase.milieu}${composeur.phrase.elision}${objet}${composeur.phrase.fin}`
 }
 
 /** Lien mailto (RFC 6068 : fins de ligne CRLF). */
@@ -30,10 +27,13 @@ const versMailto = (sujet: string, corps: string) =>
 
 /**
  * La phrase est le message : « Bonjour, je m’appelle [nom] et je vous écris au
- * sujet d’[une maison]. » Le nom est un champ en ligne dont la largeur suit la
- * saisie ; le sujet est un bouton qui fait défiler les quatre valeurs, à la
- * souris comme aux flèches haut et bas, avec une révélation verticale de
- * 300 ms. Le lien mailto se reconstruit à chaque frappe. Le HTML servi porte
+ * sujet d’[une maison]. » Le nom est un champ en ligne dont la largeur est
+ * exactement celle du texte : un span miroir porte la même chaîne dans la même
+ * fonte et donne sa taille à la case, l'input s'y étirant (grille d'une seule
+ * case, miroir invisible). Rien à mesurer ni à recalculer, et les capitales
+ * comptent pour leur vraie largeur. Le sujet est un bouton qui fait défiler les
+ * quatre valeurs, à la souris comme aux flèches haut et bas, avec une
+ * révélation verticale de 300 ms ; l'élision reste collée à lui. Le lien mailto se reconstruit à chaque frappe. Le HTML servi porte
  * déjà la phrase et son lien : sans JavaScript, le bouton cède la place au
  * sujet par défaut en texte, et le mailto fonctionne tel quel.
  */
@@ -89,8 +89,6 @@ export default function ContactComposeur() {
     window.location.href = href
   }
 
-  const largeur = Math.min(NOM_MAX, Math.max(NOM_MIN, nom.length + 1))
-
   return (
     <form className={styles.composeur} onSubmit={envoyer}>
       <p className={`lc-display ${styles.phrase}`}>
@@ -99,43 +97,51 @@ export default function ContactComposeur() {
           <label htmlFor="lc-nom" className="lc-visually-hidden">
             {composeur.nom}
           </label>
+          {/* Miroir : même fonte, mêmes espacements ; c'est lui qui donne sa largeur à la case. */}
+          <span className={styles.miroir} aria-hidden="true">
+            {nom || composeur.placeholder}
+          </span>
           <input
             id="lc-nom"
             name="nom"
             type="text"
             autoComplete="name"
             maxLength={80}
+            size={1}
             placeholder={composeur.placeholder}
             value={nom}
             onChange={(e) => setNom(e.target.value)}
-            style={{ width: `${largeur}ch` }}
             className={styles.saisie}
           />
         </span>
         {composeur.phrase.milieu}
-        <button
-          type="button"
-          className={styles.sujet}
-          aria-label={composeur.changerSujet}
-          onClick={() => defiler(1)}
-          onKeyDown={auClavier}
-          data-js-seul
-        >
-          {/* Hauteur d'une ligne, débord masqué : l'ancienne valeur sort, la nouvelle entre. */}
-          <span className={styles.fenetre}>
-            <span className={styles.valeur} data-sens={sortante?.sens} key={type.objet}>
-              {type.objet}
-            </span>
-            {sortante && (
-              <span className={`${styles.valeur} ${styles.sortante}`} data-sens={sortante.sens} aria-hidden="true">
-                {sortante.objet}
+        {/* Élision et sujet d'un seul tenant : « d’une réhabilitation » ne se coupe pas. */}
+        <span className="lc-colle">
+          {composeur.phrase.elision}
+          <button
+            type="button"
+            className={styles.sujet}
+            aria-label={composeur.changerSujet}
+            onClick={() => defiler(1)}
+            onKeyDown={auClavier}
+            data-js-seul
+          >
+            {/* Hauteur d'une ligne, débord masqué : l'ancienne valeur sort, la nouvelle entre. */}
+            <span className={styles.fenetre}>
+              <span className={styles.valeur} data-sens={sortante?.sens} key={type.objet}>
+                {type.objet}
               </span>
-            )}
+              {sortante && (
+                <span className={`${styles.valeur} ${styles.sortante}`} data-sens={sortante.sens} aria-hidden="true">
+                  {sortante.objet}
+                </span>
+              )}
+            </span>
+          </button>
+          {/* Sans JavaScript, le bouton ne servirait à rien : la feuille du <noscript> l'échange contre ce texte. */}
+          <span className={`${styles.sujet} ${styles.sujetStatique}`} data-sans-js>
+            {TYPES[0].objet}
           </span>
-        </button>
-        {/* Sans JavaScript, le bouton ne servirait à rien : la feuille du <noscript> l'échange contre ce texte. */}
-        <span className={`${styles.sujet} ${styles.sujetStatique}`} data-sans-js>
-          {TYPES[0].objet}
         </span>
         {composeur.phrase.fin}
       </p>
