@@ -181,44 +181,71 @@ async function plancheProjet(prefixe: string, cleApi: string, pris: Set<string>,
   return fichier
 }
 
+/** Largeurs servies en srcset ; la plus grande que la source permet donne width/height. */
+const LARGEURS = [480, 960, 1440, 1920]
+
+interface Meta {
+  width: number
+  height: number
+  couleur: string
+  largeurs: number[]
+  lqip: string
+}
+
 /**
- * Recadre au ratio, applique le rendu commun, puis tient sous 300 kB : la
- * qualité descend d'abord, et si une photo très détaillée résiste, la
- * largeur passe à 85 % puis 70 % (les dimensions réelles vont dans credits.ts).
+ * Recadre au ratio, applique le rendu commun et écrit `<cle>-<largeur>.avif|webp`
+ * pour chaque largeur (ratio conservé), chacune sous 300 kB : la qualité
+ * descend tant qu'il faut. LQIP : 24 px floutés, en base64 dans credits.ts.
  */
-export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promise<{ width: number; height: number; couleur: string }> {
+export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promise<Meta> {
   const cible = DIMENSIONS[ratio]
-  for (const echelle of [1, 0.85, 0.7]) {
-    const width = Math.round(cible.width * echelle)
-    const height = Math.round(cible.height * echelle)
-    const base = await sharp(source)
+  const meta = await sharp(source).rotate().metadata()
+  const rendu = (width: number) =>
+    sharp(source)
       .rotate()
-      .resize(width, height, { fit: 'cover', position: sharp.strategy.attention })
+      .resize(width, Math.round((width * cible.height) / cible.width), { fit: 'cover', position: sharp.strategy.attention })
       .modulate({ saturation: RENDU.saturation })
       .linear(RENDU.pente, RENDU.decalage)
       .toColourspace('srgb')
-      .png({ compressionLevel: 1 })
-      .toBuffer()
+  const largeurs = LARGEURS.filter((l) => l <= (meta.width ?? 0))
+  if (!largeurs.length) throw new Error(`${cle} : source trop petite`)
+  // Un seul recadrage (la stratégie « attention » varierait d'une taille à l'autre), puis des réductions.
+  const width = largeurs[largeurs.length - 1]
+  const grand = await rendu(width).png({ compressionLevel: 1 }).toBuffer()
+  // Une largeur n'est gardée que si ses deux formats tiennent sous 300 kB ; une photo très
+  // détaillée s'arrête à la largeur précédente (ses dimensions réelles vont dans credits.ts).
+  const gardees: number[] = []
+  for (const largeur of largeurs) {
+    const base = largeur === width ? grand : await sharp(grand).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
     const sorties: Array<[string, Buffer]> = []
     for (const format of ['webp', 'avif'] as const) {
-      let qualite = format === 'webp' ? 78 : 58
+      let qualite = format === 'webp' ? 72 : 40
       let sortie = await sharp(base)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
-      while (sortie.length > POIDS_MAX && qualite > 42) {
+      while (sortie.length > POIDS_MAX && qualite > 30) {
         qualite -= 6
         sortie = await sharp(base)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
       }
       if (sortie.length <= POIDS_MAX) sorties.push([format, sortie])
     }
-    if (sorties.length < 2) continue
-    for (const [format, sortie] of sorties) writeFileSync(join(DOSSIER, `${cle}.${format}`), sortie)
-    const { dominant } = await sharp(base).stats()
-    const hex = (v: number) => v.toString(16).padStart(2, '0')
-    return { width, height, couleur: `#${hex(dominant.r)}${hex(dominant.g)}${hex(dominant.b)}` }
+    if (sorties.length < 2) break
+    for (const [format, sortie] of sorties) writeFileSync(join(DOSSIER, `${cle}-${largeur}.${format}`), sortie)
+    gardees.push(largeur)
   }
-  throw new Error(`${cle} : plus de 300 kB même à 70 % de la largeur`)
+  if (gardees.length < 2) throw new Error(`${cle} : plus de 300 kB dès 960 px`)
+  const { dominant } = await sharp(grand).stats()
+  const hex = (v: number) => v.toString(16).padStart(2, '0')
+  const lqip = await sharp(grand).resize(24).blur(1.2).webp({ quality: 50 }).toBuffer()
+  const finale = gardees[gardees.length - 1]
+  return {
+    width: finale,
+    height: Math.round((finale * cible.height) / cible.width),
+    couleur: `#${hex(dominant.r)}${hex(dominant.g)}${hex(dominant.b)}`,
+    largeurs: gardees,
+    lqip: `data:image/webp;base64,${lqip.toString('base64')}`,
+  }
 }
 
-function ecrireCredits(manifeste: Manifeste, metas: Record<string, { width: number; height: number; couleur: string }>) {
+function ecrireCredits(manifeste: Manifeste, metas: Record<string, Meta>) {
   const parAuteur = new Map<string, { auteur: string; source: 'Pexels'; url: string; photos: string[] }>()
   for (const cle of Object.keys(metas).sort()) {
     const s = manifeste.selections[cle]
@@ -286,16 +313,15 @@ async function main() {
   }
   sauver()
 
-  const metas: Record<string, { width: number; height: number; couleur: string }> = {}
+  const metas: Record<string, Meta> = {}
+  const { photos: actuelles } = (await import(CREDITS)) as { photos: Record<string, Partial<Meta>> }
   for (const e of entrees()) {
     const s = manifeste.selections[e.cle]
     if (!s) continue
-    const dejaLa = existsSync(join(DOSSIER, `${e.cle}.webp`)) && existsSync(join(DOSSIER, `${e.cle}.avif`))
+    const connue = actuelles[e.cle]
+    const dejaLa = connue?.lqip && connue.largeurs?.every((l) => existsSync(join(DOSSIER, `${e.cle}-${l}.webp`)) && existsSync(join(DOSSIER, `${e.cle}-${l}.avif`)))
     if (dejaLa && !retraiter && !aRefaire.has(e.cle)) {
-      const m = await sharp(join(DOSSIER, `${e.cle}.webp`)).metadata()
-      const { dominant } = await sharp(join(DOSSIER, `${e.cle}.webp`)).stats()
-      const hex = (v: number) => v.toString(16).padStart(2, '0')
-      metas[e.cle] = { width: m.width ?? 0, height: m.height ?? 0, couleur: `#${hex(dominant.r)}${hex(dominant.g)}${hex(dominant.b)}` }
+      metas[e.cle] = connue as Meta
       continue
     }
     const cache = join(CACHE, `${s.id.replace(':', '-')}.jpg`)

@@ -22,6 +22,12 @@ export interface ImageRendue {
   ratio: Ratio
   /** Couleur dominante de la photo, ou rien pour un placeholder. */
   couleur?: string
+  /** `srcset` par format (fichiers statiques `<cle>-<largeur>`), ou rien pour un placeholder. */
+  srcset?: { avif: string; webp: string }
+  /** Aperçu flouté en data URI, affiché sous l'image pendant son chargement. */
+  lqip?: string
+  /** Petite version (480 px) pour l'image flottante. */
+  vignette: string
 }
 
 const DOSSIER = `${site.base}/img`
@@ -35,11 +41,23 @@ export function cleAtelier(id: string): string {
   return `atelier-${id}`
 }
 
-/** Photo WebP si elle a été téléchargée (content/credits.ts), sinon le placeholder SVG. */
+/** Photo statique si elle a été générée (content/credits.ts), sinon le placeholder SVG. */
 function rendre(cle: string, image: ImageContenu): ImageRendue {
   const photo = photos[cle]
-  if (photo) return { src: `${DOSSIER}/${cle}.webp`, width: photo.width, height: photo.height, couleur: photo.couleur, alt: image.alt, ratio: image.ratio }
-  return { ...DIMENSIONS[image.ratio], src: `${DOSSIER}/${cle}.svg`, alt: image.alt, ratio: image.ratio }
+  const svg = `${DOSSIER}/${cle}.svg`
+  if (!photo) return { ...DIMENSIONS[image.ratio], src: svg, vignette: svg, alt: image.alt, ratio: image.ratio }
+  const srcset = (format: 'avif' | 'webp') => photo.largeurs.map((l) => `${DOSSIER}/${cle}-${l}.${format} ${l}w`).join(', ')
+  return {
+    src: `${DOSSIER}/${cle}-${photo.width}.webp`,
+    vignette: `${DOSSIER}/${cle}-${photo.largeurs[0]}.webp`,
+    width: photo.width,
+    height: photo.height,
+    couleur: photo.couleur,
+    lqip: photo.lqip,
+    srcset: { avif: srcset('avif'), webp: srcset('webp') },
+    alt: image.alt,
+    ratio: image.ratio,
+  }
 }
 
 export function imageProjet(projet: Pick<Projet, 'slug' | 'images'>, index: number): ImageRendue {

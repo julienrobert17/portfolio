@@ -4,7 +4,6 @@ import { imageAtelier } from '../lib/images'
 import Apparition from '../ui/apparition'
 import ImageFlottante from '../ui/image-flottante'
 import Photo from '../ui/photo'
-import { srcVignette } from '../ui/src-vignette'
 import styles from './equipe.module.css'
 
 /**
@@ -24,7 +23,7 @@ export default function Equipe() {
             const contenu = imagesAtelier[m.photo]
             const photo = contenu ? imageAtelier(m.photo, contenu) : null
             return (
-              <li key={m.nom} className={styles.membre} data-image={photo ? srcVignette(photo) : undefined} data-image-alt={photo?.alt}>
+              <li key={m.nom} className={styles.membre} data-image={photo ? photo.vignette : undefined} data-image-alt={photo?.alt}>
                 {photo ? (
                   <span className={styles.vignette}>
                     <Photo image={photo} sizes="56px" />

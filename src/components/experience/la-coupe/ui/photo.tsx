@@ -1,45 +1,72 @@
-import Image from 'next/image'
+'use client'
+
+import { useEffect, useRef } from 'react'
 import type { ImageRendue } from '../lib/images'
+import styles from './photo.module.css'
 
 interface PhotoProps {
   image: ImageRendue
-  /** Largeur affichée, pour que l'optimiseur serve la bonne taille. */
+  /** Largeur affichée, pour que le navigateur prenne la bonne entrée du srcset. */
   sizes: string
-  /** Image de tête au-dessus du pli : préchargée, priorité haute. */
+  /** Image de tête : préchargée depuis le head (imagesrcset), priorité haute, sans fondu. */
   priority?: boolean
-  /** Juste sous le pli : chargée d'emblée en priorité haute, sans préchargement (il resterait inutilisé). */
+  /** Juste sous le pli : chargée d'emblée en priorité haute, sans préchargement. */
   eager?: boolean
   className?: string
   /** Remplit son conteneur (object-fit: cover) au lieu de garder son ratio. */
   cover?: boolean
 }
 
-/** L'image de tête est le LCP des fiches : un cran de qualité en moins, invisible en AVIF, un tiers d'octets gagné. */
-const QUALITE_TETE = 60
-
 /**
- * La seule image de contenu du site, sur next/image : AVIF ou WebP à la
- * bonne largeur, dimensions explicites et aspect-ratio donc zéro décalage
- * de mise en page. Les placeholders SVG de repli passent sans optimisation
- * (next/image le fait de lui-même pour les .svg).
+ * La seule image de contenu du site : un <picture> statique (AVIF puis WebP,
+ * quatre largeurs générées par scripts/fetch-la-coupe-photos.ts), sans
+ * optimiseur à la volée. Dimensions explicites et aspect-ratio donc zéro
+ * décalage ; couleur dominante et LQIP visibles tout de suite sous l'image.
+ * Fondu de 400 ms quand l'image arrive après l'hydratation ; déjà chargée
+ * (cache, SSR rapide) ou image de tête : pas de fondu. Sans JS rien n'est caché.
  */
 export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false }: PhotoProps) {
+  const img = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const el = img.current
+    if (!el || priority || el.complete) return
+    el.classList.add(styles.attente)
+    const montrer = () => el.classList.remove(styles.attente)
+    el.addEventListener('load', montrer, { once: true })
+    el.addEventListener('error', montrer, { once: true })
+    return () => {
+      el.removeEventListener('load', montrer)
+      el.removeEventListener('error', montrer)
+      montrer()
+    }
+  }, [priority])
+
   return (
-    <Image
-      src={image.src}
-      width={image.width}
-      height={image.height}
-      alt={image.alt}
-      sizes={sizes}
-      preload={priority}
-      quality={priority ? QUALITE_TETE : undefined}
-      loading={priority ? undefined : eager ? 'eager' : 'lazy'}
-      fetchPriority={priority || eager ? 'high' : 'auto'}
-      className={className}
+    <picture
+      className={[styles.cadre, cover ? styles.cover : '', className ?? ''].filter(Boolean).join(' ')}
       style={{
         backgroundColor: image.couleur,
-        ...(cover ? { width: '100%', height: '100%', objectFit: 'cover' } : { aspectRatio: `${image.width} / ${image.height}`, width: '100%', height: 'auto' }),
+        backgroundImage: image.lqip ? `url(${image.lqip})` : undefined,
+        aspectRatio: cover ? undefined : `${image.width} / ${image.height}`,
       }}
-    />
+    >
+      {priority && image.srcset && (
+        <link rel="preload" as="image" type="image/avif" imageSrcSet={image.srcset.avif} imageSizes={sizes} fetchPriority="high" />
+      )}
+      {image.srcset && <source type="image/avif" srcSet={image.srcset.avif} sizes={sizes} />}
+      {image.srcset && <source type="image/webp" srcSet={image.srcset.webp} sizes={sizes} />}
+      <img
+        ref={img}
+        src={image.src}
+        width={image.width}
+        height={image.height}
+        alt={image.alt}
+        loading={priority || eager ? 'eager' : 'lazy'}
+        fetchPriority={priority || eager ? 'high' : 'auto'}
+        decoding="async"
+        className={styles.image}
+      />
+    </picture>
   )
 }

@@ -37,7 +37,7 @@ export default function ProjetsSelectionnes() {
               <div className={styles.image} data-image-bloc>
                 <PartageImage slug={projet.slug}>
                   {/* Un viewport sous le hero : chargé d'emblée mais sans préchargement (il resterait inutilisé), les suivants différés. */}
-                  <Photo image={{ ...image, alt: '' }} cover eager={i === 0} sizes="100vw" />
+                  <Photo image={{ ...image, alt: '' }} cover priority={i === 0} sizes="100vw" />
                 </PartageImage>
               </div>
               <div className={styles.voile} data-voile aria-hidden="true" />
