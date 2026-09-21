@@ -15,8 +15,11 @@
   padding-block: var(--s-5) var(--s-6);
 }
 
-.titre {
+/* `.hero .titre` : l'échelle globale `.lc-h2` a la même spécificité, il faut passer devant. */
+.hero .titre {
   max-width: 16ch;
+  font-size: clamp(3.5rem, 8vw, 8rem);
+  line-height: 0.95;
 }
 
 .sousTitre {
