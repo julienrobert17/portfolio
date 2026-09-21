@@ -1,6 +1,7 @@
 'use client'
 
 import { navigation } from '../lib/navigation-store'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { getLenis } from '../lib/lenis-store'
 
@@ -30,12 +31,18 @@ type Tonalite = 'clair' | 'sombre'
  */
 export default function NavComportement() {
   const ancre = useRef<HTMLSpanElement>(null)
+  const pathname = usePathname()
 
+  // Relancé à chaque route : l'état repart de zéro, la nav est visible à l'arrivée sur toute page.
   useEffect(() => {
     const header = ancre.current?.closest('header')
     if (!header) return
     let precedent = window.scrollY
     let ticket = 0
+    // Arrivée : visible tant qu'on n'a pas défilé de 40 px vers le bas depuis la position d'arrivée
+    // (connue une fois la transition finie : scroll remis à zéro, ou restauré au retour navigateur).
+    let arrivee = true
+    let yArrivee: number | null = null
 
     // ── Images sous la nav ─────────────────────────────────────────────
     const sousLaNav = new Set<HTMLImageElement>()
@@ -123,13 +130,12 @@ export default function NavComportement() {
       const y = window.scrollY
       const lenis = getLenis()
       const direction = lenis ? lenis.direction : Math.sign(y - precedent)
-      // Un vrai geste vers le haut, pas la remise à zéro du scroll à l'arrivée.
-      const monte = y < precedent && precedent - y < window.innerHeight
       precedent = y
-      // Arrivée en continu depuis le projet suivant : la nav était cachée, elle le reste
-      // (rien ne doit trahir le changement de page) jusqu'au premier défilement vers le haut.
-      if (navigation.navTenue && monte && !navigation.enCours) navigation.navTenue = false
-      const cachee = navigation.navTenue || (direction > 0 && y > SEUIL)
+      if (arrivee && !navigation.enCours) {
+        yArrivee ??= y
+        if (y - yArrivee > 40) arrivee = false
+      }
+      const cachee = !arrivee && direction > 0 && y > SEUIL
       const reduite = y > window.innerHeight
       if (header.dataset.cachee !== String(cachee)) header.dataset.cachee = String(cachee)
       if (header.dataset.reduite !== String(reduite)) header.dataset.reduite = String(reduite)
@@ -221,7 +227,7 @@ export default function NavComportement() {
       delete header.dataset.reduite
       delete header.dataset.image
     }
-  }, [])
+  }, [pathname])
 
   return <span ref={ancre} hidden />
 }

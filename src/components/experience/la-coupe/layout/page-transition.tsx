@@ -74,7 +74,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
           // Seule l'image du projet visé porte le nom de vue : pas d'appariement parasite avec une autre tuile.
           setCiblePartage(demande.href.slice(demande.href.lastIndexOf('/') + 1))
         }
-        else navigation.arriveeContinue = navigation.navTenue = true
+        else navigation.arriveeContinue = true
         router.push(demande.href, { transitionTypes: [demande.type] })
         return
       }

@@ -35,8 +35,6 @@ export const navigation = {
   arriveePartagee: false,
   /** La fiche arrive en continu depuis le projet suivant : son hero est déjà en place, aucune entrée. */
   arriveeContinue: false,
-  /** Après une arrivée en continu, la nav reste cachée jusqu'au premier défilement vers le haut. */
-  navTenue: false,
   /** Le menu couvre tout l'écran : résolue à la fin de son ouverture (null tant qu'il est fermé). */
   couvertureMenu: null as Promise<void> | null,
   /** La prochaine fermeture du menu est une levée de rideau après navigation (600 ms). */
