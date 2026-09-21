@@ -112,13 +112,10 @@ export class RigHero {
   frame(camera: OrthographicCamera, taille: Taille, groupe: Group | null, quad: Mesh | null, options: OptionsFrame): void {
     if (!groupe) return
     this.appliquerMode(options.mode)
-    if (options.mode === 'menu') {
-      this.frameMenu(camera, taille, groupe, options)
-      return
-    }
-    const p = hero.progression
 
-    // Les deux premières frames rendues : le canvas est prêt, le SVG peut s'effacer.
+    // Les deux premières frames rendues, dans l'un ou l'autre mode : le canvas est prêt, le SVG
+    // peut s'effacer. Hors accueil la scène ne tourne qu'en mode menu ; le compte se faisait dans
+    // la branche hero seule, si bien que la maquette fil de fer n'y remplaçait jamais le SVG.
     if (this.frames < 3) {
       this.frames++
       hero.sale = true
@@ -127,6 +124,12 @@ export class RigHero {
         setModeHero('canvas')
       }
     }
+
+    if (options.mode === 'menu') {
+      this.frameMenu(camera, taille, groupe, options)
+      return
+    }
+    const p = hero.progression
 
     // Parallaxe souris, lissée ; tant qu'elle converge, on redessine.
     const s = this.souris
