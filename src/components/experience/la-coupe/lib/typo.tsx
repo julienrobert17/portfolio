@@ -46,13 +46,19 @@ const COMPOSE = /(\S+-\S+)/g
 export function insecable(texte: string): ReactNode {
   const morceaux = typo(texte).split(COMPOSE)
   if (morceaux.length === 1) return morceaux[0]
-  return morceaux.map((m, i) =>
-    i % 2 === 1 ? (
-      <span key={i} className="lc-colle">
-        {m}
-      </span>
-    ) : (
-      m
-    ),
+  // Un seul nœud en sortie : dans un conteneur flex ou grid, plusieurs enfants deviendraient
+  // autant d'éléments, et la gouttière s'intercalerait au milieu du titre.
+  return (
+    <span>
+      {morceaux.map((m, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="lc-colle">
+            {m}
+          </span>
+        ) : (
+          m
+        ),
+      )}
+    </span>
   )
 }
