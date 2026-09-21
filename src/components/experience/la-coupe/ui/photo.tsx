@@ -14,6 +14,9 @@ interface PhotoProps {
   cover?: boolean
 }
 
+/** L'image de tête est le LCP des fiches : un cran de qualité en moins, invisible en AVIF, un tiers d'octets gagné. */
+const QUALITE_TETE = 60
+
 /**
  * La seule image de contenu du site, sur next/image : AVIF ou WebP à la
  * bonne largeur, dimensions explicites et aspect-ratio donc zéro décalage
@@ -29,6 +32,7 @@ export default function Photo({ image, sizes, priority = false, eager = false, c
       alt={image.alt}
       sizes={sizes}
       preload={priority}
+      quality={priority ? QUALITE_TETE : undefined}
       loading={priority ? undefined : eager ? 'eager' : 'lazy'}
       fetchPriority={priority || eager ? 'high' : 'auto'}
       className={className}
