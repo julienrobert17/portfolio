@@ -14,7 +14,17 @@
   cursor: none;
 }
 
+/*
+ * La racine ne peint rien (display: contents) : elle porte l'état et la position (--x, --y) que
+ * lisent deux calques fixes frères. Le premier est en difference. Le second, hors mélange, sert
+ * au-dessus des images : sur une photo la différence donne des tons moyens illisibles. Le mode de
+ * fusion ne s'anime pas ; on passe de l'un à l'autre par un fondu croisé de 300 ms.
+ */
 .curseur {
+  display: contents;
+}
+
+.calque {
   position: fixed;
   top: 0;
   left: 0;
@@ -23,16 +33,24 @@
   height: 0;
   opacity: 0;
   pointer-events: none;
-  mix-blend-mode: difference;
-  color: #fff;
+  transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
   transition: opacity var(--t-micro) var(--ease-ui);
 }
 
-.curseur[data-visible='true'] {
+.curseur[data-visible='true'] .calque {
   opacity: 1;
 }
 
-/* Deux calques centrés sur le pointeur, animés par scale et opacité seulement : jamais de saut. */
+.melange {
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+.vue {
+  color: var(--paper);
+}
+
+/* Calques centrés sur le pointeur, animés par scale et opacité seulement : jamais de saut. */
 .point,
 .anneau {
   position: absolute;
@@ -56,9 +74,16 @@
   place-items: center;
   width: var(--c-voir);
   height: var(--c-voir);
-  border: 1px solid #fff;
+  border: 1px solid currentColor;
   scale: 0.3;
   opacity: 0;
+}
+
+/* Second anneau encre à 30 %, 1 px, décalé de 1 px : le papier reste lisible sur photo claire. */
+.anneauVue {
+  box-shadow:
+    0 0 0 1px rgba(21, 20, 18, 0.3),
+    inset 0 0 0 1px rgba(21, 20, 18, 0.3);
 }
 
 /* Liens et boutons : le même anneau, ramené à la taille « lien ». */
@@ -68,12 +93,18 @@
   opacity: 0;
 }
 
-.curseur[data-etat='link'] .anneau {
+.curseur[data-etat='link'] .melange .anneau {
   scale: var(--c-echelle-lien);
   opacity: 1;
 }
 
-.curseur[data-etat='view'] .anneau {
+/* Image : l'anneau en difference grandit en s'effaçant, celui du calque clair le remplace. */
+.curseur[data-etat='view'] .melange .anneau {
+  scale: 1;
+  opacity: 0;
+}
+
+.curseur[data-etat='view'] .anneauVue {
   scale: 1;
   opacity: 1;
 }
@@ -87,6 +118,7 @@
   white-space: nowrap;
   /* Le tracking ajoute un blanc après la dernière lettre : on recentre. */
   margin-right: -0.08em;
+  text-shadow: 0 0 2px rgba(21, 20, 18, 0.3);
   opacity: 0;
   transition: opacity 200ms var(--ease-ui);
 }
@@ -98,14 +130,14 @@
 
 /* Jamais au tactile : le JavaScript ne s'active pas non plus. */
 @media (pointer: coarse) {
-  .curseur {
+  .calque {
     display: none;
   }
 }
 
 /* Reduced motion : le curseur reste, sans lerp (JS) ni transitions. */
 @media (prefers-reduced-motion: reduce) {
-  .curseur,
+  .calque,
   .point,
   .anneau,
   .libelle {

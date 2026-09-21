@@ -120,7 +120,9 @@ function brancher(racine: HTMLElement, reduit: MediaQueryList): () => void {
       const facteur = reduit.matches ? 1 : LERP
       etat.x += dx * facteur
       etat.y += dy * facteur
-      racine.style.transform = `translate3d(${etat.x}px, ${etat.y}px, 0)`
+      // Deux calques fixes frères lisent la même position (voir le CSS).
+      racine.style.setProperty('--x', `${etat.x}px`)
+      racine.style.setProperty('--y', `${etat.y}px`)
     }),
   )
 
@@ -137,8 +139,8 @@ const VARIABLES = {
 
 /**
  * Curseur en `difference` (voir le CSS pour la chaîne de mélange) : point de
- * 8 px, anneau de 40 px sur les liens et boutons, anneau de 56 px « Voir » sur
- * `[data-curseur="view"]`, point conservé sur `[data-curseur="default"]`.
+ * 8 px, anneau de 40 px sur les liens et boutons ; sur `[data-curseur="view"]`
+ * (une image) l'anneau de 56 px « Voir » sort du mélange, en --paper, point conservé sur `[data-curseur="default"]`.
  * Tailles et libellé dans REGLAGES_CURSEUR.
  * Pointeur fin seulement (activé et désactivé au gré de `(pointer: fine)`),
  * caché avant le premier mouvement et quand la souris quitte la fenêtre.
@@ -171,9 +173,15 @@ export default function Curseur() {
 
   return (
     <div ref={ref} className={styles.curseur} style={VARIABLES} data-etat="default" data-visible="false" aria-hidden="true">
-      <div className={styles.point} />
-      <div className={styles.anneau}>
-        <span className={styles.libelle}>{REGLAGES_CURSEUR.libelle}</span>
+      <div className={`${styles.calque} ${styles.melange}`}>
+        <div className={styles.point} />
+        <div className={styles.anneau} />
+      </div>
+      {/* Au-dessus d'une image : hors mélange, en --paper doublé d'un anneau encre, lisible sur photo claire ou sombre. */}
+      <div className={`${styles.calque} ${styles.vue}`}>
+        <div className={`${styles.anneau} ${styles.anneauVue}`}>
+          <span className={styles.libelle}>{REGLAGES_CURSEUR.libelle}</span>
+        </div>
       </div>
     </div>
   )
