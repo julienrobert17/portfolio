@@ -1,5 +1,6 @@
 'use client'
 
+import { navigation } from '../lib/navigation-store'
 import { useEffect, useRef } from 'react'
 import { getLenis } from '../lib/lenis-store'
 
@@ -122,8 +123,13 @@ export default function NavComportement() {
       const y = window.scrollY
       const lenis = getLenis()
       const direction = lenis ? lenis.direction : Math.sign(y - precedent)
+      // Un vrai geste vers le haut, pas la remise à zéro du scroll à l'arrivée.
+      const monte = y < precedent && precedent - y < window.innerHeight
       precedent = y
-      const cachee = direction > 0 && y > SEUIL
+      // Arrivée en continu depuis le projet suivant : la nav était cachée, elle le reste
+      // (rien ne doit trahir le changement de page) jusqu'au premier défilement vers le haut.
+      if (navigation.navTenue && monte && !navigation.enCours) navigation.navTenue = false
+      const cachee = navigation.navTenue || (direction > 0 && y > SEUIL)
       const reduite = y > window.innerHeight
       if (header.dataset.cachee !== String(cachee)) header.dataset.cachee = String(cachee)
       if (header.dataset.reduite !== String(reduite)) header.dataset.reduite = String(reduite)

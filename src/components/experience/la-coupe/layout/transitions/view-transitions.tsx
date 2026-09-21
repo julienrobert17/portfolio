@@ -13,6 +13,6 @@ import type { TransitionImplementation } from './types'
 export const viewTransitions: TransitionImplementation = {
   nom: 'view-transitions',
   Wrapper: ({ children }) => (
-    <ViewTransition default={{ partage: 'lc-page-partage', default: 'lc-page-rideau' }}>{children}</ViewTransition>
+    <ViewTransition default={{ partage: 'lc-page-partage', continu: 'none', default: 'lc-page-rideau' }}>{children}</ViewTransition>
   ),
 }

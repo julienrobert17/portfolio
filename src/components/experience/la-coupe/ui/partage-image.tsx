@@ -8,10 +8,10 @@ interface PartageImageProps {
   children: ReactNode
 }
 
-/** Élément partagé d'une transition de page : l'image source s'étire vers le hero de la fiche. */
+/** Élément partagé d'une transition de page : l'image source s'étire vers le hero de la fiche (type `partage` seulement). */
 export default function PartageImage({ slug, children }: PartageImageProps) {
   return (
-    <ViewTransition name={`projet-${slug}`} share="lc-partage" default="none">
+    <ViewTransition name={`projet-${slug}`} share={{ partage: 'lc-partage', default: 'none' }} default="none">
       {children}
     </ViewTransition>
   )

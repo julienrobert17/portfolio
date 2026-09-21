@@ -16,6 +16,7 @@ interface PageTransitionProps {
 }
 
 const DUREE_RIDEAU = 0.5
+const GARDE_ELAN_MS = 600
 const REDUIT = '(prefers-reduced-motion: reduce)'
 
 /** Nom d'une page d'après son chemin, pour le rideau des retours navigateur. */
@@ -29,6 +30,9 @@ function nomDePage(pathname: string): string {
 /**
  * Seul point de contact entre la navigation et les transitions.
  * - `partage` : élément partagé par l'API View Transitions (voir transitions/).
+ * - `continu` : projet suivant en fin de course, même géométrie que le hero cible :
+ *   une copie figée du bloc tient l'écran, la route change dessous, scroll à 0, puis
+ *   la copie fond en 300 ms : seule la légende change.
  * - `rideau` : couche maison — un rideau --paper-2 monte en clip-path (500 ms)
  *   avec le nom de la destination, la page change dessous, puis il se lève.
  * Sous couverture, dans l'ordre : lenis.stop(), scroll à 0, montage,
@@ -50,9 +54,10 @@ export default function PageTransition({ children }: PageTransitionProps) {
       navigation.enCours = demande
       const reduit = window.matchMedia(REDUIT).matches
       getLenis()?.stop()
-      if (demande.type === 'partage' && !reduit) {
-        navigation.arriveePartagee = true
-        router.push(demande.href)
+      if (demande.type !== 'rideau' && !reduit) {
+        if (demande.type === 'partage') navigation.arriveePartagee = true
+        else navigation.arriveeContinue = navigation.navTenue = true
+        router.push(demande.href, { transitionTypes: [demande.type] })
         return
       }
       if (reduit || !rideau.current) {
@@ -92,10 +97,17 @@ export default function PageTransition({ children }: PageTransitionProps) {
     const { gsap, ScrollTrigger } = registerGsap()
     recalculerScroll()
     ScrollTrigger.refresh()
-    getLenis()?.start()
     const demande = navigation.enCours
+    // Arrivée en continu : l'élan de la molette qui a déclenché la navigation ne doit pas déplacer la nouvelle page.
+    if (demande?.type === 'continu') window.setTimeout(() => getLenis()?.start(), GARDE_ELAN_MS)
+    else getLenis()?.start()
+    // Page figée du projet suivant : la fiche est posée dessous, à l'identique ; fondu croisé de la légende.
+    for (const fige of document.querySelectorAll<HTMLElement>('[data-page-figee]')) {
+      gsap.to(fige, { opacity: 0, duration: 0.3, ease: 'none', onComplete: () => fige.remove() })
+    }
     navigation.enCours = null
     navigation.arriveePartagee = false
+    navigation.arriveeContinue = false
     if (demande?.type === 'rideau' && rideau.current) {
       gsap.to(rideau.current, {
         '--bas': '100%',

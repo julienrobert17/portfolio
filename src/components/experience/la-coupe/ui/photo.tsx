@@ -64,7 +64,7 @@ export default function Photo({ image, sizes, priority = false, eager = false, c
         alt={image.alt}
         loading={priority || eager ? 'eager' : 'lazy'}
         fetchPriority={priority || eager ? 'high' : 'auto'}
-        decoding="async"
+        decoding={priority ? 'sync' : 'async'}
         className={styles.image}
       />
     </picture>

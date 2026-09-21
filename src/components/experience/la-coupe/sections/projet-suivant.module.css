@@ -1,10 +1,12 @@
 /*
- * Espace réservé de 100vh : le bloc y grandit de 40vh à 100vh au scroll sans
- * jamais changer la hauteur du document. Sous mouvement réduit (rien n'est
- * animé), le conteneur se resserre sur le bloc au repos.
+ * Espace réservé de 100vh + 50vh de maintien : le bloc s'y découvre de 40vh à
+ * 100vh, puis reste collé (sticky) plein écran pendant le maintien. C'est là
+ * que part la navigation automatique, bloc exactement calé sur le viewport,
+ * avant que le footer n'entre. La hauteur du document ne change jamais. Sous
+ * mouvement réduit (rien n'est animé), le conteneur se resserre sur le bloc.
  */
 .conteneur {
-  height: 100vh;
+  height: 150vh;
   min-height: 240px;
 }
 
@@ -23,14 +25,68 @@
   color: var(--paper);
 }
 
-/* Animé (JS, mouvement autorisé) : 100vh d'emblée, découvert par clip-path piloté par --coupe (en vh). */
+/*
+ * Animé (JS, mouvement autorisé) : 100vh d'emblée, découvert par clip-path piloté par --coupe
+ * (60 → 0, en vh). L'image tient les 60vh du hero de fiche ; au repos on n'en voit que 40vh.
+ */
 .bloc[data-anime] {
   --coupe: 60;
+  position: sticky;
+  top: 0;
   height: 100vh;
+  background: var(--paper);
   clip-path: inset(0 0 calc(var(--coupe) * 1vh) 0);
 }
 
+.image {
+  position: absolute;
+  inset: 0;
+}
+
+/* Mêmes cotes que `.image` de fiche-hero.module.css. */
+.bloc[data-anime] .image {
+  inset: 0 0 auto;
+  height: 60vh;
+  min-height: 320px;
+}
+
+.image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(21, 20, 18, 0.55), rgba(21, 20, 18, 0) 60%);
+}
+
+/* La légende en surimpression et son voile s'effacent sur la première moitié de la course. */
+.bloc[data-anime] .legende,
+.bloc[data-anime] .image::after {
+  opacity: calc((var(--coupe) - 30) / 30);
+}
+
 .bloc[data-anime] .legende {
+  transform: translateY(calc(var(--coupe) * -1vh));
+}
+
+.entete {
+  display: none;
+}
+
+/* Copie figée du bloc pendant la navigation continue (posée par projet-suivant-anime). */
+.bloc[data-page-figee] {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.bloc[data-anime] .entete {
+  position: absolute;
+  inset: max(60vh, 320px) 0 auto;
+  display: grid;
+  color: var(--ink);
+}
+
+.legende {
   transform: translateY(calc(var(--coupe) * -1vh));
 }
 

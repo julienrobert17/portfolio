@@ -3,6 +3,7 @@
 import { useRef, type ReactNode } from 'react'
 import { ENTREE, useScrollAnimation } from '../lib/animation'
 import { chargerSplitText } from '../lib/gsap'
+import { navigation } from '../lib/navigation-store'
 
 interface RevealTextProps {
   children: ReactNode
@@ -21,6 +22,8 @@ interface RevealTextProps {
 export default function RevealText({ children, as: Tag = 'p', className, delay = 0 }: RevealTextProps) {
   const ref = useRef<HTMLElement>(null)
   useScrollAnimation(ref, ({ gsap, racine }) => {
+    // Arrivée en continu (projet suivant) : le titre du hero est déjà à l'écran, il ne rejoue pas son entrée.
+    if (navigation.arriveeContinue && racine.closest('[data-hero-fiche]')) return
     let annule = false
     let revert: (() => void) | null = null
     chargerSplitText().then((SplitText) => {

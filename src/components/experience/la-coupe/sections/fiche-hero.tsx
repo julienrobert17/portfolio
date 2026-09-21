@@ -16,7 +16,7 @@ interface FicheHeroProps {
 export default function FicheHero({ projet }: FicheHeroProps) {
   const image = imageProjet(projet, 0)
   return (
-    <header className={styles.hero}>
+    <header className={styles.hero} data-hero-fiche>
       <div className={styles.image} data-fiche="image">
         <PartageImage slug={projet.slug}>
           <Photo image={image} cover priority sizes="100vw" />

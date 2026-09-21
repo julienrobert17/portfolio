@@ -16,6 +16,8 @@ export default function FicheHeroAnime() {
     const header = racine.closest('header')
     const image = header?.querySelector<HTMLElement>('[data-fiche="image"]')
     if (!header || !image) return
+    // Arrivée en continu depuis le projet suivant : le hero est déjà à l'écran, rien n'entre.
+    if (navigation.arriveeContinue) return
     // Arrivée par élément partagé : l'image vient de la page précédente, pas de clip-path.
     if (!navigation.arriveePartagee) gsap.from(image, { clipPath: 'inset(100% 0 0 0)', duration: 1.1, ease: ENTREE.ease })
     const lignes = header.querySelectorAll<HTMLElement>('[data-fiche="entree"]')
