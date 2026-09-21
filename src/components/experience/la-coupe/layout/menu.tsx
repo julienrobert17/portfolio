@@ -15,12 +15,22 @@ import LocalTime from './local-time'
 import styles from './menu.module.css'
 
 const FOCALISABLES = 'a[href], button:not([disabled])'
+
+/**
+ * Focalisables réellement à l'écran : sous 720 px le lien « Accueil » de
+ * l'overlay est masqué (le nom de la barre y mène déjà), et un élément en
+ * `display: none` ne prend pas le focus — le piège tournerait à vide.
+ */
+const focalisablesDe = (racine: ParentNode): HTMLElement[] =>
+  Array.from(racine.querySelectorAll<HTMLElement>(FOCALISABLES)).filter((e) => e.getClientRects().length > 0)
 const REDUIT = '(prefers-reduced-motion: reduce)'
 
 /**
  * Index plein écran : rideau encre qui descend (800 ms), les huit projets en
- * display à gauche avec leur numéro, la maquette en fil de fer à droite, les
- * pages en mono petit en bas (taille normale sur mobile, où la barre les masque)
+ * display avec leur numéro, la maquette en fil de fer à droite, les pages en
+ * mono. L'ordre du DOM est celui de l'écran mobile (pages, projets, heure) ;
+ * en desktop la grille remonte les projets et descend les pages, sans toucher
+ * à l'ordre de tabulation
  * (canvas en mode menu, ou le SVG statique tant que three n'est pas là). Focus
  * piégé, `main` inerte, Lenis arrêté. Fermeture : Échap, fond, bouton.
  */
@@ -58,8 +68,7 @@ export default function Menu() {
         gsap.fromTo(couches, { '--bas': '100%', opacity: 1 }, { '--bas': '0%', duration: 0.8, ease: EASE_UI_GSAP, onComplete: couvert })
         gsap.from(liens, { y: 24, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.05, delay: 0.3 })
       }
-      const premier = el.querySelector<HTMLElement>(FOCALISABLES)
-      premier?.focus({ preventScroll: true })
+      focalisablesDe(el)[0]?.focus({ preventScroll: true })
 
       const auClavier = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -68,7 +77,7 @@ export default function Menu() {
           return
         }
         if (e.key !== 'Tab') return
-        const focalisables = Array.from(el.querySelectorAll<HTMLElement>(FOCALISABLES))
+        const focalisables = focalisablesDe(el)
         const bouton = document.querySelector<HTMLElement>('[data-menu-bouton]')
         if (bouton) focalisables.push(bouton)
         if (focalisables.length === 0) return
@@ -134,7 +143,24 @@ export default function Menu() {
       <div className={styles.maquette} aria-hidden="true">
         <MaquetteStatique className={styles.filDeFer} />
       </div>
-      <nav className={`lc-container ${styles.contenu}`} aria-label="Index des projets">
+      <nav className={`lc-container ${styles.contenu}`} aria-label="Pages et projets">
+        <ul className={styles.pages}>
+          {[{ label: 'Accueil', href: '' }, ...site.nav].map((item) => (
+            <li key={item.href} data-menu-item data-accueil={item.href === '' ? '' : undefined}>
+              <LienTransition
+                href={`${site.base}${item.href}`}
+                label={item.label}
+                className={`lc-mono ${styles.page}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  auLien(`${site.base}${item.href}`, item.label)
+                }}
+              >
+                {item.label}
+              </LienTransition>
+            </li>
+          ))}
+        </ul>
         <ol className={styles.projets}>
           {projets.map((p, i) => (
             <li key={p.slug} data-menu-item>
@@ -153,23 +179,6 @@ export default function Menu() {
             </li>
           ))}
         </ol>
-        <ul className={styles.pages}>
-          {[{ label: 'Accueil', href: '' }, ...site.nav].map((item) => (
-            <li key={item.href} data-menu-item data-accueil={item.href === '' ? '' : undefined}>
-              <LienTransition
-                href={`${site.base}${item.href}`}
-                label={item.label}
-                className={`lc-mono ${styles.page}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  auLien(`${site.base}${item.href}`, item.label)
-                }}
-              >
-                {item.label}
-              </LienTransition>
-            </li>
-          ))}
-        </ul>
         {/* Mobile : la barre masque l'heure et le lieu, l'overlay les porte en bas. */}
         <LocalTime className={`lc-mono ${styles.heure}`} />
       </nav>

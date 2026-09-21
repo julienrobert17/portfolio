@@ -73,9 +73,13 @@
   padding: 0;
 }
 
-/* Les huit projets, en display, à gauche ; la maquette occupe la colonne de droite. */
+/*
+ * Les huit projets, en display, à gauche ; la maquette occupe la colonne de droite. En desktop
+ * la grille les remonte au-dessus des pages, que le DOM place en premier (ordre de l'écran
+ * mobile) : le placement est ici, l'ordre de tabulation reste celui du document.
+ */
 .projets {
-  grid-column: 1;
+  grid-area: 1 / 1;
   align-self: center;
   display: flex;
   flex-direction: column;
@@ -112,7 +116,7 @@
 
 /* Les pages, en mono petit, sur une ligne en bas. */
 .pages {
-  grid-column: 1 / -1;
+  grid-area: 2 / 1 / auto / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--s-5);
@@ -175,7 +179,7 @@
   }
 
   .pages {
-    order: -1;
+    grid-area: 1 / 1;
     column-gap: var(--s-4);
     border-top: 0;
     border-bottom: 1px solid var(--line-inverse);
@@ -191,7 +195,12 @@
     font-size: 1.125rem;
   }
 
+  .projets {
+    grid-area: 2 / 1;
+  }
+
   .heure {
+    grid-area: 3 / 1;
     display: block;
     font-size: 0.75rem;
     color: var(--ink-2-inverse);
