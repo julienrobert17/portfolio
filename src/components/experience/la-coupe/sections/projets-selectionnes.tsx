@@ -35,7 +35,7 @@ export default function ProjetsSelectionnes() {
             <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
               <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image} data-image-bloc>
-                <PartageImage slug={projet.slug}>
+                <PartageImage slug={projet.slug} source>
                   {/* Un viewport sous le hero : chargé d'emblée mais sans préchargement (il resterait inutilisé), les suivants différés. */}
                   <Photo image={{ ...image, alt: '' }} cover priority={i === 0} sizes="100vw" />
                 </PartageImage>

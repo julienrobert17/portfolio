@@ -246,31 +246,41 @@ html:has(.lc) {
  * rideau / retour : l'ancienne page est tenue 300 ms sous le rideau, puis remplacée. */
 ::view-transition-group(.lc-partage) {
   animation-duration: 900ms;
-  animation-timing-function: var(--ease-ui);
+  /* Les tokens vivent sur .lc ; les pseudo-éléments de transition pendent à :root : valeur littérale de --ease-ui. */
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
   z-index: 70;
 }
 
-::view-transition-old(.lc-partage),
+/* Un seul cliché, le nouveau, qui remplit la boîte animée : ni couture entre deux cadrages ni débord sur le titre. */
+::view-transition-old(.lc-partage) {
+  display: none;
+}
+
 ::view-transition-new(.lc-partage) {
   animation: none;
   mix-blend-mode: normal;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
+/*
+ * Le contenu de page est un groupe à part (il change de hauteur et de position d'une page à
+ * l'autre) : on le tient à sa place pendant que l'ancienne page sort, puis il saute à la nouvelle
+ * quand plus rien n'est visible. Sans cela l'ancienne page glisse pendant son fondu.
+ */
+::view-transition-group(.lc-page-partage) {
+  animation-duration: 300ms;
+  animation-timing-function: steps(1, end);
+}
+
+/* Jamais de textes superposés : l'ancienne page sort d'abord, la nouvelle entre ensuite, sous l'image qui s'étire. */
 ::view-transition-old(.lc-page-partage) {
-  animation: lc-fondu-sortie 900ms var(--ease-ui) both;
+  animation: lc-fondu-sortie 300ms linear both;
 }
 
 ::view-transition-new(.lc-page-partage) {
-  animation: lc-fondu-entree 900ms var(--ease-ui) both;
-}
-
-::view-transition-old(.lc-page-rideau) {
-  animation: lc-tenir 300ms linear both;
-}
-
-::view-transition-new(.lc-page-rideau) {
-  animation: none;
+  animation: lc-fondu-entree 500ms cubic-bezier(0.76, 0, 0.24, 1) 300ms both;
 }
 
 @keyframes lc-fondu-sortie {
@@ -282,15 +292,6 @@ html:has(.lc) {
 @keyframes lc-fondu-entree {
   from {
     opacity: 0;
-  }
-}
-
-@keyframes lc-tenir {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
   }
 }
 
