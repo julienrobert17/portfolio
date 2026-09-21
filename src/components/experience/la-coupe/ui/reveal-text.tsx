@@ -32,6 +32,8 @@ export default function RevealText({ children, as: Tag = 'p', className, delay =
         type: 'lines',
         mask: 'lines',
         autoSplit: true,
+        // Sans cela, SplitText ramène les espaces fines insécables (typographie française) à de simples espaces.
+        reduceWhiteSpace: false,
         // 'none' : aria-label est interdit sur un <p> ; le texte reste lisible dans ses lignes.
         aria: 'none',
         onSplit: (self) =>

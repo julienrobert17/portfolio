@@ -163,6 +163,11 @@ html:has(.lc) {
   letter-spacing: 0;
 }
 
+/* Mot et ponctuation qui ne doivent pas se séparer en fin de ligne (voir RichText). */
+.lc-colle {
+  white-space: nowrap;
+}
+
 .lc-mono {
   font-family: var(--font-mono);
   font-size: 0.875rem;

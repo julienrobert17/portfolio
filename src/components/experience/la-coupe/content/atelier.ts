@@ -1,6 +1,7 @@
 import type { Distinction, Membre } from './types'
+import { typographier } from '../lib/typo'
 
-export const atelier = {
+export const atelier = typographier({
   titre: 'L’atelier',
   intro:
     "Fondé en 2011 par Mireille Vasseur, l'atelier réunit six architectes dans un ancien atelier de reliure du treizième arrondissement. Nous construisons des maisons, des écoles, des logements et des lieux publics, en France, pour des maîtres d'ouvrage publics et privés.",
@@ -48,4 +49,4 @@ export const atelier = {
     { annee: 2023, label: 'D’architectures n° 306, portfolio Maison des Vignes' },
     { annee: 2022, label: 'Exposition « Réparer la ville », Pavillon de l’Arsenal' },
   ] satisfies Distinction[],
-}
+})

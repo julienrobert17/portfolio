@@ -1,12 +1,13 @@
 import { coupeDepuisMaquette, planDepuisMaquette } from '../canvas/maquette'
 import type { Projet } from './types'
+import { typographier } from '../lib/typo'
 
 /**
  * Les huit projets, dans l'ordre de l'index. Contenu placeholder : chaque
  * fiche est réaliste mais fictive. Les images sont des SVG générés par
  * `scripts/generate-la-coupe-placeholders.ts` à partir de cette liste.
  */
-export const projets: Projet[] = [
+export const projets: Projet[] = typographier([
   {
     slug: 'maison-des-vignes',
     titre: 'Maison des Vignes',
@@ -376,4 +377,4 @@ export const projets: Projet[] = [
     ],
     teinte: 150,
   },
-]
+])

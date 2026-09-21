@@ -2,6 +2,7 @@ import LienTransition from '../layout/lien-transition'
 import { site } from '../content/site'
 import type { Projet } from '../content/types'
 import { imageProjet, SIZES_TETE_PORTRAIT } from '../lib/images'
+import { typo } from '../lib/typo'
 import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import RichText from '../ui/rich-text'
@@ -25,7 +26,7 @@ export default function ProjetSuivant({ projet }: ProjetSuivantProps) {
   const image = imageProjet(projet, 0)
   return (
     <div className={styles.conteneur}>
-      <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.bloc} aria-label={`Projet suivant : ${projet.titre}`} data-curseur="view">
+      <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.bloc} aria-label={typo(`Projet suivant : ${projet.titre}`)} data-curseur="view">
         <div className={styles.image}>
           <PartageImage slug={projet.slug} source>
             <Photo image={image} cover sizes="100vw" sizesPortrait={SIZES_TETE_PORTRAIT} />

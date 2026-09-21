@@ -3,6 +3,7 @@ import { projets } from '../content/projets'
 import { site } from '../content/site'
 import { rendreDessin } from '../lib/dessins'
 import { formatGps } from '../lib/format'
+import { typo } from '../lib/typo'
 import Apparition from '../ui/apparition'
 import DessinSvg from '../ui/dessin-svg'
 import RevealText from '../ui/reveal-text'
@@ -77,7 +78,7 @@ export default function Footer() {
           {credits.length > 0 ? (
             <details className={styles.credits}>
               <summary className={styles.creditsResume}>
-                Photographies : {credits.length} auteurs, {[...new Set(credits.map((c) => c.source))].join(' et ')}
+                {typo(`Photographies : ${credits.length} auteurs, ${[...new Set(credits.map((c) => c.source))].join(' et ')}`)}
               </summary>
               <ul className={`${styles.liste} ${styles.secondaire} ${styles.creditsListe}`}>
                 {credits.map((c) => (

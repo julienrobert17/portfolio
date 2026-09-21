@@ -1,10 +1,11 @@
 import type { ImageContenu } from './types'
+import { typographier } from '../lib/typo'
 
 /**
  * Identité, navigation et textes communs. Placeholder à remplacer par le vrai
  * contenu : aucun composant ne porte de texte en dur.
  */
-export const site = {
+export const site = typographier({
   /** Préfixe de toutes les routes de l'expérience. */
   base: '/experience/la-coupe',
   nom: 'Atelier Mireille Vasseur',
@@ -163,10 +164,10 @@ export const site = {
     mentions: ['SARL d’architecture', 'Ordre des architectes, n° 0123456', 'Mentions légales'],
     credits: ['Photographies : placeholders', 'Site : la Coupe, 2026'],
   },
-}
+})
 
 /** Images hors projets : atelier, portrait, équipe. */
-export const imagesAtelier: Record<string, ImageContenu> = {
+export const imagesAtelier: Record<string, ImageContenu> = typographier({
   atelier: { ratio: '3:2', alt: "Le plateau de l'atelier, table de maquettes au premier plan" },
   portrait: { ratio: '4:5', alt: 'Mireille Vasseur, portrait dans l’atelier' },
   'equipe-01': { ratio: '1:1', alt: 'Portrait de Mireille Vasseur' },
@@ -178,4 +179,4 @@ export const imagesAtelier: Record<string, ImageContenu> = {
   ecouter: { ratio: '16:9', alt: 'Relevé sur site, carnet et mètre ruban' },
   dessiner: { ratio: '16:9', alt: 'Calques superposés sur la table de dessin' },
   construire: { ratio: '16:9', alt: 'Chantier, ossature bois en cours de levage' },
-}
+})
