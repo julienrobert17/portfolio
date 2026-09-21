@@ -1,103 +1,40 @@
 .composeur {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  column-gap: var(--gutter);
-  row-gap: var(--s-6);
-  margin: 0;
-}
-
-.controles {
-  grid-column: 1 / span 3;
   display: flex;
   flex-direction: column;
-  gap: var(--s-5);
-}
-
-.types {
+  gap: var(--s-6);
   margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
 }
 
-.legende {
-  display: block;
-  padding: 0;
-  margin-bottom: var(--s-3);
-}
-
-.pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2);
-}
-
-/* Le vrai bouton radio couvre la pill, invisible : clic, focus et flèches du clavier restent natifs. */
-.pill {
-  position: relative;
-  display: inline-flex;
-}
-
-.radio {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+/* La phrase est le message : corps display, mesure large, rien d'autre autour. */
+.phrase {
   margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.pillTexte {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding-inline: var(--s-4);
-  border: 1px solid var(--ink-2);
-  border-radius: 999px;
-  transition:
-    background-color var(--t-micro) var(--ease-ui),
-    color var(--t-micro) var(--ease-ui),
-    border-color var(--t-micro) var(--ease-ui);
-}
-
-.radio:hover + .pillTexte {
-  border-color: var(--ink);
-}
-
-.radio:checked + .pillTexte {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-}
-
-.radio:focus-visible + .pillTexte {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
+  font-size: clamp(1.8rem, 4.4vw, 3.2rem);
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
 }
 
 .champ {
-  display: flex;
-  flex-direction: column;
+  display: inline-block;
 }
 
-.champ .legende {
-  margin-bottom: var(--s-1);
-}
-
+/* Champ en ligne : pas de cadre, un soulignement, la largeur suit la saisie (ch). */
 .saisie {
-  width: 100%;
-  min-height: 48px;
-  padding: var(--s-2) 0;
+  display: inline-block;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
   border: 0;
-  border-bottom: 1px solid var(--ink-2);
+  border-bottom: 1px solid var(--line);
   border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1.6vw, 1.6rem);
-  letter-spacing: -0.01em;
   transition: border-color var(--t-micro) var(--ease-ui);
+}
+
+.saisie::placeholder {
+  color: var(--ink-2);
+  opacity: 1;
 }
 
 .saisie:hover,
@@ -105,147 +42,172 @@
   border-bottom-color: var(--ink);
 }
 
+.saisie:focus {
+  outline: none;
+}
+
 .saisie:focus-visible {
-  outline-offset: 6px;
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
-.message {
-  grid-column: 5 / span 4;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  min-width: 0;
+/* Sujet : italique serif souligné, le mot défile dans une fenêtre d'une ligne. */
+.sujet {
+  display: inline-block;
+  padding: 0;
+  font: inherit;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
 }
 
-.apercu {
-  display: flex;
-  flex-direction: column;
-  padding: var(--s-4);
-  background: var(--paper-2);
+.sujet:hover,
+.sujet:focus-visible {
+  text-decoration-color: currentColor;
 }
 
-.entete {
-  margin: 0;
-  display: grid;
-  grid-template-columns: 7ch minmax(0, 1fr);
-  gap: var(--s-3);
-  padding-block: var(--s-2);
-  border-bottom: 1px solid var(--line);
-}
-
-/* Une ligne, quoi qu'il arrive : changer de type ne change pas la hauteur. */
-.valeur,
-.signature {
+.fenetre {
+  position: relative;
+  display: inline-block;
   overflow: hidden;
+  vertical-align: bottom;
+  /* Assez haut pour les jambages de l'italique, sans décaler la ligne de base. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.valeur {
+  display: inline-block;
+  animation: lc-sujet-entree 300ms var(--ease-ui) both;
+}
+
+.valeur[data-sens='-1'] {
+  animation-name: lc-sujet-entree-haut;
+}
+
+.sortante {
+  position: absolute;
+  left: 0;
+  top: 0;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  animation: lc-sujet-sortie 300ms var(--ease-ui) both;
 }
 
-/* Hauteur réservée pour la phrase la plus longue (deux lignes, trois sur mobile). */
-.phrase {
-  min-height: calc(2 * 1.45em);
-  margin: var(--s-4) 0 0;
+.sortante[data-sens='-1'] {
+  animation-name: lc-sujet-sortie-bas;
 }
 
-.signature {
-  margin: var(--s-3) 0 0;
-  min-height: 1.45em;
+@keyframes lc-sujet-entree {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-entree-haut {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-sortie {
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-sortie-bas {
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Le texte de repli n'existe que sans JavaScript (voir le <noscript> de la section). */
+.sujetStatique {
+  display: none;
+  cursor: auto;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-2) var(--s-3);
+  gap: var(--s-2) var(--s-5);
 }
 
-.ouvrir,
-.copier {
+:global(.lc) .ouvrir {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   min-height: 48px;
   padding-inline: var(--s-4);
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    background-color var(--t-micro) var(--ease-ui),
-    color var(--t-micro) var(--ease-ui);
-}
-
-/* `.lc a` impose color: inherit : il faut passer devant. */
-:global(.lc) .ouvrir {
-  background: var(--ink);
   color: var(--paper);
+  background: var(--ink);
+  border-radius: 999px;
+  transition: background-color var(--t-micro) var(--ease-ui);
 }
 
-.ouvrir:hover {
+:global(.lc) .ouvrir:hover {
   background: var(--accent);
-  border-color: var(--accent);
 }
 
 .copier {
-  background: transparent;
+  min-height: 48px;
+  padding: 0;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--line);
+  transition:
+    color var(--t-micro) var(--ease-ui),
+    text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.copier:hover {
   color: var(--ink);
+  text-decoration-color: currentColor;
 }
 
-.copier:hover,
-.copier[data-etat='copie'] {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-/* La ligne de retour existe toujours : le texte y arrive sans rien pousser. */
+/* Hauteur réservée : le retour de copie ne pousse rien. */
 .retour {
-  flex-basis: 100%;
-  min-height: calc(2 * 1.45em);
+  min-height: 1.45em;
   margin: 0;
   color: var(--ink-2);
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--ease-ui);
 }
 
+.retour[data-etat='copie'],
 .retour[data-etat='echec'] {
-  color: var(--accent);
+  opacity: 1;
 }
 
-/* Colonne étroite : la phrase la plus longue prend trois lignes. */
-@media (max-width: 1240px) {
-  .controles {
-    grid-column: 1 / span 4;
-  }
-
-  .phrase {
-    min-height: calc(3 * 1.45em);
-  }
+.intro {
+  max-width: 46ch;
+  margin: 0;
 }
 
-@media (max-width: 900px) {
-  .composeur {
-    row-gap: var(--s-4);
+@media (prefers-reduced-motion: reduce) {
+  .valeur,
+  .sortante {
+    animation: none;
   }
 
-  .controles {
-    gap: var(--s-4);
-  }
-
-  .controles,
-  .message {
-    grid-column: 1 / -1;
-  }
-
-}
-
-@media (max-width: 420px) {
-  .apercu {
-    padding: var(--s-3);
-  }
-
-  .pillTexte {
-    padding-inline: var(--s-3);
-  }
-
-  .ouvrir,
-  .copier {
-    flex: 1 1 auto;
+  .sortante {
+    display: none;
   }
 }

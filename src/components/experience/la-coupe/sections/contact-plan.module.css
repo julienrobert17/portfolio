@@ -66,6 +66,10 @@
   margin-top: var(--s-3);
 }
 
+/*
+ * Mobile : pleine largeur du conteneur. Pas de recadrage : mesurés, les libellés occupent déjà
+ * tout le cadre (de y 6 à y 488 sur 500), rogner le plan les tronquerait.
+ */
 @media (max-width: 900px) {
   .figure {
     margin-left: 0;

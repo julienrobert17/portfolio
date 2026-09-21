@@ -23,6 +23,11 @@
   border-top: 1px solid var(--line);
 }
 
+.statut {
+  margin: var(--s-4) 0 0;
+  color: var(--ink-2);
+}
+
 .adresse {
   grid-column: 1 / span 9;
   margin: 0;

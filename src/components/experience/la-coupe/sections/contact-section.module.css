@@ -14,6 +14,15 @@
   margin-bottom: var(--s-3);
 }
 
+/* Variante large : le rail se réduit à deux colonnes, le corps commence à la troisième. */
+[data-large] > .rail {
+  grid-column: 1 / span 2;
+}
+
+[data-large] > .corps {
+  grid-column: 3 / span 10;
+}
+
 .corps {
   grid-column: 5 / span 8;
   min-width: 0;
@@ -26,7 +35,9 @@
   }
 
   .rail,
-  .corps {
+  .corps,
+  [data-large] > .rail,
+  [data-large] > .corps {
     grid-column: 1 / -1;
   }
 

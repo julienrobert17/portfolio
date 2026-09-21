@@ -58,6 +58,17 @@ export const site = {
     adresse: ['12 rue des Tanneries', '75013 Paris'],
     gps: { lat: 48.8318, lon: 2.3474 },
     horaires: 'Du lundi au vendredi, de 9 h à 18 h.',
+    /** Les mêmes horaires en données : le statut de la page contact les compare à l'heure de Paris. */
+    ouverture: { jours: [1, 2, 3, 4, 5], debut: 9, fin: 18 },
+    statut: {
+      ouvert: "L'atelier est ouvert",
+      ferme: "L'atelier est fermé",
+      /** Complète « L'atelier est fermé — … ». */
+      demain: 'réponse demain matin',
+      lundi: 'réponse lundi matin',
+      /** Après l'ouverture du jour, avant la fermeture : complété par l'heure. */
+      aParis: 'à {ville}',
+    },
     cta: 'Un projet ?',
     intro:
       "Une maison à agrandir, un bâtiment à transformer, un concours à préparer : écrivez-nous, nous répondons sous trois jours.",
@@ -69,19 +80,22 @@ export const site = {
       titre: 'Écrire',
       intro: "Deux indications suffisent pour commencer. Le message s'ouvre dans votre messagerie, vous le terminez à votre façon.",
       legende: 'Votre projet',
-      /** `objet` complète « au sujet … », article et élision compris. */
+      /** `objet` suit « au sujet d’ » : tous commencent par une voyelle, l'élision vaut pour les quatre. */
       types: [
-        { id: 'maison', label: 'Maison', sujet: 'Projet de maison', objet: "d'une maison" },
-        { id: 'rehabilitation', label: 'Réhabilitation', sujet: 'Projet de réhabilitation', objet: "d'une réhabilitation" },
-        { id: 'equipement', label: 'Équipement', sujet: "Projet d'équipement", objet: "d'un équipement" },
-        { id: 'autre', label: 'Autre', sujet: 'Un projet à part', objet: "d'un projet qui n'entre dans aucune case" },
+        { id: 'maison', sujet: 'Projet de maison', objet: 'une maison' },
+        { id: 'rehabilitation', sujet: 'Projet de réhabilitation', objet: 'une réhabilitation' },
+        { id: 'equipement', sujet: "Projet d'équipement", objet: 'un équipement public' },
+        { id: 'autre', sujet: 'Un projet à part', objet: 'autre chose' },
       ],
-      /** Tant qu'aucun type n'est choisi, et dans le HTML servi sans JavaScript. */
-      defaut: { sujet: 'Un projet', objet: "d'un projet" },
+      /** La phrase à compléter, en trois morceaux : le nom et le sujet se glissent entre eux. */
+      phrase: { debut: 'Bonjour, je m’appelle ', milieu: ' et je vous écris au sujet d’', fin: '.' },
+      /** Corps du message quand le nom n'est pas renseigné. */
+      phraseSansNom: 'Bonjour, je vous écris au sujet d’{objet}.',
       nom: 'Votre nom',
-      /** `{objet}` est remplacé par l'objet du type choisi. */
-      phrase: 'Bonjour, je vous écris au sujet {objet}…',
-      apercu: { titre: 'Aperçu du message', a: 'À', objet: 'Objet', signature: 'Votre nom' },
+      placeholder: 'votre nom',
+      /** Nom accessible du bouton qui fait défiler les sujets, et annonce du sujet courant. */
+      changerSujet: 'Changer le sujet du message',
+      sujetCourant: 'Sujet : {objet}',
       ouvrir: 'Ouvrir le message',
       copier: "Copier l'adresse",
       copie: 'Adresse copiée.',

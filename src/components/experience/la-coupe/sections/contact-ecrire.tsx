@@ -2,23 +2,19 @@ import { site } from '../content/site'
 import Apparition from '../ui/apparition'
 import ContactComposeur from './contact-composeur'
 import ContactSection from './contact-section'
-import styles from './contact-ecrire.module.css'
 
 /**
- * « Écrire » : le composeur, amélioration progressive d'un simple lien mailto.
- * Sans JavaScript, les contrôles (inertes) sont retirés par la feuille du
- * <noscript> : il reste l'aperçu du message par défaut et son lien.
+ * « Écrire » : la phrase à compléter, amélioration progressive d'un simple
+ * lien mailto. Sans JavaScript, la feuille du <noscript> échange le bouton du
+ * sujet contre sa valeur par défaut en texte et retire le bouton de copie ; il
+ * reste la phrase et son lien, qui fonctionnent tels quels.
  */
 export default function ContactEcrire() {
   const { composeur } = site.contact
   return (
-    <ContactSection
-      numero="01"
-      titre={composeur.titre}
-      rail={<p className={styles.intro}>{composeur.intro}</p>}
-    >
+    <ContactSection numero="01" titre={composeur.titre} large>
       <noscript>
-        <style>{'[data-composeur-controles]{display:none!important}'}</style>
+        <style>{'[data-js-seul]{display:none!important}[data-sans-js]{display:inline!important}'}</style>
       </noscript>
       <Apparition bloc>
         <ContactComposeur />

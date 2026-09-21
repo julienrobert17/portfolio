@@ -6,6 +6,7 @@ import { formatGps } from '../lib/format'
 import Apparition from '../ui/apparition'
 import DessinSvg from '../ui/dessin-svg'
 import RevealText from '../ui/reveal-text'
+import FooterCta from './footer-cta'
 import LocalTime from './local-time'
 import styles from './footer.module.css'
 
@@ -19,14 +20,16 @@ export default function Footer() {
   const { contact, reseaux, footer } = site
   return (
     <footer className={`lc-container ${styles.footer}`}>
-      <div className={styles.cta}>
-        <RevealText as="p" className={`lc-display lc-h1 ${styles.titre}`}>
-          {contact.cta}
-        </RevealText>
-        <a href={`mailto:${contact.email}`} className={`lc-display lc-h3 ${styles.email}`} data-magnetique>
-          {contact.email}
-        </a>
-      </div>
+      <FooterCta>
+        <div className={styles.cta}>
+          <RevealText as="p" className={`lc-display lc-h1 ${styles.titre}`}>
+            {contact.cta}
+          </RevealText>
+          <a href={`mailto:${contact.email}`} className={`lc-display lc-h3 ${styles.email}`} data-magnetique>
+            {contact.email}
+          </a>
+        </div>
+      </FooterCta>
 
       <Apparition className={`lc-grid ${styles.colonnes}`}>
         <div className={styles.colonne}>
