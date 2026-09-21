@@ -85,7 +85,8 @@ export default function Galerie({ projet }: GalerieProps) {
             <li key={image.src} className={styles.item} style={{ gridColumn: colonnes }} data-acote={aCote || undefined}>
               <figure className={`${styles.figure} ${aCote ? styles.aCote : ''}`} data-plein={colonnes === '1 / -1' || undefined}>
                 <div className={styles.cadre}>
-                  <Photo image={image} sizes={sizes} />
+                  {/* Toutes basses : sur une fiche, seule l'image de tête a droit à la bande passante. */}
+                  <Photo image={image} sizes={sizes} basse />
                 </div>
                 <figcaption className={`lc-mono ${styles.legende}`}>
                   <span className={styles.numero}>{formatNumero(index + 1)}</span>

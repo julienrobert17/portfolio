@@ -15,6 +15,8 @@ interface PhotoProps {
   className?: string
   /** Remplit son conteneur (object-fit: cover) au lieu de garder son ratio. */
   cover?: boolean
+  /** Image de contenu loin sous le pli : priorité basse, pour ne pas disputer la ligne à l'image de tête. */
+  basse?: boolean
   /**
    * Largeur affichée écran tenu droit, pour une image de tête en `cover` : active le recadrage
    * portrait 4:5 (si l'image en a un), qui remplit la hauteur sans être agrandi.
@@ -33,7 +35,7 @@ interface PhotoProps {
 const PORTRAIT = '(orientation: portrait)'
 const PAYSAGE = '(orientation: landscape)'
 
-export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false, sizesPortrait }: PhotoProps) {
+export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false, basse = false, sizesPortrait }: PhotoProps) {
   const portrait = cover && sizesPortrait ? image.srcsetPortrait : undefined
   const img = useRef<HTMLImageElement>(null)
 
@@ -78,7 +80,7 @@ export default function Photo({ image, sizes, priority = false, eager = false, c
         height={image.height}
         alt={image.alt}
         loading={priority || eager ? 'eager' : 'lazy'}
-        fetchPriority={priority || eager ? 'high' : 'auto'}
+        fetchPriority={priority || eager ? 'high' : basse ? 'low' : 'auto'}
         decoding={priority ? 'sync' : 'async'}
         className={styles.image}
       />
