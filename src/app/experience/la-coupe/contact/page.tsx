@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import { site } from '@/components/experience/la-coupe/content/site'
-import ContactBloc from '@/components/experience/la-coupe/sections/contact-bloc'
-import EntetePage from '@/components/experience/la-coupe/sections/entete-page'
+import ContactEcrire from '@/components/experience/la-coupe/sections/contact-ecrire'
+import ContactEtapes from '@/components/experience/la-coupe/sections/contact-etapes'
+import ContactFermeture from '@/components/experience/la-coupe/sections/contact-fermeture'
+import ContactHero from '@/components/experience/la-coupe/sections/contact-hero'
+import ContactVenir from '@/components/experience/la-coupe/sections/contact-venir'
 
 const CHEMIN = `${site.base}/contact`
 /** Image générée par opengraph-image.tsx à la racine de l'expérience : Next ne la propage pas quand la page redéfinit openGraph. */
@@ -18,8 +21,11 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <EntetePage surtitre={`${site.ville} — réponse sous trois jours`} titre={site.contact.cta} intro={site.contact.intro} />
-      <ContactBloc />
+      <ContactHero />
+      <ContactEcrire />
+      <ContactVenir />
+      <ContactEtapes />
+      <ContactFermeture />
     </>
   )
 }

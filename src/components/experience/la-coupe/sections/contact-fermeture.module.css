@@ -1,0 +1,17 @@
+.cadre {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .cadre {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .cadre {
+    aspect-ratio: 4 / 5;
+  }
+}

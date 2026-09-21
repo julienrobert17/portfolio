@@ -1,0 +1,73 @@
+/* Un écran, pas plus : svh pour ne pas sauter quand la barre du navigateur mobile se replie. */
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s-6);
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: calc(var(--nav-h) + var(--s-7));
+  padding-bottom: var(--s-5);
+}
+
+.tete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.pied {
+  align-items: end;
+  row-gap: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.adresse {
+  grid-column: 1 / span 9;
+  margin: 0;
+}
+
+/* Corps de h2, abaissé sur mobile pour que l'adresse tienne sur une ligne à 360 px. */
+.email {
+  display: inline-block;
+  font-size: clamp(1.25rem, 5.8vw, 6.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  padding-block: 0.1em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+  overflow-wrap: anywhere;
+}
+
+.email:hover {
+  text-decoration-color: currentColor;
+}
+
+.reponse {
+  grid-column: 10 / span 3;
+  margin: 0;
+  justify-self: end;
+  text-align: right;
+  padding-bottom: 0.6em;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding-top: calc(var(--nav-h) + var(--s-6));
+  }
+
+  .adresse,
+  .reponse {
+    grid-column: 1 / -1;
+  }
+
+  .reponse {
+    justify-self: start;
+    text-align: left;
+    padding-bottom: 0;
+  }
+}

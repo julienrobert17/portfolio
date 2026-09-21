@@ -1,0 +1,247 @@
+.composeur {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: var(--s-6);
+  margin: 0;
+}
+
+.controles {
+  grid-column: 1 / span 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.types {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.legende {
+  display: block;
+  padding: 0;
+  margin-bottom: var(--s-3);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* Le vrai bouton radio couvre la pill, invisible : clic, focus et flèches du clavier restent natifs. */
+.pill {
+  position: relative;
+  display: inline-flex;
+}
+
+.radio {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pillTexte {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--ink-2);
+  border-radius: 999px;
+  transition:
+    background-color var(--t-micro) var(--ease-ui),
+    color var(--t-micro) var(--ease-ui),
+    border-color var(--t-micro) var(--ease-ui);
+}
+
+.radio:hover + .pillTexte {
+  border-color: var(--ink);
+}
+
+.radio:checked + .pillTexte {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.radio:focus-visible + .pillTexte {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+}
+
+.champ .legende {
+  margin-bottom: var(--s-1);
+}
+
+.saisie {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--s-2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--ink-2);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+  letter-spacing: -0.01em;
+  transition: border-color var(--t-micro) var(--ease-ui);
+}
+
+.saisie:hover,
+.saisie:focus {
+  border-bottom-color: var(--ink);
+}
+
+.saisie:focus-visible {
+  outline-offset: 6px;
+}
+
+.message {
+  grid-column: 5 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.apercu {
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4);
+  background: var(--paper-2);
+}
+
+.entete {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 7ch minmax(0, 1fr);
+  gap: var(--s-3);
+  padding-block: var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Une ligne, quoi qu'il arrive : changer de type ne change pas la hauteur. */
+.valeur,
+.signature {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Hauteur réservée pour la phrase la plus longue (deux lignes, trois sur mobile). */
+.phrase {
+  min-height: calc(2 * 1.45em);
+  margin: var(--s-4) 0 0;
+}
+
+.signature {
+  margin: var(--s-3) 0 0;
+  min-height: 1.45em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+}
+
+.ouvrir,
+.copier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding-inline: var(--s-4);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color var(--t-micro) var(--ease-ui),
+    color var(--t-micro) var(--ease-ui);
+}
+
+/* `.lc a` impose color: inherit : il faut passer devant. */
+:global(.lc) .ouvrir {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.ouvrir:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.copier {
+  background: transparent;
+  color: var(--ink);
+}
+
+.copier:hover,
+.copier[data-etat='copie'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* La ligne de retour existe toujours : le texte y arrive sans rien pousser. */
+.retour {
+  flex-basis: 100%;
+  min-height: calc(2 * 1.45em);
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.retour[data-etat='echec'] {
+  color: var(--accent);
+}
+
+/* Colonne étroite : la phrase la plus longue prend trois lignes. */
+@media (max-width: 1240px) {
+  .controles {
+    grid-column: 1 / span 4;
+  }
+
+  .phrase {
+    min-height: calc(3 * 1.45em);
+  }
+}
+
+@media (max-width: 900px) {
+  .composeur {
+    row-gap: var(--s-5);
+  }
+
+  .controles,
+  .message {
+    grid-column: 1 / -1;
+  }
+
+}
+
+@media (max-width: 420px) {
+  .apercu {
+    padding: var(--s-3);
+  }
+
+  .pillTexte {
+    padding-inline: var(--s-3);
+  }
+
+  .ouvrir,
+  .copier {
+    flex: 1 1 auto;
+  }
+}

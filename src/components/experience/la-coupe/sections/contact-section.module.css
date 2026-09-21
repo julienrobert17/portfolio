@@ -1,0 +1,35 @@
+.section {
+  border-top: 1px solid var(--line);
+}
+
+.rail {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-self: start;
+}
+
+.titre {
+  margin-bottom: var(--s-3);
+}
+
+.corps {
+  grid-column: 5 / span 8;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding-block: var(--s-7);
+  }
+
+  .rail,
+  .corps {
+    grid-column: 1 / -1;
+  }
+
+  .corps {
+    margin-top: var(--s-5);
+  }
+}

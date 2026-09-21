@@ -61,6 +61,82 @@ export const site = {
     cta: 'Un projet ?',
     intro:
       "Une maison à agrandir, un bâtiment à transformer, un concours à préparer : écrivez-nous, nous répondons sous trois jours.",
+    surtitre: 'Contact — Paris 13e',
+    reponse: 'Réponse sous trois jours',
+
+    /** Composeur de la page contact : le lien mailto se construit à partir de ces textes. */
+    composeur: {
+      titre: 'Écrire',
+      intro: "Deux indications suffisent pour commencer. Le message s'ouvre dans votre messagerie, vous le terminez à votre façon.",
+      legende: 'Votre projet',
+      /** `objet` complète « au sujet … », article et élision compris. */
+      types: [
+        { id: 'maison', label: 'Maison', sujet: 'Projet de maison', objet: "d'une maison" },
+        { id: 'rehabilitation', label: 'Réhabilitation', sujet: 'Projet de réhabilitation', objet: "d'une réhabilitation" },
+        { id: 'equipement', label: 'Équipement', sujet: "Projet d'équipement", objet: "d'un équipement" },
+        { id: 'autre', label: 'Autre', sujet: 'Un projet à part', objet: "d'un projet qui n'entre dans aucune case" },
+      ],
+      /** Tant qu'aucun type n'est choisi, et dans le HTML servi sans JavaScript. */
+      defaut: { sujet: 'Un projet', objet: "d'un projet" },
+      nom: 'Votre nom',
+      /** `{objet}` est remplacé par l'objet du type choisi. */
+      phrase: 'Bonjour, je vous écris au sujet {objet}…',
+      apercu: { titre: 'Aperçu du message', a: 'À', objet: 'Objet', signature: 'Votre nom' },
+      ouvrir: 'Ouvrir le message',
+      copier: "Copier l'adresse",
+      copie: 'Adresse copiée.',
+      echec: "Copie impossible : sélectionnez l'adresse ci-dessus.",
+    },
+
+    /** Venir à l'atelier : table et plan de situation. */
+    venir: {
+      titre: "Venir à l'atelier",
+      acces: 'Porche du 12, puis au fond de la cour : la porte vitrée, à gauche.',
+      stations: [
+        { id: 'glaciere', nom: 'Glacière', ligne: 'M6', marche: '4 min' },
+        { id: 'gobelins', nom: 'Les Gobelins', ligne: 'M7', marche: '8 min' },
+      ],
+      carte: 'Ouvrir dans OpenStreetMap',
+      libelles: {
+        adresse: 'Adresse',
+        acces: 'Accès',
+        horaires: 'Horaires',
+        telephone: 'Téléphone',
+        metro: 'Métro',
+        gps: 'Coordonnées',
+      },
+      plan: {
+        legende: 'Plan de situation',
+        alt: "Plan de situation : l'atelier au fond de la cour du 12 rue des Tanneries, à quatre minutes à pied de la station Glacière et huit des Gobelins.",
+        rue: 'rue des Tanneries',
+        cour: 'cour',
+        atelier: 'Atelier',
+        nord: 'N',
+        echelle: '50 m',
+      },
+    },
+
+    /** Comment ça commence : trois étapes, une phrase chacune. */
+    etapes: {
+      titre: 'Comment ça commence',
+      liste: [
+        {
+          id: 'echange',
+          titre: 'Premier échange',
+          texte: "Une heure au téléphone ou à l'atelier, sans engagement, pour comprendre ce que vous cherchez et vous dire si nous sommes *les bons*.",
+        },
+        {
+          id: 'visite',
+          titre: 'Visite du site',
+          texte: "Nous venons voir le lieu avec vous, mètre et carnet en main : l'orientation, les voisins, *ce qui mérite de rester*.",
+        },
+        {
+          id: 'esquisse',
+          titre: 'Esquisse',
+          texte: "Trois semaines plus tard, une esquisse, une maquette et un budget réaliste, que vous gardez *quoi qu'il arrive*.",
+        },
+      ],
+    },
   },
 
   reseaux: [

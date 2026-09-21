@@ -1,0 +1,80 @@
+.figure {
+  margin: 0;
+  /* Le plan commence une colonne après le rail : huit colonnes dans le corps, une de retrait. */
+  margin-left: calc((100% + var(--gutter)) / 8);
+}
+
+.cadre {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.libelles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.libelle {
+  position: absolute;
+  white-space: nowrap;
+  color: var(--ink-2);
+  line-height: 1.3;
+}
+
+.centre {
+  transform: translate(-50%, -50%);
+}
+
+.centreBas {
+  transform: translate(-50%, -100%);
+}
+
+.gaucheBas {
+  transform: translate(-100%, -100%);
+}
+
+.centreHaut {
+  transform: translate(-50%, 0);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.station {
+  display: flex;
+  flex-direction: column;
+}
+
+.aGauche {
+  transform: translateX(-100%);
+  text-align: right;
+}
+
+.nom {
+  color: var(--ink);
+}
+
+.legende {
+  margin-top: var(--s-3);
+}
+
+@media (max-width: 900px) {
+  .figure {
+    margin-left: 0;
+  }
+}
+
+/* Plan étroit : libellés plus petits pour ne pas se chevaucher. */
+@media (max-width: 560px) {
+  .libelle {
+    font-size: 0.75rem;
+  }
+}
