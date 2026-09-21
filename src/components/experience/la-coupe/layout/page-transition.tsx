@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { site } from '../content/site'
-import { EASE_UI } from '../lib/easings'
+import { EASE_UI_GSAP } from '../lib/easings'
 import { registerGsap } from '../lib/gsap'
 import { getLenis, recalculerScroll, scrollEnHaut } from '../lib/lenis-store'
 import { lireMenu, navigation, setCiblePartage, setMenuOuvert, setNavigateur, type DemandeNavigation } from '../lib/navigation-store'
@@ -58,7 +58,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
     const { gsap } = registerGsap()
     if (label.current) label.current.textContent = demande.label
     return new Promise((resolve) => {
-      gsap.fromTo(el, { '--haut': '100%', '--bas': '0%' }, { '--haut': '0%', duration: DUREE_RIDEAU, ease: EASE_UI, onComplete: () => resolve() })
+      gsap.fromTo(el, { '--haut': '100%', '--bas': '0%' }, { '--haut': '0%', duration: DUREE_RIDEAU, ease: EASE_UI_GSAP, onComplete: () => resolve() })
     })
   }, [])
 
@@ -129,7 +129,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       gsap.to(rideau.current, {
         '--bas': '100%',
         duration: DUREE_RIDEAU,
-        ease: EASE_UI,
+        ease: EASE_UI_GSAP,
         onComplete: () => {
           if (rideau.current) gsap.set(rideau.current, { '--haut': '100%', '--bas': '0%' })
         },

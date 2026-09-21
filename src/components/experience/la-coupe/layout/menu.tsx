@@ -4,7 +4,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react'
 import MaquetteStatique from '../canvas/maquette-statique'
 import { projets } from '../content/projets'
 import { site } from '../content/site'
-import { EASE_UI } from '../lib/easings'
+import { EASE_UI_GSAP } from '../lib/easings'
 import { formatNumero } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
 import { abonnerHero, hero, lireCanvasPret, lireFaux } from '../lib/hero-store'
@@ -54,7 +54,7 @@ export default function Menu() {
       if (reduit) {
         gsap.fromTo(couches, { '--bas': '0%', opacity: 0 }, { opacity: 1, duration: 0.2, onComplete: couvert })
       } else {
-        gsap.fromTo(couches, { '--bas': '100%', opacity: 1 }, { '--bas': '0%', duration: 0.8, ease: EASE_UI, onComplete: couvert })
+        gsap.fromTo(couches, { '--bas': '100%', opacity: 1 }, { '--bas': '0%', duration: 0.8, ease: EASE_UI_GSAP, onComplete: couvert })
         gsap.from(liens, { y: 24, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.05, delay: 0.3 })
       }
       const premier = el.querySelector<HTMLElement>(FOCALISABLES)
@@ -98,7 +98,7 @@ export default function Menu() {
     const duree = navigation.leveeMenu ? 0.6 : 0.5
     navigation.leveeMenu = false
     gsap.to(couches, {
-      ...(reduit ? { opacity: 0, duration: 0.2 } : { '--bas': '100%', duration: duree, ease: EASE_UI }),
+      ...(reduit ? { opacity: 0, duration: 0.2 } : { '--bas': '100%', duration: duree, ease: EASE_UI_GSAP }),
       onComplete: () => {
         el.hidden = true
         bg.hidden = true
