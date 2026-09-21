@@ -2,6 +2,16 @@
  * La Coupe : tokens, typographie, grille. Tout est préfixé `lc` et posé sur
  * la racine `.lc`, jamais sur :root, pour ne pas toucher au reste du site.
  */
+
+/*
+ * Le layout racine pose Geist sur <html> (Tailwind, --font-sans). Aucune page de l'expérience ne
+ * l'affiche — le corps est en Instrument Sans, le mono en Geist Mono — mais le navigateur
+ * téléchargeait quand même le fichier, en pleine course avec l'image de tête. Ici, rien ne rend de
+ * texte à hauteur de <html> : une pile système suffit. Les autres routes ne sont pas touchées.
+ */
+html:has(.lc) {
+  font-family: system-ui, sans-serif;
+}
 .lc {
   --paper: #f3f0ea;
   --paper-2: #e9e4dc;
