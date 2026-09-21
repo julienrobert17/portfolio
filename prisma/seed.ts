@@ -21,8 +21,11 @@ async function main() {
 
   await prisma.project.upsert({
     where: { slug: 'task-manager-app' },
-    // Sorti du carrousel de la home (six places) à l'arrivée de « La Coupe » : sélection explicite.
-    update: { featured: false },
+    // Reprend sa place dans les six : « Entre nous » est retiré du carrousel, sa route
+    // /experience/entre-nous ne vivant que sur fix/resonance (la tuile menait à une 404 en
+    // production). À réactiver à la fusion de fix/resonance : entre-nous repasse en featured: true
+    // et task-manager-app en false.
+    update: { featured: true },
     create: {
       slug: 'task-manager-app',
       title: 'Task Manager App',
