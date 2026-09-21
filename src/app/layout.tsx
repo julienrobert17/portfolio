@@ -4,20 +4,27 @@ import "./globals.css";
 import CustomCursor from "@/components/ui/custom-cursor";
 import ConditionalHeader from "@/components/layout/conditional-header";
 
+// `preload: false` : ces trois familles sont préchargées sur toutes les routes, y compris
+// /experience/la-coupe qui a les siennes et ne les affiche jamais. Leurs quatre fichiers (96 ko en
+// priorité haute) volaient de la bande passante à l'image de tête des fiches. Elles se chargent
+// maintenant à l'appel du CSS, là où elles servent.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
