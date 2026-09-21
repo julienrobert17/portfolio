@@ -31,7 +31,7 @@ export default function ProjetsSelectionnes() {
         return (
           <article key={projet.slug} className={styles.bloc} data-bloc>
             {/* Nom du lien : « Voir le projet Maison des Vignes Meursault, Bourgogne — 2023 01 / 08 ».
-                L'image est décorative ici (le titre la nomme), l'index vient en dernier : il est positionné en absolu. */}
+                L'image est décorative ici (le titre la nomme), l'index vient en dernier. */}
             <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
               <span className="lc-visually-hidden">Voir le projet</span>
               <div className={styles.image} data-image-bloc>
@@ -46,10 +46,11 @@ export default function ProjetsSelectionnes() {
                 <p className={`lc-mono ${styles.meta}`}>
                   {projet.lieu} — {projet.annee}
                 </p>
+                {/* Dernier dans l'ordre de lecture, posé par la grille sur la ligne de base du titre. */}
+                <span className={`lc-mono ${styles.index}`}>
+                  {numero} / {total}
+                </span>
               </div>
-              <span className={`lc-mono ${styles.index}`}>
-                {numero} / {total}
-              </span>
             </LienTransition>
           </article>
         )

@@ -55,24 +55,35 @@
     linear-gradient(to bottom, rgba(21, 20, 18, 0.28), rgba(21, 20, 18, 0) 24%);
 }
 
-.index {
-  position: absolute;
-  top: calc(var(--nav-h) + var(--s-3));
-  right: var(--margin);
-}
-
+/*
+ * Titre et lieu à gauche, numéro à droite sur la ligne de base du titre, tous deux dans la marge
+ * du conteneur : le numéro ne passe plus sous la nav et n'est jamais tronqué. L'index reste
+ * dernier dans le DOM, la grille le remonte sur la première ligne.
+ */
 .legende {
   position: absolute;
   left: var(--margin);
   right: var(--margin);
   bottom: var(--s-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--s-5);
+  row-gap: var(--s-3);
 }
 
 .titre {
+  grid-area: 1 / 1;
   max-width: 14ch;
+}
+
+.meta {
+  grid-area: 2 / 1;
+}
+
+.index {
+  grid-area: 1 / 2;
+  justify-self: end;
 }
 
 .meta {

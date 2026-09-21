@@ -101,7 +101,8 @@
   .maquette {
     position: static;
     transform: none;
-    width: min(72vw, 420px);
+    /* Mobile : la maquette prend 85 % de la largeur. */
+    width: min(85vw, 460px);
     justify-self: center;
     align-self: center;
     margin-block: var(--s-5);
