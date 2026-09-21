@@ -19,7 +19,7 @@ export default function FicheHero({ projet }: FicheHeroProps) {
     <header className={styles.hero}>
       <div className={styles.image} data-fiche="image">
         <PartageImage slug={projet.slug}>
-          <Photo image={image} cover priority />
+          <Photo image={image} cover priority sizes="100vw" />
         </PartageImage>
       </div>
       <div className={`lc-container ${styles.entete}`}>

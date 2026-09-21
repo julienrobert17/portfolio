@@ -12,7 +12,7 @@ export default function AtelierTeaser() {
     <section className={`lc-container lc-section ${styles.section}`} aria-labelledby="teaser-titre">
       <div className="lc-grid">
         <Apparition className={styles.photo} bloc>
-          <Photo image={image} />
+          <Photo image={image} sizes="(max-width: 900px) 100vw, 50vw" />
         </Apparition>
         <div className={styles.texte}>
           <h2 id="teaser-titre" className="lc-display lc-h2">

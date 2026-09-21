@@ -1,3 +1,4 @@
+import { credits } from '../content/credits'
 import { projets } from '../content/projets'
 import { site } from '../content/site'
 import { rendreDessin } from '../lib/dessins'
@@ -63,10 +64,29 @@ export default function Footer() {
         <div className={styles.colonne}>
           <h2 className={`lc-mono ${styles.intitule}`}>Crédits</h2>
           <ul className={`${styles.liste} ${styles.secondaire}`}>
-            {footer.credits.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
+            {/* Avec des photos téléchargées, la ligne « placeholders » cède la place aux auteurs. */}
+            {footer.credits
+              .filter((c) => credits.length === 0 || !c.startsWith('Photographies'))
+              .map((c) => (
+                <li key={c}>{c}</li>
+              ))}
           </ul>
+          {credits.length > 0 ? (
+            <details className={styles.credits}>
+              <summary className={styles.creditsResume}>
+                Photographies : {credits.length} auteurs, {[...new Set(credits.map((c) => c.source))].join(' et ')}
+              </summary>
+              <ul className={`${styles.liste} ${styles.secondaire} ${styles.creditsListe}`}>
+                {credits.map((c) => (
+                  <li key={c.url}>
+                    <a href={c.url} className="lc-link" rel="noopener noreferrer" target="_blank">
+                      {c.auteur}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
           <p className={`lc-mono ${styles.heure}`}>
             <LocalTime />
           </p>

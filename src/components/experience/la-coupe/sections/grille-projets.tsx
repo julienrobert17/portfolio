@@ -26,7 +26,7 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
           <li key={projet.slug} className={styles.item} style={{ gridColumn: PLACEMENTS[i % PLACEMENTS.length] }} data-flip-id={projet.slug}>
             <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.lien} data-curseur="view">
               <PartageImage slug={projet.slug}>
-                <Photo image={image} />
+                <Photo image={image} sizes="(max-width: 720px) 100vw, 58vw" />
               </PartageImage>
               <span className={styles.legende}>
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}

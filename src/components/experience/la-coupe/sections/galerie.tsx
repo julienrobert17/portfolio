@@ -35,7 +35,7 @@ export default function Galerie({ projet }: GalerieProps) {
             <li key={image.src} className={styles.item} style={{ gridColumn: colonnes }}>
               <figure className={styles.figure} data-plein={colonnes === '1 / -1' || undefined}>
                 <div className={styles.cadre}>
-                  <Photo image={image} />
+                  <Photo image={image} sizes={placement(i, image.ratio) === '1 / -1' ? '100vw' : '(max-width: 720px) 100vw, 50vw'} />
                 </div>
                 <figcaption className="lc-mono lc-muted">{formatNumero(i + 1)}</figcaption>
               </figure>

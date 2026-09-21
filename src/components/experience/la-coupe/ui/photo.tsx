@@ -1,12 +1,13 @@
+import Image from 'next/image'
 import type { ImageRendue } from '../lib/images'
 
 interface PhotoProps {
   image: ImageRendue
-  /** Attribut `sizes`, pour le jour où les vraies images passeront par next/image. */
-  sizes?: string
-  /** Vrai pour l'image au-dessus de la ligne de flottaison : chargée d'emblée et préchargée. */
+  /** Largeur affichée, pour que l'optimiseur serve la bonne taille. */
+  sizes: string
+  /** Image de tête au-dessus du pli : préchargée, priorité haute. */
   priority?: boolean
-  /** Chargée d'emblée sans priorité haute : juste sous le pli. */
+  /** Juste sous le pli : chargée d'emblée en priorité haute, sans préchargement (il resterait inutilisé). */
   eager?: boolean
   className?: string
   /** Remplit son conteneur (object-fit: cover) au lieu de garder son ratio. */
@@ -14,28 +15,27 @@ interface PhotoProps {
 }
 
 /**
- * Image avec dimensions explicites et aspect-ratio : zéro décalage de mise en
- * page. Les placeholders sont des SVG, donc un <img> simple ; le passage à
- * next/image se fait ici, en un seul endroit.
+ * La seule image de contenu du site, sur next/image : AVIF ou WebP à la
+ * bonne largeur, dimensions explicites et aspect-ratio donc zéro décalage
+ * de mise en page. Les placeholders SVG de repli passent sans optimisation
+ * (next/image le fait de lui-même pour les .svg).
  */
-export default function Photo({ image, priority = false, eager = false, className, cover = false }: PhotoProps) {
+export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false }: PhotoProps) {
   return (
-    // Les placeholders sont des SVG : next/image n'y apporte rien et exige un flag dangereux.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={image.src}
       width={image.width}
       height={image.height}
       alt={image.alt}
-      loading={priority || eager ? 'eager' : 'lazy'}
-      fetchPriority={priority ? 'high' : 'auto'}
-      decoding="async"
+      sizes={sizes}
+      preload={priority}
+      loading={priority ? undefined : eager ? 'eager' : 'lazy'}
+      fetchPriority={priority || eager ? 'high' : 'auto'}
       className={className}
-      style={
-        cover
-          ? { width: '100%', height: '100%', objectFit: 'cover' }
-          : { aspectRatio: `${image.width} / ${image.height}`, width: '100%' }
-      }
+      style={{
+        backgroundColor: image.couleur,
+        ...(cover ? { width: '100%', height: '100%', objectFit: 'cover' } : { aspectRatio: `${image.width} / ${image.height}`, width: '100%', height: 'auto' }),
+      }}
     />
   )
 }

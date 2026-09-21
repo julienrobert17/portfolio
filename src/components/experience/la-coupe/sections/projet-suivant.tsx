@@ -23,7 +23,7 @@ export default function ProjetSuivant({ projet }: ProjetSuivantProps) {
       <LienTransition href={`${site.base}/projets/${projet.slug}`} type="partage" label={projet.titre} className={styles.bloc} aria-label={`Projet suivant : ${projet.titre}`} data-curseur="view">
         <div className={styles.image}>
           <PartageImage slug={projet.slug}>
-            <Photo image={image} cover />
+            <Photo image={image} cover sizes="100vw" />
           </PartageImage>
         </div>
         <span className={`lc-container ${styles.legende}`}>

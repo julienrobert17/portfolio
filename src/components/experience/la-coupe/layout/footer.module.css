@@ -106,3 +106,21 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Crédits photo : repliés, la liste défile dans sa colonne sans pousser le footer. */
+.credits {
+  color: var(--ink-2-inverse);
+}
+
+.creditsResume {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.creditsListe {
+  max-height: 11rem;
+  overflow-y: auto;
+  padding-right: var(--s-2);
+}
