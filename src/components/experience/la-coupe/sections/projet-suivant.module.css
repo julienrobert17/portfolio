@@ -23,6 +23,17 @@
   color: var(--paper);
 }
 
+/* Animé (JS, mouvement autorisé) : 100vh d'emblée, découvert par clip-path piloté par --coupe (en vh). */
+.bloc[data-anime] {
+  --coupe: 60;
+  height: 100vh;
+  clip-path: inset(0 0 calc(var(--coupe) * 1vh) 0);
+}
+
+.bloc[data-anime] .legende {
+  transform: translateY(calc(var(--coupe) * -1vh));
+}
+
 .image {
   position: absolute;
   inset: 0;

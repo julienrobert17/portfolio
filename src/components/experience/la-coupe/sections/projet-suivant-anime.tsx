@@ -8,7 +8,7 @@ import { naviguer } from '../lib/navigation-store'
 const SEUIL_DELTA = 120
 
 /**
- * Côté client du projet suivant : le bloc (le lien) grandit de 40vh à 100vh
+ * Côté client du projet suivant : le bloc (le lien) se découvre de 40vh à 100vh
  * en scrub pendant que son conteneur de 100vh entre dans la vue. Le conteneur
  * a une hauteur fixe, donc le document ne change jamais de taille pendant le
  * scroll : aucun recalcul en boucle. Le départ à « top 60% » correspond au
@@ -29,11 +29,14 @@ export default function ProjetSuivantAnime() {
     let declenche = false
     let cumul = 0
     let dernierY = 0
+    // Le bloc occupe d'emblée ses 100vh et se découvre par clip-path ; la légende suit par transform.
+    // Ni hauteur ni position ne changent au scroll : aucun décalage de mise en page (CLS).
+    bloc.dataset.anime = ''
     gsap.fromTo(
       bloc,
-      { height: '40vh' },
+      { '--coupe': 60 },
       {
-        height: '100vh',
+        '--coupe': 0,
         ease: 'none',
         scrollTrigger: {
           trigger: conteneur,
@@ -70,6 +73,7 @@ export default function ProjetSuivantAnime() {
     window.addEventListener('touchstart', toucherDebut, { passive: true })
     window.addEventListener('touchmove', toucher, { passive: true })
     return () => {
+      delete bloc.dataset.anime
       window.removeEventListener('wheel', molette)
       window.removeEventListener('touchstart', toucherDebut)
       window.removeEventListener('touchmove', toucher)
