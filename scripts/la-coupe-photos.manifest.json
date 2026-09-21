@@ -1,0 +1,546 @@
+{
+  "selections": {
+    "maison-des-vignes-01": {
+      "id": "pexels:38101593",
+      "auteur": "Doğan Alpaslan  Demir",
+      "auteurUrl": "https://www.pexels.com/@izafi",
+      "pageUrl": "https://www.pexels.com/photo/rustic-stone-house-facade-in-kozbeyli-38101593/",
+      "original": "https://images.pexels.com/photos/38101593/pexels-photo-38101593.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Weathered stone façade with modern windows in Kozbeyli, İzmir, Türkiye."
+    },
+    "maison-des-vignes-02": {
+      "id": "pexels:19514336",
+      "auteur": "Tahir Osman",
+      "auteurUrl": "https://www.pexels.com/@tahir-osman-109306362",
+      "pageUrl": "https://www.pexels.com/photo/staircase-in-house-19514336/",
+      "original": "https://images.pexels.com/photos/19514336/pexels-photo-19514336.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Warm interior with a wooden staircase and sunlit window."
+    },
+    "maison-des-vignes-03": {
+      "id": "pexels:13061788",
+      "auteur": "Helena Jankovičová Kováčová",
+      "auteurUrl": "https://www.pexels.com/@helen1",
+      "pageUrl": "https://www.pexels.com/photo/trees-growing-in-courtyard-next-to-house-13061788/",
+      "original": "https://images.pexels.com/photos/13061788/pexels-photo-13061788.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Idyllic countryside scene of Tuscany with rustic house and lush trees bathed in warm sunset light."
+    },
+    "maison-des-vignes-04": {
+      "id": "pexels:7163611",
+      "auteur": "Matheus Bertelli",
+      "auteurUrl": "https://www.pexels.com/@bertellifotografia",
+      "pageUrl": "https://www.pexels.com/photo/interior-of-kitchen-in-rustic-style-house-7163611/",
+      "original": "https://images.pexels.com/photos/7163611/pexels-photo-7163611.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Chairs at table placed near fridge in kitchen with appliances in rural house with wooden ceiling and windows on stone wall"
+    },
+    "maison-des-vignes-05": {
+      "id": "pexels:17511606",
+      "auteur": "David Underland",
+      "auteurUrl": "https://www.pexels.com/@david-underland",
+      "pageUrl": "https://www.pexels.com/photo/corrugated-metal-construction-17511606/",
+      "original": "https://images.pexels.com/photos/17511606/pexels-photo-17511606.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A sleek and modern corrugated metal facade with repeating stripes against a clear blue sky."
+    },
+    "maison-des-vignes-06": {
+      "id": "pexels:7746578",
+      "auteur": "Max Vakhtbovych",
+      "auteurUrl": "https://www.pexels.com/@artbovich",
+      "pageUrl": "https://www.pexels.com/photo/white-wooden-bed-with-white-linen-and-pillows-7746578/",
+      "original": "https://images.pexels.com/photos/7746578/pexels-photo-7746578.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Inviting attic bedroom with cozy bedding and bathrobes on a white bed, perfect for relaxation."
+    },
+    "maison-des-vignes-07": {
+      "id": "pexels:37116377",
+      "auteur": "Colin G",
+      "auteurUrl": "https://www.pexels.com/@colin-g-667753876",
+      "pageUrl": "https://www.pexels.com/photo/historic-pevensey-castle-wall-in-spring-37116377/",
+      "original": "https://images.pexels.com/photos/37116377/pexels-photo-37116377.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Ancient stone wall of Pevensey Castle in Westham, England, under a bright spring sky."
+    },
+    "maison-des-vignes-08": {
+      "id": "pexels:13271409",
+      "auteur": "Crab Lens",
+      "auteurUrl": "https://www.pexels.com/@crab-lens-179881567",
+      "pageUrl": "https://www.pexels.com/photo/stone-house-on-top-of-the-mountain-13271409/",
+      "original": "https://images.pexels.com/photos/13271409/pexels-photo-13271409.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Stone house with wooden bench in Bozcaada's serene countryside, Turkey."
+    },
+    "halle-saint-ouen-01": {
+      "id": "pexels:5902297",
+      "auteur": "A.",
+      "auteurUrl": "https://www.pexels.com/@a-1620746",
+      "pageUrl": "https://www.pexels.com/photo/empty-concert-hall-5902297/",
+      "original": "https://images.pexels.com/photos/5902297/pexels-photo-5902297.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Spacious indoor market hall with glass roof and iron arches in Brussels, Belgium."
+    },
+    "halle-saint-ouen-02": {
+      "id": "pexels:31197870",
+      "auteur": "Laura Cleffmann",
+      "auteurUrl": "https://www.pexels.com/@cloudett",
+      "pageUrl": "https://www.pexels.com/photo/structural-steel-frame-against-clear-sky-31197870/",
+      "original": "https://images.pexels.com/photos/31197870/pexels-photo-31197870.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Modern steel framework structure under clear sky, showcasing architectural design."
+    },
+    "halle-saint-ouen-03": {
+      "id": "pexels:33647857",
+      "auteur": "Alexander Mass",
+      "auteurUrl": "https://www.pexels.com/@rebornfilmes",
+      "pageUrl": "https://www.pexels.com/photo/historic-brick-building-with-vintage-windows-33647857/",
+      "original": "https://images.pexels.com/photos/33647857/pexels-photo-33647857.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a historic brick building featuring vintage arched windows and warm lighting."
+    },
+    "halle-saint-ouen-04": {
+      "id": "pexels:5983971",
+      "auteur": "Stanislav Kondratiev",
+      "auteurUrl": "https://www.pexels.com/@technobulka",
+      "pageUrl": "https://www.pexels.com/photo/an-old-brick-building-5983971/",
+      "original": "https://images.pexels.com/photos/5983971/pexels-photo-5983971.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Low angle view of an old, abandoned brick industrial building with vintage architecture."
+    },
+    "halle-saint-ouen-05": {
+      "id": "pexels:30920670",
+      "auteur": "Neil Ni",
+      "auteurUrl": "https://www.pexels.com/@throughnislens",
+      "pageUrl": "https://www.pexels.com/photo/abstract-view-of-industrial-metal-structure-30920670/",
+      "original": "https://images.pexels.com/photos/30920670/pexels-photo-30920670.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up view of a large orange industrial metal structure with geometric angles and lines."
+    },
+    "halle-saint-ouen-06": {
+      "id": "pexels:12771396",
+      "auteur": "Kevin Chuang",
+      "auteurUrl": "https://www.pexels.com/@kevin-chuang-268383612",
+      "pageUrl": "https://www.pexels.com/photo/empty-warehouse-with-concrete-floor-12771396/",
+      "original": "https://images.pexels.com/photos/12771396/pexels-photo-12771396.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Empty industrial garage with metal walls and concrete floor ready for renovation or use."
+    },
+    "halle-saint-ouen-07": {
+      "id": "pexels:33785405",
+      "auteur": "Bel Chua",
+      "auteurUrl": "https://www.pexels.com/@bel-chua-2154963449",
+      "pageUrl": "https://www.pexels.com/photo/contemporary-architecture-with-skylight-roof-33785405/",
+      "original": "https://images.pexels.com/photos/33785405/pexels-photo-33785405.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Interior view of a modern building's skylight roof capturing natural light and architectural symmetry."
+    },
+    "mediatheque-des-tanneurs-01": {
+      "id": "pexels:18513513",
+      "auteur": "Francesco Ungaro",
+      "auteurUrl": "https://www.pexels.com/@francesco-ungaro",
+      "pageUrl": "https://www.pexels.com/photo/window-in-wooden-facade-of-residential-building-18513513/",
+      "original": "https://images.pexels.com/photos/18513513/pexels-photo-18513513.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a modern building facade with alternating wooden panels and windows."
+    },
+    "mediatheque-des-tanneurs-02": {
+      "id": "pexels:6333732",
+      "auteur": "cottonbro studio",
+      "auteurUrl": "https://www.pexels.com/@cottonbro",
+      "pageUrl": "https://www.pexels.com/photo/wooden-tables-inside-the-library-6333732/",
+      "original": "https://images.pexels.com/photos/6333732/pexels-photo-6333732.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Spacious library interior with wooden tables and shelves packed with books."
+    },
+    "mediatheque-des-tanneurs-03": {
+      "id": "pexels:15465922",
+      "auteur": "Zhengdong Hu",
+      "auteurUrl": "https://www.pexels.com/@zhengdong-hu-297240489",
+      "pageUrl": "https://www.pexels.com/photo/sunny-interior-of-library-15465922/",
+      "original": "https://images.pexels.com/photos/15465922/pexels-photo-15465922.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Explore a modern library with tall bookshelves and seating area, perfect for reading."
+    },
+    "mediatheque-des-tanneurs-04": {
+      "id": "pexels:8227649",
+      "auteur": "Boys in Bristol Photography",
+      "auteurUrl": "https://www.pexels.com/@lebele",
+      "pageUrl": "https://www.pexels.com/photo/brown-concrete-building-8227649/",
+      "original": "https://images.pexels.com/photos/8227649/pexels-photo-8227649.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Sleek building facade with wooden slats and windows, showcasing modern architectural style."
+    },
+    "mediatheque-des-tanneurs-05": {
+      "id": "pexels:18420993",
+      "auteur": "Anastasiya Badun",
+      "auteurUrl": "https://www.pexels.com/@badun",
+      "pageUrl": "https://www.pexels.com/photo/staircase-in-a-building-18420993/",
+      "original": "https://images.pexels.com/photos/18420993/pexels-photo-18420993.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Stylish indoor staircase design showcasing modern architecture in Ventspils, Latvia."
+    },
+    "mediatheque-des-tanneurs-07": {
+      "id": "pexels:18513512",
+      "auteur": "Francesco Ungaro",
+      "auteurUrl": "https://www.pexels.com/@francesco-ungaro",
+      "pageUrl": "https://www.pexels.com/photo/wooden-facade-of-residential-building-with-windows-18513512/",
+      "original": "https://images.pexels.com/photos/18513512/pexels-photo-18513512.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A close-up of a modern rustic wooden facade with windows, blending natural wood tones beautifully."
+    },
+    "mediatheque-des-tanneurs-08": {
+      "id": "pexels:6333728",
+      "auteur": "cottonbro studio",
+      "auteurUrl": "https://www.pexels.com/@cottonbro",
+      "pageUrl": "https://www.pexels.com/photo/brown-wooden-chairs-and-tables-6333728/",
+      "original": "https://images.pexels.com/photos/6333728/pexels-photo-6333728.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Sleek library interior showcasing rows of books and minimalist wooden furniture."
+    },
+    "mediatheque-des-tanneurs-09": {
+      "id": "pexels:39167563",
+      "auteur": "tom analogicus",
+      "auteurUrl": "https://www.pexels.com/@analogicus",
+      "pageUrl": "https://www.pexels.com/photo/intricate-wooden-structure-with-geometric-design-39167563/",
+      "original": "https://images.pexels.com/photos/39167563/pexels-photo-39167563.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Captivating view of a geometric wooden structure showcasing natural textures and patterns."
+    },
+    "les-terrasses-du-canal-01": {
+      "id": "pexels:27053882",
+      "auteur": "Andrew Patrick Photo",
+      "auteurUrl": "https://www.pexels.com/@am83",
+      "pageUrl": "https://www.pexels.com/photo/windows-of-apartments-27053882/",
+      "original": "https://images.pexels.com/photos/27053882/pexels-photo-27053882.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a brick apartment facade featuring multiple modern aluminum windows."
+    },
+    "les-terrasses-du-canal-02": {
+      "id": "pexels:37028690",
+      "auteur": "Sali Ajeti",
+      "auteurUrl": "https://www.pexels.com/@slrajeti",
+      "pageUrl": "https://www.pexels.com/photo/modern-scandinavian-apartment-building-exterior-37028690/",
+      "original": "https://images.pexels.com/photos/37028690/pexels-photo-37028690.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Contemporary brick apartment building with balconies in Denmark, showcasing urban architecture."
+    },
+    "les-terrasses-du-canal-03": {
+      "id": "pexels:31053204",
+      "auteur": "Ngọc Khánh Nek",
+      "auteurUrl": "https://www.pexels.com/@ng-c-khanh-nek-2149899382",
+      "pageUrl": "https://www.pexels.com/photo/vintage-vietnamese-apartment-balcony-view-31053204/",
+      "original": "https://images.pexels.com/photos/31053204/pexels-photo-31053204.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Explore a rustic Vietnamese apartment corridor with vintage shutters and greenery."
+    },
+    "les-terrasses-du-canal-04": {
+      "id": "pexels:7394220",
+      "auteur": "Ila Bappa Ibrahim",
+      "auteurUrl": "https://www.pexels.com/@ilabappa",
+      "pageUrl": "https://www.pexels.com/photo/a-wall-made-of-bricks-7394220/",
+      "original": "https://images.pexels.com/photos/7394220/pexels-photo-7394220.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "High-resolution textured brick wall, perfect for design and architectural projects."
+    },
+    "les-terrasses-du-canal-05": {
+      "id": "pexels:37624446",
+      "auteur": "Lewis Bedar",
+      "auteurUrl": "https://www.pexels.com/@lewis-bedar-2161633421",
+      "pageUrl": "https://www.pexels.com/photo/modern-concrete-architecture-ceiling-design-37624446/",
+      "original": "https://images.pexels.com/photos/37624446/pexels-photo-37624446.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Symmetrical concrete ceiling design showcasing modern architecture in Puteaux, France."
+    },
+    "les-terrasses-du-canal-06": {
+      "id": "pexels:39480949",
+      "auteur": "Phil Ledwith",
+      "auteurUrl": "https://www.pexels.com/@phil-ledwith-2738622",
+      "pageUrl": "https://www.pexels.com/photo/charming-courtyard-in-historic-dyrham-estate-39480949/",
+      "original": "https://images.pexels.com/photos/39480949/pexels-photo-39480949.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Tranquil courtyard surrounded by historic architecture and lush greenery in Dyrham, England."
+    },
+    "les-terrasses-du-canal-07": {
+      "id": "pexels:2257452",
+      "auteur": "Luis Quintero",
+      "auteurUrl": "https://www.pexels.com/@jibarofoto",
+      "pageUrl": "https://www.pexels.com/photo/building-2257452/",
+      "original": "https://images.pexels.com/photos/2257452/pexels-photo-2257452.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A tall glass building with exposed staircase, modern urban design against a clear sky."
+    },
+    "les-terrasses-du-canal-08": {
+      "id": "pexels:3988037",
+      "auteur": "Viktor Mogilat",
+      "auteurUrl": "https://www.pexels.com/@mogilat",
+      "pageUrl": "https://www.pexels.com/photo/photo-of-store-front-3988037/",
+      "original": "https://images.pexels.com/photos/3988037/pexels-photo-3988037.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A charming red brick facade with potted plants on a quiet urban street."
+    },
+    "extension-aux-lilas-01": {
+      "id": "pexels:27638198",
+      "auteur": "Alexander Mass",
+      "auteurUrl": "https://www.pexels.com/@rebornfilmes",
+      "pageUrl": "https://www.pexels.com/photo/a-small-cabin-with-a-black-roof-and-a-wooden-door-27638198/",
+      "original": "https://images.pexels.com/photos/27638198/pexels-photo-27638198.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Charming small wooden cabin with large windows nestled in nature, perfect for a tranquil retreat."
+    },
+    "extension-aux-lilas-02": {
+      "id": "pexels:8143676",
+      "auteur": "Max Vakhtbovych",
+      "auteurUrl": "https://www.pexels.com/@artbovich",
+      "pageUrl": "https://www.pexels.com/photo/white-table-cloth-on-table-8143676/",
+      "original": "https://images.pexels.com/photos/8143676/pexels-photo-8143676.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Bright dining area with a garden view, featuring brick walls and modern furniture."
+    },
+    "extension-aux-lilas-03": {
+      "id": "pexels:19797394",
+      "auteur": "Noémi Móricz",
+      "auteurUrl": "https://www.pexels.com/@noemi-moricz-773289151",
+      "pageUrl": "https://www.pexels.com/photo/red-facade-of-a-building-19797394/",
+      "original": "https://images.pexels.com/photos/19797394/pexels-photo-19797394.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Minimalist red facade with linear patterns in Budapest's modern architecture."
+    },
+    "extension-aux-lilas-04": {
+      "id": "pexels:8082327",
+      "auteur": "Max Vakhtbovych",
+      "auteurUrl": "https://www.pexels.com/@artbovich",
+      "pageUrl": "https://www.pexels.com/photo/room-on-attic-8082327/",
+      "original": "https://images.pexels.com/photos/8082327/pexels-photo-8082327.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Spacious attic room with natural light from skylights, featuring a brick pillar and a wooden ladder."
+    },
+    "extension-aux-lilas-05": {
+      "id": "pexels:15501338",
+      "auteur": "Vitali Adutskevich",
+      "auteurUrl": "https://www.pexels.com/@vadutskevich",
+      "pageUrl": "https://www.pexels.com/photo/brick-wall-and-a-staircase-15501338/",
+      "original": "https://images.pexels.com/photos/15501338/pexels-photo-15501338.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A close-up view of a rustic brick wall featuring a metal staircase and railing, ideal for construction themes."
+    },
+    "extension-aux-lilas-06": {
+      "id": "pexels:18039229",
+      "auteur": "Katia Miasoed",
+      "auteurUrl": "https://www.pexels.com/@katia-miasoed-624959709",
+      "pageUrl": "https://www.pexels.com/photo/glass-rooftop-with-wooden-frame-18039229/",
+      "original": "https://images.pexels.com/photos/18039229/pexels-photo-18039229.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A moody and artistic shot of a glass rooftop with a wooden frame, emphasizing geometric patterns."
+    },
+    "ecole-des-hauts-champs-01": {
+      "id": "pexels:5583620",
+      "auteur": "Thirdman",
+      "auteurUrl": "https://www.pexels.com/@thirdman",
+      "pageUrl": "https://www.pexels.com/photo/miniature-street-in-close-up-shot-5583620/",
+      "original": "https://images.pexels.com/photos/5583620/pexels-photo-5583620.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of an architectural miniature model depicting an urban layout with buildings, roads, and greenery."
+    },
+    "ecole-des-hauts-champs-02": {
+      "id": "pexels:5503423",
+      "auteur": "Engin Akyurt",
+      "auteurUrl": "https://www.pexels.com/@enginakyurt",
+      "pageUrl": "https://www.pexels.com/photo/small-holes-on-solid-rough-surface-5503423/",
+      "original": "https://images.pexels.com/photos/5503423/pexels-photo-5503423.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a rough stone wall texture with natural patterns and earthy tones."
+    },
+    "ecole-des-hauts-champs-03": {
+      "id": "pexels:34676954",
+      "auteur": "zeynepshoots",
+      "auteurUrl": "https://www.pexels.com/@zeynepshoots-2151869851",
+      "pageUrl": "https://www.pexels.com/photo/sunny-wooden-pergola-walkway-in-park-setting-34676954/",
+      "original": "https://images.pexels.com/photos/34676954/pexels-photo-34676954.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A sunlit wooden pergola creates a charming walkway surrounded by greenery in a park."
+    },
+    "ecole-des-hauts-champs-04": {
+      "id": "pexels:35977366",
+      "auteur": "wal_ 172619",
+      "auteurUrl": "https://www.pexels.com/@wal_-172619-2156618639",
+      "pageUrl": "https://www.pexels.com/photo/textured-brown-concrete-surface-background-35977366/",
+      "original": "https://images.pexels.com/photos/35977366/pexels-photo-35977366.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a textured brown concrete surface with intricate patterns and small pebbles."
+    },
+    "ecole-des-hauts-champs-05": {
+      "id": "pexels:12168815",
+      "auteur": "Ali Ahmad DANESH",
+      "auteurUrl": "https://www.pexels.com/@ali-ahmad-danesh-177079090",
+      "pageUrl": "https://www.pexels.com/photo/empty-seats-in-a-classroom-12168815/",
+      "original": "https://images.pexels.com/photos/12168815/pexels-photo-12168815.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A bright empty classroom with wooden tables and chairs, ready for students."
+    },
+    "ecole-des-hauts-champs-06": {
+      "id": "pexels:7883886",
+      "auteur": "Garrison Gao",
+      "auteurUrl": "https://www.pexels.com/@garrison-gao-56316964",
+      "pageUrl": "https://www.pexels.com/photo/wooden-model-in-close-up-7883886/",
+      "original": "https://images.pexels.com/photos/7883886/pexels-photo-7883886.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Intricate wooden architectural model showcasing design and topography in close-up view."
+    },
+    "lumiere-fossile-01": {
+      "id": "pexels:1091428",
+      "auteur": "Munkee Panic",
+      "auteurUrl": "https://www.pexels.com/@munkee-panic-272941",
+      "pageUrl": "https://www.pexels.com/photo/house-interior-1091428/",
+      "original": "https://images.pexels.com/photos/1091428/pexels-photo-1091428.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Explore the dimly lit, vintage interior of an old train car, evoking a sense of nostalgia and travel."
+    },
+    "lumiere-fossile-02": {
+      "id": "pexels:15295143",
+      "auteur": "Ayşenaz  Bilgin",
+      "auteurUrl": "https://www.pexels.com/@aysenaz-bilgin-421884106",
+      "pageUrl": "https://www.pexels.com/photo/darkness-in-empty-corridor-15295143/",
+      "original": "https://images.pexels.com/photos/15295143/pexels-photo-15295143.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A dimly lit corridor with warm, dramatic lighting and a bright opening at the end."
+    },
+    "lumiere-fossile-03": {
+      "id": "pexels:16293865",
+      "auteur": "Guy Joben",
+      "auteurUrl": "https://www.pexels.com/@guyjoben",
+      "pageUrl": "https://www.pexels.com/photo/people-in-a-gallery-in-shadow-16293865/",
+      "original": "https://images.pexels.com/photos/16293865/pexels-photo-16293865.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Three silhouettes inside a dimly lit gallery with barred windows, creating a mysterious ambiance."
+    },
+    "lumiere-fossile-04": {
+      "id": "pexels:7771960",
+      "auteur": "Ihsan Adityawarman",
+      "auteurUrl": "https://www.pexels.com/@ihsanaditya",
+      "pageUrl": "https://www.pexels.com/photo/a-gas-lamp-hanging-on-stick-7771960/",
+      "original": "https://images.pexels.com/photos/7771960/pexels-photo-7771960.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of a vintage kerosene lamp burning at twilight outdoors. Warm, nostalgic lighting."
+    },
+    "lumiere-fossile-05": {
+      "id": "pexels:3468702",
+      "auteur": "Tim Mossholder",
+      "auteurUrl": "https://www.pexels.com/@timmossholder",
+      "pageUrl": "https://www.pexels.com/photo/wooden-surface-3468702/",
+      "original": "https://images.pexels.com/photos/3468702/pexels-photo-3468702.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Detailed view of a chevron patterned wooden wall showcasing rustic textures and rich color tones."
+    },
+    "belvedere-du-vercors-01": {
+      "id": "pexels:13351603",
+      "auteur": "Antonio  Tose",
+      "auteurUrl": "https://www.pexels.com/@antonio-tose-298756153",
+      "pageUrl": "https://www.pexels.com/photo/brown-wooden-house-on-mountain-13351603/",
+      "original": "https://images.pexels.com/photos/13351603/pexels-photo-13351603.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Wooden cabin perched on mountainside with breathtaking cliffs in Bosnia and Herzegovina."
+    },
+    "belvedere-du-vercors-02": {
+      "id": "pexels:9618124",
+      "auteur": "Ron Lach",
+      "auteurUrl": "https://www.pexels.com/@ron-lach",
+      "pageUrl": "https://www.pexels.com/photo/spatial-planning-architectural-model-9618124/",
+      "original": "https://images.pexels.com/photos/9618124/pexels-photo-9618124.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Detailed cardboard architectural model depicting houses, roads, and greenery."
+    },
+    "belvedere-du-vercors-03": {
+      "id": "pexels:6615233",
+      "auteur": "Tima Miroshnichenko",
+      "auteurUrl": "https://www.pexels.com/@tima-miroshnichenko",
+      "pageUrl": "https://www.pexels.com/photo/person-people-building-construction-6615233/",
+      "original": "https://images.pexels.com/photos/6615233/pexels-photo-6615233.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Detailed architectural sketches with drawing tools on a desk, perfect for design projects."
+    },
+    "belvedere-du-vercors-04": {
+      "id": "pexels:19850782",
+      "auteur": "chris clark",
+      "auteurUrl": "https://www.pexels.com/@chris-clark-1933184",
+      "pageUrl": "https://www.pexels.com/photo/river-descending-on-rocks-19850782/",
+      "original": "https://images.pexels.com/photos/19850782/pexels-photo-19850782.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A tranquil waterfall cascading over rocks in a mountainous forest, creating a serene nature scene."
+    },
+    "belvedere-du-vercors-05": {
+      "id": "pexels:7257156",
+      "auteur": "Anete Lusina",
+      "auteurUrl": "https://www.pexels.com/@anete-lusina",
+      "pageUrl": "https://www.pexels.com/photo/project-on-papers-7257156/",
+      "original": "https://images.pexels.com/photos/7257156/pexels-photo-7257156.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of detailed technical drawings on neatly arranged white paper sheets, highlighting design concepts."
+    },
+    "belvedere-du-vercors-06": {
+      "id": "pexels:33497256",
+      "auteur": "Jean-Paul Wettstein",
+      "auteurUrl": "https://www.pexels.com/@jean-paul-wettstein-677916508",
+      "pageUrl": "https://www.pexels.com/photo/dramatic-cliffs-of-creux-du-van-nature-reserve-33497256/",
+      "original": "https://images.pexels.com/photos/33497256/pexels-photo-33497256.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Breathtaking view of Creux du Van's rugged and majestic cliffs under a clear blue sky."
+    },
+    "atelier-atelier": {
+      "id": "pexels:6615036",
+      "auteur": "Tima Miroshnichenko",
+      "auteurUrl": "https://www.pexels.com/@tima-miroshnichenko",
+      "pageUrl": "https://www.pexels.com/photo/floor-plans-on-white-table-6615036/",
+      "original": "https://images.pexels.com/photos/6615036/pexels-photo-6615036.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "A creative workspace with architectural tools, blueprints, and sketches for design projects."
+    },
+    "atelier-portrait": {
+      "id": "pexels:9617896",
+      "auteur": "Ron Lach",
+      "auteurUrl": "https://www.pexels.com/@ron-lach",
+      "pageUrl": "https://www.pexels.com/photo/man-hands-holding-compass-over-sketch-9617896/",
+      "original": "https://images.pexels.com/photos/9617896/pexels-photo-9617896.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Detailed shot of hands using a compass on an architectural blueprint with drafting tools."
+    },
+    "atelier-equipe-01": {
+      "id": "pexels:9617407",
+      "auteur": "Ron Lach",
+      "auteurUrl": "https://www.pexels.com/@ron-lach",
+      "pageUrl": "https://www.pexels.com/photo/close-up-on-mans-hands-on-drawing-on-deck-9617407/",
+      "original": "https://images.pexels.com/photos/9617407/pexels-photo-9617407.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Close-up of architect's hands over a design sketch on desk, capturing creative process."
+    },
+    "atelier-equipe-02": {
+      "id": "pexels:5582599",
+      "auteur": "Thirdman",
+      "auteurUrl": "https://www.pexels.com/@thirdman",
+      "pageUrl": "https://www.pexels.com/photo/overhead-photo-of-an-architect-s-deisgn-5582599/",
+      "original": "https://images.pexels.com/photos/5582599/pexels-photo-5582599.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "High-angle view of an architect reviewing construction drawings on a desk in an office."
+    },
+    "atelier-equipe-03": {
+      "id": "pexels:6282077",
+      "auteur": "Yaroslav Shuraev",
+      "auteurUrl": "https://www.pexels.com/@yaroslav-shuraev",
+      "pageUrl": "https://www.pexels.com/photo/a-person-holding-a-pencil-6282077/",
+      "original": "https://images.pexels.com/photos/6282077/pexels-photo-6282077.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Detailed view of an architect's hand drafting a blueprint in a workspace setting."
+    },
+    "atelier-equipe-04": {
+      "id": "pexels:9616964",
+      "auteur": "Ron Lach",
+      "auteurUrl": "https://www.pexels.com/@ron-lach",
+      "pageUrl": "https://www.pexels.com/photo/directly-above-view-on-deck-with-drawing-accessories-9616964/",
+      "original": "https://images.pexels.com/photos/9616964/pexels-photo-9616964.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Flat lay of architectural tools and sketches on a desk, ideal for design and drafting concepts."
+    },
+    "atelier-equipe-05": {
+      "id": "pexels:9616963",
+      "auteur": "Ron Lach",
+      "auteurUrl": "https://www.pexels.com/@ron-lach",
+      "pageUrl": "https://www.pexels.com/photo/coffee-and-drawing-accessories-on-deck-9616963/",
+      "original": "https://images.pexels.com/photos/9616963/pexels-photo-9616963.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Flat lay of an architect's workspace with sketches, coffee, and drawing tools on a wooden desk."
+    },
+    "atelier-ecouter": {
+      "id": "pexels:6991324",
+      "auteur": "DS stories",
+      "auteurUrl": "https://www.pexels.com/@ds-stories",
+      "pageUrl": "https://www.pexels.com/photo/a-pencil-on-a-notebook-beside-a-steel-blade-measuring-tape-6991324/",
+      "original": "https://images.pexels.com/photos/6991324/pexels-photo-6991324.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Top view of a notebook, green pencil, and measuring tape on a white background."
+    },
+    "atelier-construire": {
+      "id": "pexels:8491085",
+      "auteur": "Saeed Khokhar",
+      "auteurUrl": "https://www.pexels.com/@vip-foto",
+      "pageUrl": "https://www.pexels.com/photo/wooden-frame-of-roof-on-concrete-building-8491085/",
+      "original": "https://images.pexels.com/photos/8491085/pexels-photo-8491085.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Wooden roof structure in progress with open sky view, ideal for construction themes."
+    },
+    "mediatheque-des-tanneurs-06": {
+      "id": "pexels:15357661",
+      "auteur": "Alina Skazka",
+      "auteurUrl": "https://www.pexels.com/@alinaskazka",
+      "pageUrl": "https://www.pexels.com/photo/wooden-railings-of-the-staircase-15357661/",
+      "original": "https://images.pexels.com/photos/15357661/pexels-photo-15357661.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Beautiful wooden staircase with intricate railing in a sunlit interior space."
+    },
+    "lumiere-fossile-06": {
+      "id": "pexels:27015942",
+      "auteur": "Laura  Meinhardt",
+      "auteurUrl": "https://www.pexels.com/@leefinvrede",
+      "pageUrl": "https://www.pexels.com/photo/corridor-of-an-abandoned-sanatorium-27015942/",
+      "original": "https://images.pexels.com/photos/27015942/pexels-photo-27015942.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Explore the eerie and historic corridors of Beelitz Sanatorium in Germany, a popular urbex location."
+    },
+    "atelier-dessiner": {
+      "id": "pexels:6614748",
+      "auteur": "Tima Miroshnichenko",
+      "auteurUrl": "https://www.pexels.com/@tima-miroshnichenko",
+      "pageUrl": "https://www.pexels.com/photo/mechanical-pencil-on-notepad-with-sketch-6614748/",
+      "original": "https://images.pexels.com/photos/6614748/pexels-photo-6614748.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "Explore detailed architectural sketches and designs on a spiral notepad with a mechanical pencil."
+    },
+    "atelier-equipe-06": {
+      "id": "pexels:4792480",
+      "auteur": "Anete Lusina",
+      "auteurUrl": "https://www.pexels.com/@anete-lusina",
+      "pageUrl": "https://www.pexels.com/photo/pen-with-ruler-and-eyeglasses-placed-on-house-plan-4792480/",
+      "original": "https://images.pexels.com/photos/4792480/pexels-photo-4792480.jpeg?auto=compress&cs=tinysrgb&w=2600",
+      "description": "From above of ruler with pencil and glasses placed on paper sheet of house plan for construction"
+    }
+  },
+  "exclus": [
+    "pexels:7746980",
+    "pexels:13794116",
+    "pexels:7147568",
+    "pexels:7257236"
+  ]
+}
