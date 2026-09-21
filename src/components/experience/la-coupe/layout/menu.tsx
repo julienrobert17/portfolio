@@ -11,6 +11,7 @@ import { abonnerHero, hero, lireCanvasPret, lireFaux } from '../lib/hero-store'
 import { getLenis } from '../lib/lenis-store'
 import { abonnerMenu, lireMenu, lireMenuServeur, naviguer, navigation, setMenuOuvert } from '../lib/navigation-store'
 import LienTransition from './lien-transition'
+import LocalTime from './local-time'
 import styles from './menu.module.css'
 
 const FOCALISABLES = 'a[href], button:not([disabled])'
@@ -154,7 +155,7 @@ export default function Menu() {
         </ol>
         <ul className={styles.pages}>
           {[{ label: 'Accueil', href: '' }, ...site.nav].map((item) => (
-            <li key={item.href} data-menu-item>
+            <li key={item.href} data-menu-item data-accueil={item.href === '' ? '' : undefined}>
               <LienTransition
                 href={`${site.base}${item.href}`}
                 label={item.label}
@@ -169,6 +170,8 @@ export default function Menu() {
             </li>
           ))}
         </ul>
+        {/* Mobile : la barre masque l'heure et le lieu, l'overlay les porte en bas. */}
+        <LocalTime className={`lc-mono ${styles.heure}`} />
       </nav>
     </div>
     </>

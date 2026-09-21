@@ -159,13 +159,41 @@
   }
 }
 
-/* La barre masque les pages sous 720 px : l'overlay les garde, en taille normale. */
+.heure {
+  display: none;
+}
+
+/*
+ * Sous 720 px la barre masque les pages et l'heure : l'overlay les porte. Les pages passent en
+ * haut, avant les projets, en taille lisible (l'accueil reste le nom dans la barre) ; l'heure et
+ * le lieu ferment l'écran.
+ */
 @media (max-width: 720px) {
+  .contenu {
+    grid-template-rows: auto 1fr auto;
+    row-gap: var(--s-4);
+  }
+
   .pages {
-    column-gap: var(--s-3);
+    order: -1;
+    column-gap: var(--s-4);
+    border-top: 0;
+    border-bottom: 1px solid var(--line-inverse);
+    padding-top: 0;
+    padding-bottom: var(--s-2);
+  }
+
+  .pages [data-accueil] {
+    display: none;
   }
 
   .page {
-    font-size: 1rem;
+    font-size: 1.125rem;
+  }
+
+  .heure {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--ink-2-inverse);
   }
 }
