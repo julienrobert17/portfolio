@@ -1,0 +1,189 @@
+'use client'
+
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import MaquetteStatique from '../canvas/maquette-statique'
+import { projets } from '../content/projets'
+import { site } from '../content/site'
+import { EASE_UI_GSAP } from '../lib/easings'
+import { formatNumero } from '../lib/format'
+import { registerGsap } from '../lib/gsap'
+import { abonnerHero, hero, lireCanvasPret, lireFaux } from '../lib/hero-store'
+import { getLenis } from '../lib/lenis-store'
+import { abonnerMenu, lireMenu, lireMenuServeur, naviguer, navigation, setMenuOuvert } from '../lib/navigation-store'
+import LienTransition from './lien-transition'
+import LocalTime from './local-time'
+import styles from './menu.module.css'
+import { insecable } from '../lib/typo'
+
+const FOCALISABLES = 'a[href], button:not([disabled])'
+
+/**
+ * Focalisables réellement à l'écran : sous 720 px le lien « Accueil » de
+ * l'overlay est masqué (le nom de la barre y mène déjà), et un élément en
+ * `display: none` ne prend pas le focus — le piège tournerait à vide.
+ */
+const focalisablesDe = (racine: ParentNode): HTMLElement[] =>
+  Array.from(racine.querySelectorAll<HTMLElement>(FOCALISABLES)).filter((e) => e.getClientRects().length > 0)
+const REDUIT = '(prefers-reduced-motion: reduce)'
+
+/**
+ * Index plein écran : rideau encre qui descend (800 ms), les huit projets en
+ * display avec leur numéro, la maquette en fil de fer à droite, les pages en
+ * mono. L'ordre du DOM est celui de l'écran mobile (pages, projets, heure) ;
+ * en desktop la grille remonte les projets et descend les pages, sans toucher
+ * à l'ordre de tabulation
+ * (canvas en mode menu, ou le SVG statique tant que three n'est pas là). Focus
+ * piégé, `main` inerte, Lenis arrêté. Fermeture : Échap, fond, bouton.
+ */
+export default function Menu() {
+  const ouvert = useSyncExternalStore(abonnerMenu, lireMenu, lireMenuServeur)
+  const canvasPret = useSyncExternalStore(abonnerHero, lireCanvasPret, lireFaux)
+  const overlay = useRef<HTMLDivElement>(null)
+  const fond = useRef<HTMLDivElement>(null)
+  const premierRendu = useRef(true)
+
+  useEffect(() => {
+    const el = overlay.current
+    const bg = fond.current
+    if (!el || !bg) return
+    const couches = [bg, el]
+    const { gsap } = registerGsap()
+    const reduit = window.matchMedia(REDUIT).matches
+    const main = document.getElementById('contenu')
+    const liens = el.querySelectorAll<HTMLElement>('[data-menu-item]')
+
+    if (ouvert) {
+      getLenis()?.stop()
+      if (main) main.inert = true
+      el.hidden = false
+      bg.hidden = false
+      hero.sale = true
+      // Couverture complète : promesse attendue par PageTransition avant de changer de route sous le menu.
+      let couvert: () => void = () => {}
+      navigation.couvertureMenu = new Promise((resolve) => {
+        couvert = resolve
+      })
+      if (reduit) {
+        gsap.fromTo(couches, { '--bas': '0%', opacity: 0 }, { opacity: 1, duration: 0.2, onComplete: couvert })
+      } else {
+        gsap.fromTo(couches, { '--bas': '100%', opacity: 1 }, { '--bas': '0%', duration: 0.8, ease: EASE_UI_GSAP, onComplete: couvert })
+        gsap.from(liens, { y: 24, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.05, delay: 0.3 })
+      }
+      focalisablesDe(el)[0]?.focus({ preventScroll: true })
+
+      const auClavier = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          setMenuOuvert(false)
+          return
+        }
+        if (e.key !== 'Tab') return
+        const focalisables = focalisablesDe(el)
+        const bouton = document.querySelector<HTMLElement>('[data-menu-bouton]')
+        if (bouton) focalisables.push(bouton)
+        if (focalisables.length === 0) return
+        const i = focalisables.indexOf(document.activeElement as HTMLElement)
+        const suivant = e.shiftKey ? (i <= 0 ? focalisables.length - 1 : i - 1) : i >= focalisables.length - 1 ? 0 : i + 1
+        e.preventDefault()
+        focalisables[suivant].focus({ preventScroll: true })
+      }
+      document.addEventListener('keydown', auClavier)
+      return () => {
+        navigation.couvertureMenu = null
+        couvert()
+        document.removeEventListener('keydown', auClavier)
+        if (main) main.inert = false
+        getLenis()?.start()
+        document.querySelector<HTMLElement>('[data-menu-bouton]')?.focus({ preventScroll: true })
+      }
+    }
+
+    // Fermeture (sauf au premier rendu, où rien n'est ouvert).
+    if (premierRendu.current) {
+      premierRendu.current = false
+      el.hidden = true
+      bg.hidden = true
+      return
+    }
+    // Après une navigation par le menu, la fermeture est la levée du rideau sur la nouvelle page.
+    const duree = navigation.leveeMenu ? 0.6 : 0.5
+    navigation.leveeMenu = false
+    gsap.to(couches, {
+      ...(reduit ? { opacity: 0, duration: 0.2 } : { '--bas': '100%', duration: duree, ease: EASE_UI_GSAP }),
+      onComplete: () => {
+        el.hidden = true
+        bg.hidden = true
+        hero.sale = true
+      },
+    })
+  }, [ouvert])
+
+  const auClicFond = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) setMenuOuvert(false)
+  }
+  const auLien = (href: string, label: string) => {
+    // Même page : on ferme. Sinon le menu reste fermé sur l'écran, c'est lui le rideau.
+    if (href === window.location.pathname) setMenuOuvert(false)
+    else naviguer({ href, type: 'menu', label })
+  }
+
+  return (
+    <>
+    <div ref={fond} className={styles.fond} aria-hidden="true" hidden />
+    <div
+      ref={overlay}
+      id="lc-menu"
+      className={styles.menu}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Index des projets"
+      data-canvas={canvasPret ? 'pret' : 'absent'}
+      onClick={auClicFond}
+      hidden
+    >
+      <div className={styles.maquette} aria-hidden="true">
+        <MaquetteStatique className={styles.filDeFer} />
+      </div>
+      <nav className={`lc-container ${styles.contenu}`} aria-label="Pages et projets">
+        <ul className={styles.pages}>
+          {[{ label: 'Accueil', href: '' }, ...site.nav].map((item) => (
+            <li key={item.href} data-menu-item data-accueil={item.href === '' ? '' : undefined}>
+              <LienTransition
+                href={`${site.base}${item.href}`}
+                label={item.label}
+                className={`lc-mono ${styles.page}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  auLien(`${site.base}${item.href}`, item.label)
+                }}
+              >
+                {item.label}
+              </LienTransition>
+            </li>
+          ))}
+        </ul>
+        <ol className={styles.projets}>
+          {projets.map((p, i) => (
+            <li key={p.slug} data-menu-item>
+              <LienTransition
+                href={`${site.base}/projets/${p.slug}`}
+                label={p.titre}
+                className={`lc-display ${styles.projet}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  auLien(`${site.base}/projets/${p.slug}`, p.titre)
+                }}
+              >
+                <span className={`lc-mono ${styles.numero}`}>{formatNumero(i)}</span>
+                {insecable(p.titre)}
+              </LienTransition>
+            </li>
+          ))}
+        </ol>
+        {/* Mobile : la barre masque l'heure et le lieu, l'overlay les porte en bas. */}
+        <LocalTime className={`lc-mono ${styles.heure}`} />
+      </nav>
+    </div>
+    </>
+  )
+}

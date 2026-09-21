@@ -1,0 +1,126 @@
+.footer {
+  --ink-2: var(--ink-2-inverse);
+  --line: var(--line-inverse);
+  background: var(--ink);
+  color: var(--paper);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s-7);
+  padding-block: var(--s-7) var(--s-4);
+}
+
+.footer ::selection {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding-top: var(--nav-h);
+}
+
+.titre {
+  font-size: clamp(3.25rem, 11vw, 14rem);
+}
+
+.email {
+  align-self: flex-start;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--ink-2-inverse);
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+  overflow-wrap: anywhere;
+}
+
+.email:hover {
+  text-decoration-color: currentColor;
+}
+
+.colonnes {
+  row-gap: var(--s-6);
+  border-top: 1px solid var(--line-inverse);
+  padding-top: var(--s-4);
+}
+
+.colonne {
+  grid-column: span 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.intitule {
+  color: var(--ink-2-inverse);
+  font-weight: 400;
+}
+
+.adresse {
+  font-style: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.secondaire {
+  color: var(--ink-2-inverse);
+}
+
+.heure {
+  margin-top: auto;
+  padding-top: var(--s-3);
+}
+
+.dessin {
+  --ink-2: var(--ink-2-inverse);
+  max-width: 1400px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.copyright {
+  color: var(--ink-2-inverse);
+}
+
+@media (max-width: 900px) {
+  .colonne {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 480px) {
+  .colonne {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Crédits photo : repliés, la liste défile dans sa colonne sans pousser le footer. */
+.credits {
+  color: var(--ink-2-inverse);
+}
+
+.creditsResume {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.creditsListe {
+  max-height: 11rem;
+  overflow-y: auto;
+  padding-right: var(--s-2);
+}

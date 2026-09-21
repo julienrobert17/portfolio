@@ -1,0 +1,12 @@
+.entete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding-top: calc(var(--nav-h) + var(--s-7));
+  padding-bottom: var(--s-6);
+}
+
+.intro {
+  max-width: 28ch;
+  margin-top: var(--s-4);
+}

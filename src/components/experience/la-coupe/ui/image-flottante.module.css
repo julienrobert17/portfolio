@@ -1,0 +1,26 @@
+.flottante {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 260px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+  will-change: transform, opacity;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+
+.flottante img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Jamais sur mobile : les vignettes y sont visibles en place. */
+@media (max-width: 720px), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .flottante {
+    display: none;
+  }
+}

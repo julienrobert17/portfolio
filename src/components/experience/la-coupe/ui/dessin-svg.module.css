@@ -1,0 +1,39 @@
+.figure {
+  margin: 0;
+}
+
+.cadre {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cote {
+  position: absolute;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.coteH {
+  transform: translate(-50%, 6px);
+}
+
+.coteV {
+  transform: translate(8px, -50%) rotate(-90deg);
+  transform-origin: 0 50%;
+}
+
+.legende {
+  margin-top: var(--s-3);
+  display: flex;
+  gap: var(--s-3);
+}
+
+.numero {
+  color: var(--ink);
+}

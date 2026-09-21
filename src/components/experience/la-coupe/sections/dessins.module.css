@@ -1,0 +1,20 @@
+.section {
+  background: var(--paper-2);
+  padding-block: var(--s-7);
+}
+
+.grille {
+  row-gap: var(--s-6);
+  align-items: end;
+}
+
+.dessin {
+  grid-column: span 6;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .dessin {
+    grid-column: 1 / -1;
+  }
+}

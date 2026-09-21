@@ -1,0 +1,23 @@
+.rideau {
+  --haut: 100%;
+  --bas: 0%;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  clip-path: inset(var(--haut) 0 var(--bas) 0);
+  background: var(--paper-2);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.label {
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rideau {
+    display: none;
+  }
+}

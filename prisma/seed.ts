@@ -21,14 +21,15 @@ async function main() {
 
   await prisma.project.upsert({
     where: { slug: 'task-manager-app' },
-    update: {},
+    // Sorti du carrousel de la home (six places) à l'arrivée de « La Coupe » : sélection explicite.
+    update: { featured: false },
     create: {
       slug: 'task-manager-app',
       title: 'Task Manager App',
       description: 'Application de gestion de tâches en temps réel avec authentification, tableaux Kanban et notifications.',
       tags: ['React', 'Node.js', 'PostgreSQL', 'WebSocket'],
       githubUrl: 'https://github.com/julienrobert17/task-manager',
-      featured: true,
+      featured: false,
       publishedAt: new Date('2026-05-19'),
     },
   })
@@ -83,6 +84,24 @@ async function main() {
       liveUrl: '/experience/un-moment-hors-du-temps',
       featured: true,
       publishedAt: new Date('2026-09-08'),
+    },
+  })
+
+  await prisma.project.upsert({
+    where: { slug: 'la-coupe' },
+    update: {
+      liveUrl: '/experience/la-coupe',
+      imageUrl: '/experience/la-coupe/tuile.svg',
+    },
+    create: {
+      slug: 'la-coupe',
+      title: 'La Coupe',
+      description: "Le site d'un atelier d'architecture dont le scroll tranche la maquette : une coupe qui traverse l'œuvre, du faîtage au sol.",
+      tags: ['Next.js', 'Three.js', 'GSAP', 'Lenis'],
+      liveUrl: '/experience/la-coupe',
+      imageUrl: '/experience/la-coupe/tuile.svg',
+      featured: true,
+      publishedAt: new Date('2026-09-19'),
     },
   })
 

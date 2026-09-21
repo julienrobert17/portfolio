@@ -1,0 +1,73 @@
+.section {
+  border-top: 1px solid var(--line);
+}
+
+.titre {
+  font-weight: 400;
+  margin-bottom: var(--s-6);
+}
+
+/* Conteneur commun des lignes et de l'image flottante (position: fixed, hors flux). */
+.conteneur {
+  position: relative;
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.membre {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 5fr) minmax(0, 6fr);
+  column-gap: var(--s-4);
+  align-items: center;
+  padding-block: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.vignette {
+  width: 56px;
+  overflow: hidden;
+}
+
+/*
+ * Desktop : plus de vignette, l'image flottante la remplace au survol. Le nom reste en encre ;
+ * seul un tiret --accent paraît devant lui, dans la colonne qu'occupait la vignette.
+ */
+@media (min-width: 721px) {
+  .vignette {
+    display: none;
+  }
+
+  .membre::before {
+    content: '—';
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity var(--t-micro) var(--ease-ui);
+  }
+
+  .membre:hover::before,
+  .membre:focus-within::before {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .membre {
+    grid-template-columns: 48px 1fr;
+    row-gap: 2px;
+  }
+
+  .vignette {
+    width: 48px;
+    grid-row: 1 / span 2;
+  }
+
+  .nom,
+  .role {
+    grid-column: 2;
+  }
+}

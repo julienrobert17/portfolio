@@ -1,0 +1,214 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-inline: var(--margin);
+  color: var(--paper);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transition: transform 300ms var(--ease-ui);
+}
+
+.nav[data-cachee='true'] {
+  transform: translateY(-100%);
+}
+
+/* Garde de contraste (NavComportement) : au-dessus d'une image, la différence
+ * tombe sous 4,5:1 sur les tons moyens. La nav passe alors en couleur pleine :
+ * encre sur image claire, papier sur voile encre à 35 % sur image sombre. */
+.nav[data-image] {
+  mix-blend-mode: normal;
+  transition:
+    transform 300ms var(--ease-ui),
+    background-color var(--t-micro) var(--ease-ui);
+}
+
+.nav[data-image='clair'] {
+  color: var(--ink);
+}
+
+.nav[data-image='sombre'] {
+  color: var(--paper);
+  background-color: rgba(21, 20, 18, 0.35);
+}
+
+/* Menu ouvert : au-dessus du rideau encre, sans différence, jamais cachée. */
+.nav[data-menu='true'] {
+  z-index: 63;
+  mix-blend-mode: normal;
+  color: var(--paper);
+  background-color: transparent;
+  transform: none;
+}
+
+/* Sur l'encre du menu, l'accent ne fait que 3,1:1 : anneau papier. */
+.nav[data-menu='true'] :focus-visible {
+  outline-color: var(--paper);
+}
+
+.nav[data-reduite='true'] .nomLong {
+  display: none;
+}
+
+.nav[data-reduite='true'] .nomCourt {
+  display: inline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav {
+    transition: none;
+  }
+}
+
+.nav a,
+.nav button,
+.nav span {
+  pointer-events: auto;
+}
+
+.nom {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nomCourt {
+  display: none;
+  letter-spacing: 0.02em;
+}
+
+.droite {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.liens {
+  display: flex;
+  gap: var(--s-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lien {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.lien:hover,
+.lien[aria-current='page'] {
+  text-decoration-color: currentColor;
+}
+
+.heure {
+  white-space: nowrap;
+  /* Dernier de la barre, détaché des liens et de l'icône. */
+  margin-left: var(--s-4);
+}
+
+/* Desktop, menu ouvert : l'overlay porte les liens de pages, la barre ne les double pas. */
+.nav[data-menu='true'] .liens {
+  visibility: hidden;
+}
+
+.menuBouton {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+}
+
+/* Carré de 12 px au trait, coupé par un trait de 20 px ; à l'ouverture le carré s'efface et les deux traits superposés s'ouvrent en croix. */
+.icone {
+  position: relative;
+  width: 20px;
+  height: 12px;
+  display: block;
+}
+
+.carre,
+.trait {
+  position: absolute;
+  display: block;
+  transition:
+    transform 300ms var(--ease-ui),
+    opacity 300ms var(--ease-ui);
+}
+
+.carre {
+  left: 4px;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  border: 1px solid currentColor;
+}
+
+.trait {
+  left: 0;
+  top: 50%;
+  width: 20px;
+  height: 1px;
+  margin-top: -0.5px;
+  background: currentColor;
+}
+
+.menuBouton[aria-expanded='true'] .carre {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.menuBouton[aria-expanded='true'] .trait:nth-child(2) {
+  transform: rotate(45deg);
+}
+
+.menuBouton[aria-expanded='true'] .trait:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carre,
+  .trait {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .nomLong {
+    display: none;
+  }
+
+  .nomCourt {
+    display: inline;
+  }
+
+  .heure {
+    display: none;
+  }
+
+  /* Les pages passent dans l'overlay, en taille normale. */
+  .liens {
+    display: none;
+  }
+}

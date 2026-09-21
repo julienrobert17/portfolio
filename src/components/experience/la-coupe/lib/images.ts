@@ -1,0 +1,81 @@
+import { photos } from '../content/credits'
+import { site } from '../content/site'
+import type { ImageContenu, Projet, Ratio } from '../content/types'
+
+/**
+ * Dimensions par ratio : 1920 px au plus sur le grand côté. Les photos sont
+ * recadrées à ces tailles par scripts/fetch-la-coupe-photos.ts ; les
+ * placeholders SVG de repli sont vectoriels et prennent les mêmes.
+ */
+export const DIMENSIONS: Record<Ratio, { width: number; height: number }> = {
+  '3:2': { width: 1920, height: 1280 },
+  '4:5': { width: 1536, height: 1920 },
+  '16:9': { width: 1920, height: 1080 },
+  '1:1': { width: 1440, height: 1440 },
+}
+
+export interface ImageRendue {
+  src: string
+  width: number
+  height: number
+  alt: string
+  ratio: Ratio
+  /** Couleur dominante de la photo, ou rien pour un placeholder. */
+  couleur?: string
+  /** `srcset` par format (fichiers statiques `<cle>-<largeur>`), ou rien pour un placeholder. */
+  srcset?: { avif: string; webp: string }
+  /** Recadrage portrait 4:5 des images de tête, pour les écrans tenus droits (affichage en `cover`). */
+  srcsetPortrait?: { avif: string; webp: string }
+  /** Aperçu flouté en data URI, affiché sous l'image pendant son chargement. */
+  lqip?: string
+  /** Petite version (480 px) pour l'image flottante. */
+  vignette: string
+}
+
+/** Image de tête sur 60vh (hero de fiche, projet suivant) : en 4:5 elle fait 48vh de large, jamais moins que l'écran. */
+export const SIZES_TETE_PORTRAIT = 'max(100vw, 48vh)'
+
+const DOSSIER = `${site.base}/img`
+
+/** Clé d'une image de projet : `<slug>-01`, `<slug>-02`… */
+export function cleProjet(slug: string, index: number): string {
+  return `${slug}-${String(index + 1).padStart(2, '0')}`
+}
+
+export function cleAtelier(id: string): string {
+  return `atelier-${id}`
+}
+
+/** Photo statique si elle a été générée (content/credits.ts), sinon le placeholder SVG. */
+function rendre(cle: string, image: ImageContenu): ImageRendue {
+  const photo = photos[cle]
+  const svg = `${DOSSIER}/${cle}.svg`
+  if (!photo) return { ...DIMENSIONS[image.ratio], src: svg, vignette: svg, alt: image.alt, ratio: image.ratio }
+  const srcset = (format: 'avif' | 'webp') => photo.largeurs.map((l) => `${DOSSIER}/${cle}-${l}.${format} ${l}w`).join(', ')
+  const portrait = (format: 'avif' | 'webp') => (photo.portrait ?? []).map((l) => `${DOSSIER}/${cle}-p-${l}.${format} ${l}w`).join(', ')
+  return {
+    src: `${DOSSIER}/${cle}-${photo.width}.webp`,
+    vignette: `${DOSSIER}/${cle}-${photo.largeurs[0]}.webp`,
+    width: photo.width,
+    height: photo.height,
+    couleur: photo.couleur,
+    lqip: photo.lqip,
+    srcset: { avif: srcset('avif'), webp: srcset('webp') },
+    srcsetPortrait: photo.portrait?.length ? { avif: portrait('avif'), webp: portrait('webp') } : undefined,
+    alt: image.alt,
+    ratio: image.ratio,
+  }
+}
+
+export function imageProjet(projet: Pick<Projet, 'slug' | 'images'>, index: number): ImageRendue {
+  return rendre(cleProjet(projet.slug, index), projet.images[index])
+}
+
+export function imageAtelier(id: string, image: ImageContenu): ImageRendue {
+  return rendre(cleAtelier(id), image)
+}
+
+/** Nom de fichier tel que les scripts de génération l'écrivent dans public/. */
+export function nomFichier(src: string): string {
+  return src.slice(src.lastIndexOf('/') + 1)
+}

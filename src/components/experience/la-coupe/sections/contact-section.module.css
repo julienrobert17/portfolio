@@ -1,0 +1,48 @@
+.section {
+  border-top: 1px solid var(--line);
+}
+
+.rail {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-self: start;
+}
+
+.titre {
+  margin-bottom: var(--s-3);
+}
+
+/* Variante large : le rail se réduit à deux colonnes, le corps commence à la troisième. */
+[data-large] > .rail {
+  grid-column: 1 / span 2;
+}
+
+[data-large] > .corps {
+  grid-column: 3 / span 10;
+}
+
+.corps {
+  grid-column: 5 / span 8;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  /* Un cran en dessous du desktop sur l'échelle d'espacement. */
+  .section {
+    padding-block: var(--s-6);
+  }
+
+  .rail,
+  .corps,
+  [data-large] > .rail,
+  [data-large] > .corps {
+    grid-column: 1 / -1;
+  }
+
+  /* Rail et corps empilés (table puis plan, texte puis composeur) : sans marge excessive. */
+  .corps {
+    margin-top: var(--s-4);
+  }
+}
