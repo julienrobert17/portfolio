@@ -713,7 +713,7 @@ export const photos: Record<string, PhotoGeneree> = {
   "maison-des-vignes-01": {
     "width": 1920,
     "height": 1280,
-    "couleur": "#786858",
+    "couleur": "#f8f8e8",
     "largeurs": [
       480,
       800,
@@ -727,7 +727,7 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1280
     ],
-    "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADwAwCdASoYABAAPtFUo0uoJKMhsAgBABoJZQCdMoADATxQ5GFkDToAAP6e6Uy47aa7vX4uydE/fXfwGhkhoAAA"
+    "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAAAwBACdASoYABAAPtFUo0uoJKMhsAgBABoJaACsACB+r7yzpiRpY0g8RaAA30ak86MiXy/qZS5aY77WrOG3q/eJ08WuhWptmUUQL9uuJTQXEJPcMe0UTUS6byvWNbVg125XjAAA"
   },
   "maison-des-vignes-02": {
     "width": 1920,
@@ -771,7 +771,7 @@ export const photos: Record<string, PhotoGeneree> = {
   "maison-des-vignes-05": {
     "width": 1920,
     "height": 1920,
-    "couleur": "#285878",
+    "couleur": "#080808",
     "largeurs": [
       480,
       800,
@@ -779,7 +779,7 @@ export const photos: Record<string, PhotoGeneree> = {
       1440,
       1920
     ],
-    "lqip": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAAAQBQCdASoYABgAPsFOn0unpCMht/qoAPAYCWMAvzgejJ/YuJFUk5pIOCUOk3C2NAsAAP7Ngv8T9uFvShNzzwi/9p7bT1jAB7arPeee5hQ5YhQuHskRb26dU2rZe6MgxgAAAA=="
+    "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAABwBACdASoYABgAPrlKnUunJCKht+gA4BcJZwC+wDJQcbLKyhjOKlQrAqmhGAD+8qFTHSzDB93FvUvsyBxsYbXxGh8stwQzg1rVvxcNUARyQAAA"
   },
   "maison-des-vignes-06": {
     "width": 1920,
@@ -1068,22 +1068,6 @@ export const credits: Credit[] = [
     ]
   },
   {
-    "auteur": "David Underland",
-    "source": "Pexels",
-    "url": "https://www.pexels.com/@david-underland",
-    "photos": [
-      "https://www.pexels.com/photo/corrugated-metal-construction-17511606/"
-    ]
-  },
-  {
-    "auteur": "Doğan Alpaslan  Demir",
-    "source": "Pexels",
-    "url": "https://www.pexels.com/@izafi",
-    "photos": [
-      "https://www.pexels.com/photo/rustic-stone-house-facade-in-kozbeyli-38101593/"
-    ]
-  },
-  {
     "auteur": "DS stories",
     "source": "Pexels",
     "url": "https://www.pexels.com/@ds-stories",
@@ -1104,6 +1088,7 @@ export const credits: Credit[] = [
     "source": "Pexels",
     "url": "https://www.pexels.com/@francesco-ungaro",
     "photos": [
+      "https://www.pexels.com/photo/windows-in-metal-brown-textured-roof-18513462/",
       "https://www.pexels.com/photo/window-in-wooden-facade-of-residential-building-18513513/",
       "https://www.pexels.com/photo/wooden-facade-of-residential-building-with-windows-18513512/"
     ]
@@ -1219,6 +1204,7 @@ export const credits: Credit[] = [
     "photos": [
       "https://www.pexels.com/photo/white-table-cloth-on-table-8143676/",
       "https://www.pexels.com/photo/room-on-attic-8082327/",
+      "https://www.pexels.com/photo/a-house-with-a-modern-design-7598374/",
       "https://www.pexels.com/photo/white-wooden-bed-with-white-linen-and-pillows-7746578/"
     ]
   },

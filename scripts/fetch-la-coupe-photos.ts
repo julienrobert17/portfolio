@@ -46,7 +46,7 @@ const RENDU = { saturation: 0.85, pente: [0.959, 0.94, 0.893], decalage: [9, 8, 
  * un seul bâtiment ; pas de rendu 3D ni d'intérieur de magazine.
  */
 export const REQUETES: Record<string, string[]> = {
-  'maison-des-vignes': ['modern stone house', 'wooden staircase interior', 'stone house vineyard', 'kitchen wood stone', 'metal roof', 'attic bedroom wood', 'stone wall', 'stone terrace view'],
+  'maison-des-vignes': ['modern house dark base wood volume garden', 'wooden staircase interior', 'stone house vineyard', 'kitchen wood stone', 'standing seam metal roof skylight', 'attic bedroom wood', 'stone wall', 'stone terrace view'],
   'halle-saint-ouen': ['market hall interior', 'steel structure industrial', 'brick industrial building', 'old factory exterior', 'steel beam detail', 'empty warehouse interior', 'industrial skylight roof'],
   'mediatheque-des-tanneurs': ['wooden facade architecture', 'modern library interior wood', 'library shelves', 'wooden door modern', 'modern wooden building', 'wooden stairs modern', 'timber architecture', 'reading room library', 'wood beam detail'],
   'les-terrasses-du-canal': ['brick apartment building', 'balconies brick building', 'apartment building corridor exterior', 'brick texture', 'concrete ceiling interior', 'courtyard garden apartment', 'exterior staircase building', 'brick building shop street'],
