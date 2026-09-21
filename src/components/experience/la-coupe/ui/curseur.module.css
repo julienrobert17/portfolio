@@ -16,7 +16,10 @@
   z-index: 100;
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity;
+  /* Le mélange est posé ici, sur l'élément fixe enfant direct de `.lc` : fixe + z-index crée un
+   * contexte d'empilement, et un `difference` posé sur un enfant ne verrait que l'intérieur vide
+   * de ce groupe, jamais la page (point blanc sur papier blanc). */
+  mix-blend-mode: difference;
   transition: opacity var(--t-micro) var(--ease-ui);
 }
 
@@ -24,11 +27,7 @@
   opacity: 1;
 }
 
-/*
- * Le point est peint en --paper sous `difference` : sur le papier il se lit
- * --ink, sur le fond --ink du footer il se lit --paper. Peint en --ink, la
- * différence donnerait un gris presque identique au papier (invisible).
- */
+/* Tout en #fff pur sous le `difference` du conteneur : noir sur papier, blanc sur encre. */
 .point {
   --taille: 8px;
   position: absolute;
@@ -40,9 +39,8 @@
   height: var(--taille);
   translate: -50% -50%;
   border-radius: 50%;
-  border: 0 solid var(--paper);
-  background: var(--paper);
-  mix-blend-mode: difference;
+  border: 0 solid #fff;
+  background: #fff;
   transition:
     width var(--t-micro) var(--ease-ui),
     height var(--t-micro) var(--ease-ui),
@@ -58,8 +56,7 @@
 
 .curseur[data-etat='view'] .point {
   --taille: 88px;
-  background: var(--ink);
-  mix-blend-mode: normal;
+  background: #fff;
 }
 
 .libelle {
@@ -68,7 +65,7 @@
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
-  color: var(--paper);
+  color: #000;
   opacity: 0;
   transition: opacity var(--t-micro) var(--ease-ui);
 }
