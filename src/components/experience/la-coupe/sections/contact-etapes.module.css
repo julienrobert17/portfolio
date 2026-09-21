@@ -43,6 +43,12 @@
   }
 }
 
+@media (max-width: 900px) {
+  .etape {
+    padding-block: var(--s-4);
+  }
+}
+
 @media (max-width: 560px) {
   .etape {
     padding-block: var(--s-4);

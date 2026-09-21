@@ -20,8 +20,9 @@
 }
 
 @media (max-width: 900px) {
+  /* Un cran en dessous du desktop sur l'échelle d'espacement. */
   .section {
-    padding-block: var(--s-7);
+    padding-block: var(--s-6);
   }
 
   .rail,
@@ -29,7 +30,8 @@
     grid-column: 1 / -1;
   }
 
+  /* Rail et corps empilés (table puis plan, texte puis composeur) : sans marge excessive. */
   .corps {
-    margin-top: var(--s-5);
+    margin-top: var(--s-4);
   }
 }

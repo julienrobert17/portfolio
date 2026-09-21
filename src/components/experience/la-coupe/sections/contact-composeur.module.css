@@ -221,7 +221,11 @@
 
 @media (max-width: 900px) {
   .composeur {
-    row-gap: var(--s-5);
+    row-gap: var(--s-4);
+  }
+
+  .controles {
+    gap: var(--s-4);
   }
 
   .controles,

@@ -55,9 +55,14 @@
   padding-bottom: 0.6em;
 }
 
+/* Sous 900 px le rythme vertical se resserre : hero à 80svh, respirations d'un cran en dessous. */
 @media (max-width: 900px) {
   .hero {
-    padding-top: calc(var(--nav-h) + var(--s-6));
+    min-height: 80vh;
+    min-height: 80svh;
+    gap: var(--s-5);
+    padding-top: calc(var(--nav-h) + var(--s-5));
+    padding-bottom: var(--s-4);
   }
 
   .adresse,
