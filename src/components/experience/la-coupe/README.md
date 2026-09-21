@@ -43,11 +43,11 @@ npx tsx scripts/generate-la-coupe-placeholders.ts
    garder le slug `maison-des-vignes` ou changer `construireMaquette()` dans `canvas/geometrie.ts`.
 3. **Images** : les 67 photos actuelles sont des placeholders Pexels crédités dans le footer
    (`scripts/fetch-la-coupe-photos.ts`, identifiants épinglés dans
-   `scripts/la-coupe-photos.manifest.json`, clé `PEXELS_API_KEY` dans `.env`). Changer une photo :
-   `--remplacer <cle>` ou `<cle>=pexels:<id>`. Pour les vraies photos, déposer `<cle>.webp` et
-   `<cle>.avif` dans `public/experience/la-coupe/img/` et renseigner leurs dimensions dans
-   `content/credits.ts` ; `ui/photo.tsx` (next/image) est le seul point de rendu. Sans entrée dans
-   `credits.ts`, le placeholder SVG sert de repli.
+   `scripts/la-coupe-photos.manifest.json`, clé `PEXELS_API_KEY` dans `.env`). Le script écrit
+   `<cle>-<largeur>.avif` et `.webp` en 480, 960, 1440 et 1920 px (≤ 300 kB) et, dans
+   `content/credits.ts`, dimensions, largeurs, couleur dominante et LQIP. `ui/photo.tsx` sert un
+   `<picture>` statique, sans optimiseur à la volée. Changer une photo : `--remplacer <cle>` ou
+   `<cle>=pexels:<id>`. Sans entrée dans `credits.ts`, le placeholder SVG sert de repli.
 4. **Maquette 3D** : `canvas/maquette.ts` décrit les volumes en mètres (source des dessins de la
    fiche et du hero). Pour un vrai modèle, implémenter `loadModel()` (retourner une géométrie
    fusionnée, non indexée, en repère X = x, Y = z, Z = y) et le copier dans
@@ -136,8 +136,8 @@ magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/pr
   LCP 2,9 s dont 0,45 s de TTFB simulé et 2,5 s de « render delay » attribué par la simulation aux
   ressources terminées avant le premier paint local (polices préchargées du layout racine, CSS,
   premiers chunks). Sur Chrome réellement bridé en 4G, le LCP mesuré est de 1,1 s. Sur une fiche,
-  l'image de tête (AVIF q60, 33 kB en mobile) est le LCP : 85 en simulation, 95 et 2,46 s en
-  bridage réel.
+  l'image de tête (AVIF statique, 960 px en mobile) est le LCP : 81 à 85 en simulation, 93 à 95
+  et 2,4 à 2,7 s en bridage réel ; 0,9 à 1,1 Mo au total.
 - Console : un avertissement `THREE.Clock deprecated` émis par fiber 9.7 avec three 0.185, et un
   préchargement CSS Next non consommé ; rien qui vienne de l'expérience.
 - Navigateurs : Chrome et Firefox 147 vérifiés (sticky, clip-path, stencil, mix-blend, transitions) ;
@@ -150,3 +150,4 @@ magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/pr
 - [x] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
 - [x] Phase 4 — menu, transitions de page, curseur, magnétisme, préchargeur
 - [x] Phase 5 — Lighthouse, accessibilité, navigateurs, SEO, préparation de la fusion
+- [x] Revue de preview : images statiques, projet suivant continu, filtrage séquentiel, transitions sans superposition, index des projets, lisibilité, page contact
