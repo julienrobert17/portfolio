@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { typo } from '../lib/typo'
+import { insecable, typo } from '../lib/typo'
 import RevealText from './reveal-text'
 
 interface RichTextProps {
@@ -19,7 +19,8 @@ const COLLEE = /^[.,…)\]]+/
  * Rend `*mot*` en <em>. Aucune autre syntaxe : le contenu reste lisible brut.
  * La ponctuation qui suit aussitôt un italique reste avec son dernier mot :
  * les deux partent dans un `.lc-colle` (white-space: nowrap), sinon un point
- * peut se retrouver seul en début de ligne.
+ * peut se retrouver seul en début de ligne. Les mots à trait d'union sont
+ * rendus insécables (`insecable`).
  */
 export default function RichText({ text, as: Tag = 'p', className, reveal = false, delay }: RichTextProps) {
   const parts = typo(text).split('*')
@@ -30,7 +31,7 @@ export default function RichText({ text, as: Tag = 'p', className, reveal = fals
     const contenu = part.slice(rogne)
     rogne = 0
     if (i % 2 === 0) {
-      if (contenu) children.push(contenu)
+      if (contenu) children.push(<span key={i}>{insecable(contenu)}</span>)
       return
     }
     const ponctuation = (parts[i + 1] ?? '').match(COLLEE)?.[0] ?? ''

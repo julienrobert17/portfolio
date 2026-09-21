@@ -7,6 +7,7 @@ import { imageProjet } from '../lib/images'
 import Apparition from '../ui/apparition'
 import ImageFlottante from '../ui/image-flottante'
 import styles from './index-projets.module.css'
+import { insecable } from '../lib/typo'
 
 interface IndexProjetsProps {
   projets: Projet[]
@@ -39,9 +40,9 @@ export default function IndexProjets({ projets, titre = 'Index', lien, nu = fals
             <li key={projet.slug} className={styles.item} data-flip-id={projet.slug} data-image={image.vignette} data-image-alt={image.alt} data-image-ratio={image.ratio}>
               <LienTransition href={`${site.base}/projets/${projet.slug}`} label={projet.titre} className={styles.ligne} data-curseur="default">
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
-                <span className={`lc-display lc-h3 ${styles.nom}`}>{projet.titre}</span>{' '}
+                <span className={`lc-display lc-h3 ${styles.nom}`}>{insecable(projet.titre)}</span>{' '}
                 <span className={styles.details}>
-                  <span className={`lc-mono lc-muted ${styles.lieu}`}>{projet.lieu}</span>{' '}
+                  <span className={`lc-mono lc-muted ${styles.lieu}`}>{insecable(projet.lieu)}</span>{' '}
                   <span className={`lc-mono ${styles.annee}`}>{projet.annee}</span>{' '}
                   <span className={`lc-mono lc-muted ${styles.statut}`}>{projet.statut}</span>
                 </span>

@@ -13,6 +13,7 @@ import { abonnerMenu, lireMenu, lireMenuServeur, naviguer, navigation, setMenuOu
 import LienTransition from './lien-transition'
 import LocalTime from './local-time'
 import styles from './menu.module.css'
+import { insecable } from '../lib/typo'
 
 const FOCALISABLES = 'a[href], button:not([disabled])'
 
@@ -174,7 +175,7 @@ export default function Menu() {
                 }}
               >
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(i)}</span>
-                {p.titre}
+                {insecable(p.titre)}
               </LienTransition>
             </li>
           ))}

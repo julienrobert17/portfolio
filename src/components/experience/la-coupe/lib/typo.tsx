@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 /**
  * Typographie française appliquée au contenu : espace fine insécable (U+202F)
  * avant ? ! ; : et le guillemet fermant, après le guillemet ouvrant.
@@ -30,4 +32,27 @@ export function typographier<T>(valeur: T): T {
     return Object.fromEntries(Object.entries(valeur).map(([cle, v]) => [cle, typographier(v)])) as T
   }
   return valeur
+}
+
+/** Mot composé d'un trait d'union : « Saint-Ouen », « Hauts-Champs », « Jean-Baptiste ». */
+const COMPOSE = /(\S+-\S+)/g
+
+/**
+ * Le texte, composé, avec ses mots à trait d'union rendus insécables. Un nom
+ * propre ne se coupe pas sur son trait : « Halle Saint-/Ouen » est une faute.
+ * Le trait d'union insécable U+2011 ferait le travail, mais la fonte peut ne
+ * pas l'avoir ; c'est donc un `.lc-colle` (white-space: nowrap) qui l'enveloppe.
+ */
+export function insecable(texte: string): ReactNode {
+  const morceaux = typo(texte).split(COMPOSE)
+  if (morceaux.length === 1) return morceaux[0]
+  return morceaux.map((m, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="lc-colle">
+        {m}
+      </span>
+    ) : (
+      m
+    ),
+  )
 }

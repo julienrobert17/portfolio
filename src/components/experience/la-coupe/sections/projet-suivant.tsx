@@ -2,7 +2,7 @@ import LienTransition from '../layout/lien-transition'
 import { site } from '../content/site'
 import type { Projet } from '../content/types'
 import { imageProjet, SIZES_TETE_PORTRAIT } from '../lib/images'
-import { typo } from '../lib/typo'
+import { insecable, typo } from '../lib/typo'
 import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import RichText from '../ui/rich-text'
@@ -34,14 +34,14 @@ export default function ProjetSuivant({ projet }: ProjetSuivantProps) {
         </div>
         <span className={`lc-container ${styles.legende}`}>
           <span className="lc-mono">Projet suivant</span>
-          <span className={`lc-display lc-h3 ${styles.titre}`}>{projet.titre}</span>
+          <span className={`lc-display lc-h3 ${styles.titre}`}>{insecable(projet.titre)}</span>
         </span>
         {/* En-tête jumeau du hero de fiche, visible seulement quand le bloc est animé. */}
         <span className={`lc-container ${hero.entete} ${styles.entete}`} aria-hidden="true">
           <span className="lc-mono lc-muted">Projet suivant</span>
           <RichText text={projet.titre} as="span" className={`lc-display lc-h2 ${hero.titre}`} />
           <span className={`lc-mono ${hero.sousTitre}`}>
-            {projet.lieu} — {projet.annee}
+            {insecable(projet.lieu)} — {projet.annee}
           </span>
         </span>
       </LienTransition>

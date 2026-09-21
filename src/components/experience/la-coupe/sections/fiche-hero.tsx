@@ -8,6 +8,7 @@ import RichText from '../ui/rich-text'
 import { SIZES_TETE_PORTRAIT } from '../lib/images'
 import FicheHeroAnime from './fiche-hero-anime'
 import styles from './fiche-hero.module.css'
+import { insecable } from '../lib/typo'
 
 interface FicheHeroProps {
   projet: Projet
@@ -29,7 +30,7 @@ export default function FicheHero({ projet }: FicheHeroProps) {
         </p>
         <RichText text={projet.titre} as="h1" className={`lc-display lc-h2 ${styles.titre}`} reveal />
         <p className={`lc-mono ${styles.sousTitre}`} data-fiche="entree">
-          {projet.lieu} — {projet.annee}
+          {insecable(projet.lieu)} — {projet.annee}
         </p>
       </div>
       <FicheHeroAnime />

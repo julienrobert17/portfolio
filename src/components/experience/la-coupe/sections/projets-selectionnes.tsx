@@ -7,6 +7,7 @@ import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import Empilement from './empilement'
 import styles from './projets-selectionnes.module.css'
+import { insecable } from '../lib/typo'
 
 /**
  * Les projets phares, un écran chacun, en sticky stacking (voir Empilement).
@@ -42,9 +43,9 @@ export default function ProjetsSelectionnes() {
               </div>
               <div className={styles.voile} data-voile aria-hidden="true" />
               <div className={styles.legende}>
-                <h3 className={`lc-display lc-h2 ${styles.titre}`}>{projet.titre}</h3>
+                <h3 className={`lc-display lc-h2 ${styles.titre}`}>{insecable(projet.titre)}</h3>
                 <p className={`lc-mono ${styles.meta}`}>
-                  {projet.lieu} — {projet.annee}
+                  {insecable(projet.lieu)} — {projet.annee}
                 </p>
                 {/* Dernier dans l'ordre de lecture, posé par la grille sur la ligne de base du titre. */}
                 <span className={`lc-mono ${styles.index}`}>

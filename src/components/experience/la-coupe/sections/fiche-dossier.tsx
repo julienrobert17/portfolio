@@ -3,6 +3,7 @@ import { formatSurface } from '../lib/format'
 import Apparition from '../ui/apparition'
 import RichText from '../ui/rich-text'
 import styles from './fiche-dossier.module.css'
+import { insecable } from '../lib/typo'
 
 interface FicheDossierProps {
   projet: Projet
@@ -30,7 +31,7 @@ export default function FicheDossier({ projet }: FicheDossierProps) {
             <div key={cle} className={styles.ligne}>
               <dt className={styles.cle}>{cle}</dt>
               <dd className={styles.valeur}>
-                {Array.isArray(valeur) ? valeur.map((v) => <span key={v}>{v}</span>) : valeur}
+                {Array.isArray(valeur) ? valeur.map((v) => <span key={v}>{insecable(v)}</span>) : insecable(valeur)}
               </dd>
             </div>
           ))}

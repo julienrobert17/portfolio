@@ -5,6 +5,7 @@ import Apparition from '../ui/apparition'
 import ImageFlottante from '../ui/image-flottante'
 import Photo from '../ui/photo'
 import styles from './equipe.module.css'
+import { insecable } from '../lib/typo'
 
 /**
  * Liste typographique. Desktop : pas de vignette, un tiret paraît devant le
@@ -30,7 +31,7 @@ export default function Equipe() {
                     <Photo image={photo} sizes="56px" />
                   </span>
                 ) : null}
-                <span className={`lc-display lc-h3 ${styles.nom}`}>{m.nom}</span>{' '}
+                <span className={`lc-display lc-h3 ${styles.nom}`}>{insecable(m.nom)}</span>{' '}
                 <span className={`lc-mono lc-muted ${styles.role}`}>{m.role}</span>
               </li>
             )

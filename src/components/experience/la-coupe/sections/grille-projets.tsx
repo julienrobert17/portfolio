@@ -8,6 +8,7 @@ import Apparition from '../ui/apparition'
 import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import styles from './grille-projets.module.css'
+import { insecable } from '../lib/typo'
 
 interface GrilleProjetsProps {
   projets: Projet[]
@@ -30,9 +31,9 @@ export default function GrilleProjets({ projets }: GrilleProjetsProps) {
               </PartageImage>
               <span className={styles.legende}>
                 <span className={`lc-mono ${styles.numero}`}>{formatNumero(tous.indexOf(projet))}</span>{' '}
-                <span className={styles.nom}>{projet.titre}</span>{' '}
+                <span className={styles.nom}>{insecable(projet.titre)}</span>{' '}
                 <span className={`lc-mono lc-muted ${styles.meta}`}>
-                  {projet.lieu} — {projet.annee}
+                  {insecable(projet.lieu)} — {projet.annee}
                 </span>
               </span>
             </LienTransition>
