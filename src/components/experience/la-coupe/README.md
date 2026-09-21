@@ -41,10 +41,13 @@ npx tsx scripts/generate-la-coupe-placeholders.ts
    fait l'URL ; `categorie` alimente les filtres ; `images` (ratio + alt) et `dessins`
    (descripteurs plan/coupe en mètres) sont rendus sans autre code. Le projet phare doit
    garder le slug `maison-des-vignes` ou changer `construireMaquette()` dans `canvas/geometrie.ts`.
-3. **Images** : déposer les vraies photos dans `public/experience/la-coupe/img/` sous les noms
-   `<slug>-01.svg`… (ou changer l'extension et les dimensions dans `lib/images.ts`, un seul
-   endroit ; `ui/photo.tsx` est le seul `<img>` : passer à `next/image` s'y fait en une fois).
-   Le script `scripts/generate-la-coupe-placeholders.ts` n'est plus à lancer ensuite.
+3. **Images** : les 67 photos actuelles sont des placeholders Pexels crédités dans le footer
+   (`scripts/fetch-la-coupe-photos.ts`, identifiants épinglés dans
+   `scripts/la-coupe-photos.manifest.json`, clé `PEXELS_API_KEY` dans `.env`). Changer une photo :
+   `--remplacer <cle>` ou `<cle>=pexels:<id>`. Pour les vraies photos, déposer `<cle>.webp` et
+   `<cle>.avif` dans `public/experience/la-coupe/img/` et renseigner leurs dimensions dans
+   `content/credits.ts` ; `ui/photo.tsx` (next/image) est le seul point de rendu. Sans entrée dans
+   `credits.ts`, le placeholder SVG sert de repli.
 4. **Maquette 3D** : `canvas/maquette.ts` décrit les volumes en mètres (source des dessins de la
    fiche et du hero). Pour un vrai modèle, implémenter `loadModel()` (retourner une géométrie
    fusionnée, non indexée, en repère X = x, Y = z, Z = y) et le copier dans
@@ -132,7 +135,9 @@ magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/pr
 - Lighthouse (headless, simulation 4G) : desktop 100 / 100 / 100 / 100 ; mobile 95 / 100 / 100 / 100,
   LCP 2,9 s dont 0,45 s de TTFB simulé et 2,5 s de « render delay » attribué par la simulation aux
   ressources terminées avant le premier paint local (polices préchargées du layout racine, CSS,
-  premiers chunks). Sur Chrome réellement bridé en 4G, le LCP mesuré est de 1,1 s.
+  premiers chunks). Sur Chrome réellement bridé en 4G, le LCP mesuré est de 1,1 s. Sur une fiche,
+  l'image de tête (AVIF q60, 33 kB en mobile) est le LCP : 85 en simulation, 95 et 2,46 s en
+  bridage réel.
 - Console : un avertissement `THREE.Clock deprecated` émis par fiber 9.7 avec three 0.185, et un
   préchargement CSS Next non consommé ; rien qui vienne de l'expérience.
 - Navigateurs : Chrome et Firefox 147 vérifiés (sticky, clip-path, stencil, mix-blend, transitions) ;
