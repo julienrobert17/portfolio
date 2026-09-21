@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, type Ref } from 'react'
 import { categories, projets } from '../content'
 import type { Categorie } from '../content/types'
-import { ENTREE, MEDIA } from '../lib/animation'
+import { MEDIA } from '../lib/animation'
 import { chargerFlip, registerGsap } from '../lib/gsap'
 import FiltresIndex, { type Vue } from './filtres-index'
 import GrilleProjets from './grille-projets'
@@ -15,26 +15,20 @@ type EtatFlip = ReturnType<PluginFlip['getState']>
 /** Flip chargé au montage, à la demande ; tant qu'il n'est pas là, le filtre change sans réordonnancement animé. */
 let FlipPret: PluginFlip | null = null
 
-/** Une ligne avant le changement, placée dans son parent : de quoi la laisser s'estomper une fois retirée. */
-interface Position {
-  el: HTMLElement
-  parent: HTMLElement
-  top: number
-  left: number
-  width: number
-  height: number
-}
-
-/** Ce que le clic sur un filtre enregistre, consommé au rendu suivant. */
+/** Ce que la fin de la sortie enregistre, consommé au rendu suivant. */
 interface Capture {
   flip: EtatFlip
-  positions: Position[]
+  anciens: Set<Element>
   scrollY: number
 }
 
-/** Lignes et tuiles vivantes ; les fantômes en cours de sortie sont exclus. */
-const CIBLES = '[data-flip-id]:not([data-fantome])'
-const FLIP = { duree: 0.6, ease: 'expo.out', sortie: 0.3 } as const
+const CIBLES = '[data-flip-id]'
+/** Séquence stricte : sortie, puis état React, puis Flip, puis entrée. Rien n'entre tant que rien n'est fini de sortir. */
+const SEQUENCE = {
+  sortie: { duree: 0.25, y: 8, stagger: 0.02, ease: 'power2.out' },
+  flip: { duree: 0.4, ease: 'expo.out' },
+  entree: { duree: 0.5, y: 16, stagger: 0.04, ease: 'expo.out' },
+} as const
 
 interface EtatUrl {
   vue: Vue
@@ -70,10 +64,12 @@ export function VueProjets({ vue, categorie, onNaviguer, ref }: VueProjetsProps)
 
 /**
  * L'état (vue, filtre) se lit dans l'URL côté client ; les filtres la
- * remplacent sans défilement. Au changement de filtre, les lignes restantes
- * glissent (Flip), les entrantes apparaissent, les sortantes s'estompent :
- * React les a retirées, on les réinsère hors flux le temps du fondu.
- * Sous mouvement réduit, rien de tout cela.
+ * remplacent sans défilement. Changement de filtre, en séquence stricte :
+ * les lignes retirées sortent (opacité 0 et 8 px, 250 ms) ; alors seulement
+ * l'URL, donc l'état React, change ; les lignes restantes glissent (Flip,
+ * 400 ms) ; enfin les nouvelles entrent. Vue liste comme grille. Un second
+ * clic pendant la sortie repart de l'état courant vers la nouvelle cible.
+ * Sous mouvement réduit, ou tant que Flip n'est pas chargé, rien de tout cela.
  */
 export default function ProjetsClient() {
   const params = useSearchParams()
@@ -81,33 +77,44 @@ export default function ProjetsClient() {
   const { vue, categorie } = lireEtat(params)
   const conteneurRef = useRef<HTMLDivElement>(null)
   const captureRef = useRef<Capture | null>(null)
+  const sortieRef = useRef<{ kill(): void } | null>(null)
 
   const naviguer = (url: string) => {
     const conteneur = conteneurRef.current
     const cible = lireEtat(new URL(url, window.location.origin).searchParams)
-    // Flip seulement quand la vue reste : lignes vers lignes, tuiles vers tuiles.
+    // Séquence seulement quand la vue reste : lignes vers lignes, tuiles vers tuiles.
     const Flip = FlipPret
-    const anime = conteneur && Flip && cible.vue === vue && cible.categorie !== categorie && window.matchMedia(MEDIA.anime).matches
-    if (anime) {
-      const { gsap } = registerGsap()
-      const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>(CIBLES))
-      // Un Flip ou une entrée encore en cours serait mesuré à mi-chemin : on les termine.
-      Flip.killFlipsOf(lignes)
-      gsap.killTweensOf(lignes)
-      gsap.set(lignes, { clearProps: 'opacity,transform' })
-      captureRef.current = {
-        flip: Flip.getState(lignes, { simple: true }),
-        positions: lignes.flatMap((el) => {
-          const parent = el.parentElement
-          if (!parent) return []
-          const r = el.getBoundingClientRect()
-          const p = parent.getBoundingClientRect()
-          return [{ el, parent, top: r.top - p.top, left: r.left - p.left, width: r.width, height: r.height }]
-        }),
-        scrollY: window.scrollY,
-      }
+    const anime = conteneur && Flip && cible.vue === vue && window.matchMedia(MEDIA.anime).matches
+    if (!anime) {
+      router.replace(url, { scroll: false })
+      return
     }
-    router.replace(url, { scroll: false })
+    const { gsap } = registerGsap()
+    const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>(CIBLES))
+    // Une séquence encore en cours serait mesurée à mi-chemin : on la termine.
+    sortieRef.current?.kill()
+    Flip.killFlipsOf(lignes)
+    gsap.killTweensOf(lignes)
+    gsap.set(lignes, { clearProps: 'opacity,transform' })
+    const gardes = new Set((cible.categorie ? projets.filter((p) => p.categorie === cible.categorie) : projets).map((p) => p.slug))
+    const sortants = lignes.filter((el) => !gardes.has(el.dataset.flipId ?? ''))
+    const changer = () => {
+      sortieRef.current = null
+      captureRef.current = { flip: Flip.getState(lignes, { simple: true }), anciens: new Set(lignes), scrollY: window.scrollY }
+      router.replace(url, { scroll: false })
+    }
+    if (!sortants.length) {
+      changer()
+      return
+    }
+    sortieRef.current = gsap.to(sortants, {
+      opacity: 0,
+      y: SEQUENCE.sortie.y,
+      duration: SEQUENCE.sortie.duree,
+      ease: SEQUENCE.sortie.ease,
+      stagger: SEQUENCE.sortie.stagger,
+      onComplete: changer,
+    })
   }
 
   // Flip arrive après le premier rendu, à la demande : le premier filtre est parfois sans Flip.
@@ -125,51 +132,32 @@ export default function ProjetsClient() {
     if (!capture || !conteneur || !Flip) return
     const { gsap } = registerGsap()
     const lignes = Array.from(conteneur.querySelectorAll<HTMLElement>(CIBLES))
-
-    // Fantômes : les lignes retirées par React, réinsérées en absolu (donc sans
-    // effet sur le flux) le temps de s'estomper, inertes pour le clavier et le pointeur.
-    const fantomes = capture.positions.filter((p) => !p.el.isConnected && p.parent.isConnected)
-    for (const { el, parent, top, left, width, height } of fantomes) {
-      el.setAttribute('data-fantome', '')
-      el.setAttribute('aria-hidden', 'true')
-      el.setAttribute('inert', '')
-      const s = el.style
-      s.position = 'absolute'
-      s.top = `${top}px`
-      s.left = `${left}px`
-      s.width = `${width}px`
-      s.height = `${height}px`
-      s.margin = '0'
-      s.gridArea = 'auto'
-      s.pointerEvents = 'none'
-      parent.appendChild(el)
+    const restants = lignes.filter((el) => capture.anciens.has(el))
+    const entrants = lignes.filter((el) => !capture.anciens.has(el))
+    // Les nouvelles attendent, invisibles, que les restantes aient fini de glisser.
+    gsap.set(entrants, { opacity: 0 })
+    let entree: { revert(): void } | null = null
+    const entrer = () => {
+      if (!entrants.length) return
+      entree = gsap.fromTo(
+        entrants,
+        { opacity: 0, y: SEQUENCE.entree.y },
+        { opacity: 1, y: 0, duration: SEQUENCE.entree.duree, ease: SEQUENCE.entree.ease, stagger: SEQUENCE.entree.stagger, clearProps: 'opacity,transform' },
+      )
     }
-    const retirer = () => fantomes.forEach((f) => f.el.remove())
-    const sortie = fantomes.length
-      ? gsap.to(
-          fantomes.map((f) => f.el),
-          { opacity: 0, duration: FLIP.sortie, ease: 'power2.out', onComplete: retirer },
-        )
-      : null
-
-    const entrer = (els: Element[]) =>
-      gsap.from(els, { opacity: 0, y: 24, duration: FLIP.duree, ease: FLIP.ease, stagger: ENTREE.stagger })
-
     // La page a défilé entre la capture et le rendu : les mesures ne valent plus, seule l'entrée joue.
     const defile = Math.abs(window.scrollY - capture.scrollY) > 1
-    const anciens = new Set(capture.positions.map((p) => p.el))
-    const entrants = lignes.filter((el) => !anciens.has(el))
-    const anim = defile
-      ? entrants.length
-        ? entrer(entrants)
-        : null
-      : Flip.from(capture.flip, { targets: lignes, duration: FLIP.duree, ease: FLIP.ease, onEnter: entrer })
+    const flip =
+      defile || !restants.length
+        ? null
+        : Flip.from(capture.flip, { targets: restants, duration: SEQUENCE.flip.duree, ease: SEQUENCE.flip.ease, onComplete: entrer })
+    if (!flip) entrer()
 
     return () => {
       // Le revert d'un Flip saute à la fin et nettoie les styles inline.
-      anim?.revert()
-      sortie?.kill()
-      retirer()
+      flip?.revert()
+      entree?.revert()
+      gsap.set(entrants, { clearProps: 'opacity,transform' })
     }
   }, [vue, categorie])
 
