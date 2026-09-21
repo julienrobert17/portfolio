@@ -33,13 +33,26 @@
   overflow: hidden;
 }
 
-.nom {
-  transition: color var(--t-micro) var(--ease-ui);
-}
+/*
+ * Desktop : plus de vignette, l'image flottante la remplace au survol. Le nom reste en encre ;
+ * seul un tiret --accent paraît devant lui, dans la colonne qu'occupait la vignette.
+ */
+@media (min-width: 721px) {
+  .vignette {
+    display: none;
+  }
 
-.membre:hover .nom,
-.membre:focus-within .nom {
-  color: var(--accent);
+  .membre::before {
+    content: '—';
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity var(--t-micro) var(--ease-ui);
+  }
+
+  .membre:hover::before,
+  .membre:focus-within::before {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 720px) {

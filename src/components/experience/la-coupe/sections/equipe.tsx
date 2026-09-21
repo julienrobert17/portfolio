@@ -7,8 +7,9 @@ import Photo from '../ui/photo'
 import styles from './equipe.module.css'
 
 /**
- * Liste typographique. La vignette est toujours visible : rien n'est réservé
- * au survol ; l'image flottante (pointeur fin, ou focus clavier) est un plus.
+ * Liste typographique. Desktop : pas de vignette, un tiret paraît devant le
+ * nom au survol et l'image flottante montre le portrait (pointeur fin, ou
+ * focus clavier). Mobile : la vignette est là, l'image flottante ne l'est pas.
  */
 export default function Equipe() {
   return (

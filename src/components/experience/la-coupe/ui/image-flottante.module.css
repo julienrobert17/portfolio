@@ -18,7 +18,8 @@
   object-fit: cover;
 }
 
-@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+/* Jamais sur mobile : les vignettes y sont visibles en place. */
+@media (max-width: 720px), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .flottante {
     display: none;
   }
