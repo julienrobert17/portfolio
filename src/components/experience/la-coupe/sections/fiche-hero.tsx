@@ -5,6 +5,7 @@ import { formatNumero } from '../lib/format'
 import PartageImage from '../ui/partage-image'
 import Photo from '../ui/photo'
 import RichText from '../ui/rich-text'
+import { SIZES_TETE_PORTRAIT } from '../lib/images'
 import FicheHeroAnime from './fiche-hero-anime'
 import styles from './fiche-hero.module.css'
 
@@ -19,7 +20,7 @@ export default function FicheHero({ projet }: FicheHeroProps) {
     <header className={styles.hero} data-hero-fiche>
       <div className={styles.image} data-fiche="image">
         <PartageImage slug={projet.slug}>
-          <Photo image={image} cover priority sizes="100vw" />
+          <Photo image={image} cover priority sizes="100vw" sizesPortrait={SIZES_TETE_PORTRAIT} />
         </PartageImage>
       </div>
       <div className={`lc-container ${styles.entete}`}>

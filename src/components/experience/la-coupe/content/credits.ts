@@ -13,6 +13,8 @@ export interface PhotoGeneree {
   largeurs: number[]
   /** Aperçu 24 px flouté (data URI), visible avant l'image. */
   lqip: string
+  /** Largeurs du recadrage portrait 4:5 (`<cle>-p-<largeur>`), images de tête seulement. */
+  portrait?: number[]
 }
 
 export interface Credit {
@@ -179,6 +181,12 @@ export const photos: Record<string, PhotoGeneree> = {
       1440,
       1920
     ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
+    ],
     "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADQAwCdASoYAA4APtFYpEwoJSOiMAgBABoJYgCdABewzcWvEoZOTuAA96UktbRFgnM8iUmRKyCGqMOdwSVMIYZnJX97ryW8ooxAMvRlOvsIV9anAAA="
   },
   "belvedere-du-vercors-02": {
@@ -255,6 +263,12 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1440,
       1920
+    ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
     ],
     "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACwAwCdASoYAA4APtFapkyoJSOiMAgBABoJZQC06CEuADU0uK6vUAD9zuvm+P4qqresqcHMSWeNqb/BlTX1Xmun4dYMOAsfLHjjEIGSyHGIARtxtID2gAAA"
   },
@@ -333,6 +347,12 @@ export const photos: Record<string, PhotoGeneree> = {
       1440,
       1920
     ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
+    ],
     "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAABwBQCdASoYAB4APsFMokunpCOht/qoAPAYCUAVx6QAXtoy4pWSEEEomwL9xvz6cB8gjPhQAP7pSz4m5u8T+5j6bHgZ5zCWWIMc0Ee9kPUJI6Ahn8Laew1bX2GjGZoMg4shU8PbWquHso6kuXksRzFPbL4Aj286mHX0LK5VqKPbbl4vHX28dc7qqe0fXK4AAAA="
   },
   "extension-aux-lilas-02": {
@@ -410,6 +430,12 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1440,
       1920
+    ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
     ],
     "lqip": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAADwAwCdASoYAA4APtFUpEuoJKOhsAgBABoJZwDImB0688saGptC46eAAP7xEo6QjjhQ+lQKejlajnrC50KReo6uXWCE05Xs5Nvsmh6wMCjzkxrT9vIqMf/oVeofjQLBxMUAAA=="
   },
@@ -501,6 +527,12 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1440,
       1920
+    ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
     ],
     "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAACwAwCdASoYAA4APtFUo0uoJKMhsAgBABoJQBOmUGSxh1w/kbHQgADqptoOxMzrEU556znPanwfbSmQAx2BVRcpxEAN3chFOL05O/dAAAA="
   },
@@ -605,6 +637,12 @@ export const photos: Record<string, PhotoGeneree> = {
       1440,
       1920
     ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
+    ],
     "lqip": "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoYABAAPtFUo0uoJKMisAgBABoJZ2kfADdYAAD+74OXet3Vg8wJav+jp31reqtfAAA="
   },
   "lumiere-fossile-02": {
@@ -682,6 +720,12 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1440,
       1920
+    ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
     ],
     "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADwAwCdASoYABAAPtFUo0uoJKMhsAgBABoJZQCdMoADATxQ5GFkDToAAP6e6Uy47aa7vX4uydE/fXfwGhkhoAAA"
   },
@@ -784,6 +828,12 @@ export const photos: Record<string, PhotoGeneree> = {
       960,
       1440,
       1920
+    ],
+    "portrait": [
+      480,
+      800,
+      960,
+      1280
     ],
     "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABQBACdASoYABAAPtFWpEuoJKOhsAgBABoJZQCw7CF58hokT6toprznjiIAAP7vCHQP9nosc/3leFnTidnscRYkjX4ioq/e6vjmqPieEIx+pdRa+DwAJjLwAAA="
   },

@@ -92,6 +92,8 @@ interface Entree {
   cle: string
   ratio: Ratio
   requete: string
+  /** Image de tête d'un projet : elle reçoit aussi un recadrage portrait pour les téléphones. */
+  tete: boolean
 }
 
 interface PhotoPexels {
@@ -116,13 +118,13 @@ export function entrees(): Entree[] {
     p.images.forEach((img, i) => {
       const requete = REQUETES[p.slug]?.[i]
       if (!requete) throw new Error(`Pas de requête pour ${cleProjet(p.slug, i)}`)
-      liste.push({ cle: cleProjet(p.slug, i), ratio: img.ratio, requete })
+      liste.push({ cle: cleProjet(p.slug, i), ratio: img.ratio, requete, tete: i === 0 })
     })
   }
   for (const [id, img] of Object.entries(imagesAtelier)) {
     const requete = REQUETES_ATELIER[id]
     if (!requete) throw new Error(`Pas de requête pour ${cleAtelier(id)}`)
-    liste.push({ cle: cleAtelier(id), ratio: img.ratio, requete })
+    liste.push({ cle: cleAtelier(id), ratio: img.ratio, requete, tete: false })
   }
   return liste
 }
@@ -185,6 +187,11 @@ async function plancheProjet(prefixe: string, cleApi: string, pris: Set<string>,
 // 800 plutôt que 720 : un écran de 412 px en 1,75x demande 721 px et sauterait à 960 ; 800 couvre aussi 360 à 400 px en 2x.
 const LARGEURS = [480, 800, 960, 1440, 1920]
 /** Jusqu'à 960 px les fichiers ne sont vus que sur écrans denses (2x, 3x) : qualité plus basse, invisible à cette densité. */
+/**
+ * Les images de tête s'affichent en `cover` : sur un téléphone tenu droit, un 3:2 serait agrandi
+ * près de deux fois pour remplir la hauteur, donc flou. Elles ont un recadrage 4:5 à ces largeurs.
+ */
+const LARGEURS_PORTRAIT = [480, 800, 960, 1280]
 const QUALITE = { dense: { webp: 60, avif: 35 }, pleine: { webp: 72, avif: 40 } }
 
 interface Meta {
@@ -193,6 +200,8 @@ interface Meta {
   couleur: string
   largeurs: number[]
   lqip: string
+  /** Largeurs du recadrage portrait 4:5 (`<cle>-p-<largeur>`), images de tête seulement. */
+  portrait?: number[]
 }
 
 /**
@@ -200,7 +209,7 @@ interface Meta {
  * pour chaque largeur (ratio conservé), chacune sous 300 kB : la qualité
  * descend tant qu'il faut. LQIP : 24 px floutés, en base64 dans credits.ts.
  */
-export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promise<Meta> {
+export async function traiter(source: Buffer, ratio: Ratio, cle: string, tete = false): Promise<Meta> {
   const cible = DIMENSIONS[ratio]
   const meta = await sharp(source).rotate().metadata()
   const rendu = (width: number) =>
@@ -217,9 +226,8 @@ export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promis
   const grand = await rendu(width).png({ compressionLevel: 1 }).toBuffer()
   // Une largeur n'est gardée que si ses deux formats tiennent sous 300 kB ; une photo très
   // détaillée s'arrête à la largeur précédente (ses dimensions réelles vont dans credits.ts).
-  const gardees: number[] = []
-  for (const largeur of largeurs) {
-    const base = largeur === width ? grand : await sharp(grand).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
+  /** Écrit une largeur dans les deux formats sous 300 kB ; faux si l'un des deux n'y tient pas. */
+  const ecrire = async (base: Buffer, largeur: number, nom: string): Promise<boolean> => {
     const sorties: Array<[string, Buffer]> = []
     for (const format of ['webp', 'avif'] as const) {
       let qualite = QUALITE[largeur <= 960 ? 'dense' : 'pleine'][format]
@@ -230,9 +238,38 @@ export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promis
       }
       if (sortie.length <= POIDS_MAX) sorties.push([format, sortie])
     }
-    if (sorties.length < 2) break
-    for (const [format, sortie] of sorties) writeFileSync(join(DOSSIER, `${cle}-${largeur}.${format}`), sortie)
+    if (sorties.length < 2) return false
+    for (const [format, sortie] of sorties) writeFileSync(join(DOSSIER, `${nom}.${format}`), sortie)
+    return true
+  }
+  const gardees: number[] = []
+  for (const largeur of largeurs) {
+    const base = largeur === width ? grand : await sharp(grand).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
+    if (!(await ecrire(base, largeur, `${cle}-${largeur}`))) break
     gardees.push(largeur)
+  }
+  let portrait: number[] | undefined
+  if (tete) {
+    // Recadrage 4:5 pris dans la source, pas dans le 3:2 : toute la hauteur disponible.
+    const hauteurSource = meta.height ?? 0
+    const possibles = LARGEURS_PORTRAIT.filter((l) => l * 1.25 <= hauteurSource && l <= (meta.width ?? 0))
+    const maxi = possibles[possibles.length - 1]
+    if (maxi) {
+      const grandPortrait = await sharp(source)
+        .rotate()
+        .resize(maxi, Math.round(maxi * 1.25), { fit: 'cover', position: sharp.strategy.attention })
+        .modulate({ saturation: RENDU.saturation })
+        .linear(RENDU.pente, RENDU.decalage)
+        .toColourspace('srgb')
+        .png({ compressionLevel: 1 })
+        .toBuffer()
+      portrait = []
+      for (const largeur of possibles) {
+        const base = largeur === maxi ? grandPortrait : await sharp(grandPortrait).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
+        if (!(await ecrire(base, largeur, `${cle}-p-${largeur}`))) break
+        portrait.push(largeur)
+      }
+    }
   }
   if (gardees.length < 2) throw new Error(`${cle} : plus de 300 kB dès 960 px`)
   const { dominant } = await sharp(grand).stats()
@@ -244,6 +281,7 @@ export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promis
     height: Math.round((finale * cible.height) / cible.width),
     couleur: `#${hex(dominant.r)}${hex(dominant.g)}${hex(dominant.b)}`,
     largeurs: gardees,
+    ...(portrait?.length ? { portrait } : {}),
     lqip: `data:image/webp;base64,${lqip.toString('base64')}`,
   }
 }
@@ -322,7 +360,8 @@ async function main() {
     const s = manifeste.selections[e.cle]
     if (!s) continue
     const connue = actuelles[e.cle]
-    const dejaLa = connue?.lqip && connue.largeurs?.every((l) => existsSync(join(DOSSIER, `${e.cle}-${l}.webp`)) && existsSync(join(DOSSIER, `${e.cle}-${l}.avif`)))
+    const portraitLa = !e.tete || (connue?.portrait?.length && connue.portrait.every((l) => existsSync(join(DOSSIER, `${e.cle}-p-${l}.avif`))))
+    const dejaLa = portraitLa && connue?.lqip && connue.largeurs?.every((l) => existsSync(join(DOSSIER, `${e.cle}-${l}.webp`)) && existsSync(join(DOSSIER, `${e.cle}-${l}.avif`)))
     if (dejaLa && !retraiter && !aRefaire.has(e.cle)) {
       metas[e.cle] = connue as Meta
       continue
@@ -334,7 +373,7 @@ async function main() {
       writeFileSync(cache, Buffer.from(await r.arrayBuffer()))
     }
     try {
-      metas[e.cle] = await traiter(readFileSync(cache), e.ratio, e.cle)
+      metas[e.cle] = await traiter(readFileSync(cache), e.ratio, e.cle, e.tete)
       process.stdout.write(`${e.cle} ← ${s.auteur} : ${s.description.slice(0, 70)}\n`)
     } catch (err) {
       // Photo incompressible sous 300 kB : placeholder conservé, on le dit, sans arrêter le lot.

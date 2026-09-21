@@ -15,6 +15,11 @@ interface PhotoProps {
   className?: string
   /** Remplit son conteneur (object-fit: cover) au lieu de garder son ratio. */
   cover?: boolean
+  /**
+   * Largeur affichée écran tenu droit, pour une image de tête en `cover` : active le recadrage
+   * portrait 4:5 (si l'image en a un), qui remplit la hauteur sans être agrandi.
+   */
+  sizesPortrait?: string
 }
 
 /**
@@ -25,7 +30,11 @@ interface PhotoProps {
  * Fondu de 400 ms quand l'image arrive après l'hydratation ; déjà chargée
  * (cache, SSR rapide) ou image de tête : pas de fondu. Sans JS rien n'est caché.
  */
-export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false }: PhotoProps) {
+const PORTRAIT = '(orientation: portrait)'
+const PAYSAGE = '(orientation: landscape)'
+
+export default function Photo({ image, sizes, priority = false, eager = false, className, cover = false, sizesPortrait }: PhotoProps) {
+  const portrait = cover && sizesPortrait ? image.srcsetPortrait : undefined
   const img = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
@@ -51,9 +60,15 @@ export default function Photo({ image, sizes, priority = false, eager = false, c
         aspectRatio: cover ? undefined : `${image.width} / ${image.height}`,
       }}
     >
-      {priority && image.srcset && (
-        <link rel="preload" as="image" type="image/avif" imageSrcSet={image.srcset.avif} imageSizes={sizes} fetchPriority="high" />
+      {/* Préchargement au pixel près des <source> AVIF ci-dessous : même srcset, mêmes sizes, même média. */}
+      {priority && portrait && (
+        <link rel="preload" as="image" type="image/avif" media={PORTRAIT} imageSrcSet={portrait.avif} imageSizes={sizesPortrait} fetchPriority="high" />
       )}
+      {priority && image.srcset && (
+        <link rel="preload" as="image" type="image/avif" media={portrait ? PAYSAGE : undefined} imageSrcSet={image.srcset.avif} imageSizes={sizes} fetchPriority="high" />
+      )}
+      {portrait && <source media={PORTRAIT} type="image/avif" srcSet={portrait.avif} sizes={sizesPortrait} />}
+      {portrait && <source media={PORTRAIT} type="image/webp" srcSet={portrait.webp} sizes={sizesPortrait} />}
       {image.srcset && <source type="image/avif" srcSet={image.srcset.avif} sizes={sizes} />}
       {image.srcset && <source type="image/webp" srcSet={image.srcset.webp} sizes={sizes} />}
       <img

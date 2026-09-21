@@ -24,11 +24,16 @@ export interface ImageRendue {
   couleur?: string
   /** `srcset` par format (fichiers statiques `<cle>-<largeur>`), ou rien pour un placeholder. */
   srcset?: { avif: string; webp: string }
+  /** Recadrage portrait 4:5 des images de tête, pour les écrans tenus droits (affichage en `cover`). */
+  srcsetPortrait?: { avif: string; webp: string }
   /** Aperçu flouté en data URI, affiché sous l'image pendant son chargement. */
   lqip?: string
   /** Petite version (480 px) pour l'image flottante. */
   vignette: string
 }
+
+/** Image de tête sur 60vh (hero de fiche, projet suivant) : en 4:5 elle fait 48vh de large, jamais moins que l'écran. */
+export const SIZES_TETE_PORTRAIT = 'max(100vw, 48vh)'
 
 const DOSSIER = `${site.base}/img`
 
@@ -47,6 +52,7 @@ function rendre(cle: string, image: ImageContenu): ImageRendue {
   const svg = `${DOSSIER}/${cle}.svg`
   if (!photo) return { ...DIMENSIONS[image.ratio], src: svg, vignette: svg, alt: image.alt, ratio: image.ratio }
   const srcset = (format: 'avif' | 'webp') => photo.largeurs.map((l) => `${DOSSIER}/${cle}-${l}.${format} ${l}w`).join(', ')
+  const portrait = (format: 'avif' | 'webp') => (photo.portrait ?? []).map((l) => `${DOSSIER}/${cle}-p-${l}.${format} ${l}w`).join(', ')
   return {
     src: `${DOSSIER}/${cle}-${photo.width}.webp`,
     vignette: `${DOSSIER}/${cle}-${photo.largeurs[0]}.webp`,
@@ -55,6 +61,7 @@ function rendre(cle: string, image: ImageContenu): ImageRendue {
     couleur: photo.couleur,
     lqip: photo.lqip,
     srcset: { avif: srcset('avif'), webp: srcset('webp') },
+    srcsetPortrait: photo.portrait?.length ? { avif: portrait('avif'), webp: portrait('webp') } : undefined,
     alt: image.alt,
     ratio: image.ratio,
   }

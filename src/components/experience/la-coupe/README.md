@@ -44,7 +44,8 @@ npx tsx scripts/generate-la-coupe-placeholders.ts
 3. **Images** : les 67 photos actuelles sont des placeholders Pexels crédités dans le footer
    (`scripts/fetch-la-coupe-photos.ts`, identifiants épinglés dans
    `scripts/la-coupe-photos.manifest.json`, clé `PEXELS_API_KEY` dans `.env`). Le script écrit
-   `<cle>-<largeur>.avif` et `.webp` en 480, 960, 1440 et 1920 px (≤ 300 kB) et, dans
+   `<cle>-<largeur>.avif` et `.webp` en 480, 800, 960, 1440 et 1920 px (≤ 300 kB), plus un recadrage
+   portrait 4:5 `<cle>-p-<largeur>` pour les images de tête (servi écran tenu droit) et, dans
    `content/credits.ts`, dimensions, largeurs, couleur dominante et LQIP. `ui/photo.tsx` sert un
    `<picture>` statique, sans optimiseur à la volée. Changer une photo : `--remplacer <cle>` ou
    `<cle>=pexels:<id>`. Sans entrée dans `credits.ts`, le placeholder SVG sert de repli.
@@ -136,8 +137,8 @@ magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/pr
   LCP 2,9 s dont 0,45 s de TTFB simulé et 2,5 s de « render delay » attribué par la simulation aux
   ressources terminées avant le premier paint local (polices préchargées du layout racine, CSS,
   premiers chunks). Sur Chrome réellement bridé en 4G, le LCP mesuré est de 1,1 s. Sur une fiche,
-  l'image de tête (AVIF statique, 960 px en mobile) est le LCP : 81 à 85 en simulation, 93 à 95
-  et 2,4 à 2,7 s en bridage réel ; 0,9 à 1,1 Mo au total.
+  l'image de tête (AVIF statique, recadrage portrait de 47 kB en mobile) est le LCP : 88 à 90 en
+  simulation (3,5 à 3,7 s), 94 et 2,6 s en bridage réel ; 0,8 à 0,9 Mo au total.
 - Console : un avertissement `THREE.Clock deprecated` émis par fiber 9.7 avec three 0.185, et un
   préchargement CSS Next non consommé ; rien qui vienne de l'expérience.
 - Navigateurs : Chrome et Firefox 147 vérifiés (sticky, clip-path, stencil, mix-blend, transitions) ;
