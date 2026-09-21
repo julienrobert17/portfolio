@@ -17,8 +17,9 @@ const FOCALISABLES = 'a[href], button:not([disabled])'
 const REDUIT = '(prefers-reduced-motion: reduce)'
 
 /**
- * Menu plein écran : rideau encre qui descend (800 ms), pages en display à
- * gauche, les huit projets en mono à droite, la maquette en fil de fer derrière
+ * Index plein écran : rideau encre qui descend (800 ms), les huit projets en
+ * display à gauche avec leur numéro, la maquette en fil de fer à droite, les
+ * pages en mono petit en bas (taille normale sur mobile, où la barre les masque)
  * (canvas en mode menu, ou le SVG statique tant que three n'est pas là). Focus
  * piégé, `main` inerte, Lenis arrêté. Fermeture : Échap, fond, bouton.
  */
@@ -124,7 +125,7 @@ export default function Menu() {
       className={styles.menu}
       role="dialog"
       aria-modal="true"
-      aria-label="Menu"
+      aria-label="Index des projets"
       data-canvas={canvasPret ? 'pret' : 'absent'}
       onClick={auClicFond}
       hidden
@@ -132,14 +133,32 @@ export default function Menu() {
       <div className={styles.maquette} aria-hidden="true">
         <MaquetteStatique className={styles.filDeFer} />
       </div>
-      <nav className={`lc-container ${styles.contenu}`} aria-label="Menu principal">
+      <nav className={`lc-container ${styles.contenu}`} aria-label="Index des projets">
+        <ol className={styles.projets}>
+          {projets.map((p, i) => (
+            <li key={p.slug} data-menu-item>
+              <LienTransition
+                href={`${site.base}/projets/${p.slug}`}
+                label={p.titre}
+                className={`lc-display ${styles.projet}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  auLien(`${site.base}/projets/${p.slug}`, p.titre)
+                }}
+              >
+                <span className={`lc-mono ${styles.numero}`}>{formatNumero(i)}</span>
+                {p.titre}
+              </LienTransition>
+            </li>
+          ))}
+        </ol>
         <ul className={styles.pages}>
           {[{ label: 'Accueil', href: '' }, ...site.nav].map((item) => (
             <li key={item.href} data-menu-item>
               <LienTransition
                 href={`${site.base}${item.href}`}
                 label={item.label}
-                className={`lc-display ${styles.page}`}
+                className={`lc-mono ${styles.page}`}
                 onClick={(e) => {
                   e.preventDefault()
                   auLien(`${site.base}${item.href}`, item.label)
@@ -150,23 +169,6 @@ export default function Menu() {
             </li>
           ))}
         </ul>
-        <ol className={styles.projets}>
-          {projets.map((p, i) => (
-            <li key={p.slug} data-menu-item>
-              <LienTransition
-                href={`${site.base}/projets/${p.slug}`}
-                label={p.titre}
-                className={`lc-mono ${styles.projet}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  auLien(`${site.base}/projets/${p.slug}`, p.titre)
-                }}
-              >
-                <span className={styles.numero}>{formatNumero(i)}</span> {p.titre}
-              </LienTransition>
-            </li>
-          ))}
-        </ol>
       </nav>
     </div>
     </>

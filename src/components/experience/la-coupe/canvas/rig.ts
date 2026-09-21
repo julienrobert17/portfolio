@@ -97,12 +97,15 @@ export class RigHero {
     }
     groupe.rotation.set(0, this.angleMenu, 0)
     groupe.updateMatrixWorld(true)
-    camera.zoom = Math.min((taille.height * 0.45) / this.hauteurProjetee, (taille.width * 0.5) / this.largeurProjetee)
+    const large = taille.width >= 900
+    camera.zoom = Math.min((taille.height * 0.45) / this.hauteurProjetee, (taille.width * (large ? 0.36 : 0.6)) / this.largeurProjetee)
     camera.position.copy(this.cible).addScaledVector(DIRECTION, DISTANCE_CAMERA)
     camera.up.copy(HAUT_MONDE)
     camera.lookAt(this.cible)
-    // Centrée à 42 % de la largeur : entre les pages à gauche et la liste des projets à droite.
-    camera.setViewOffset(taille.width, taille.height, -(taille.width * 0.42 - taille.width / 2), 0, taille.width, taille.height)
+    // À droite des projets (76 % de la largeur) ; centrée et descendue sur écran étroit, sous la liste.
+    const cx = large ? 0.76 : 0.5
+    const cy = large ? 0.5 : 0.72
+    camera.setViewOffset(taille.width, taille.height, -(taille.width * cx - taille.width / 2), -(taille.height * cy - taille.height / 2), taille.width, taille.height)
     camera.updateProjectionMatrix()
   }
 

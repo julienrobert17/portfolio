@@ -9,7 +9,8 @@ import styles from './nav.module.css'
 /**
  * Barre fixe en différence sur le fond : encre sur papier, papier sur encre.
  * Se cache vers le bas, revient vers le haut, initiales après un viewport
- * (NavComportement). Menu plein écran : Phase 4.
+ * (NavComportement). À droite : les pages, l'icône de l'index des projets,
+ * puis l'heure et le lieu.
  */
 export default function Nav() {
   return (
@@ -27,8 +28,9 @@ export default function Nav() {
       </LienTransition>
       <nav aria-label="Navigation principale" className={styles.droite}>
         <NavLinks />
-        <LocalTime className={`lc-mono ${styles.heure}`} />
         <MenuBouton />
+        {/* Heure et lieu ferment la barre, à l'extrême droite, détachés par un espace plus large. */}
+        <LocalTime className={`lc-mono ${styles.heure}`} />
       </nav>
     </header>
   )

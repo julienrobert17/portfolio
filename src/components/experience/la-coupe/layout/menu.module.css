@@ -60,9 +60,10 @@
   min-height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-rows: 1fr auto;
   column-gap: var(--gutter);
-  align-content: center;
-  padding-block: calc(var(--nav-h) + var(--s-5)) var(--s-6);
+  row-gap: var(--s-5);
+  padding-block: calc(var(--nav-h) + var(--s-4)) var(--s-4);
 }
 
 .pages,
@@ -72,50 +73,68 @@
   padding: 0;
 }
 
-.pages {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-2);
-}
-
-.page {
-  font-size: clamp(2.5rem, 7vw, 7rem);
-  letter-spacing: -0.03em;
-  line-height: 1;
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  transition: color var(--t-micro) var(--ease-ui);
-}
-
-.page:hover,
-.page:focus-visible {
-  color: var(--accent);
-}
-
+/* Les huit projets, en display, à gauche ; la maquette occupe la colonne de droite. */
 .projets {
-  align-self: end;
+  grid-column: 1;
+  align-self: center;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--line-inverse);
 }
 
 .projet {
   display: flex;
-  gap: var(--s-3);
+  align-items: baseline;
+  gap: var(--s-4);
   min-height: 44px;
-  align-items: center;
-  border-bottom: 1px solid var(--line-inverse);
+  font-size: clamp(1.75rem, min(4.2vw, 6.4vh), 4.25rem);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  /* Un titre sur deux lignes (mobile) ne touche pas le suivant. */
+  padding-block: 0.14em;
+  transition: color var(--t-micro) var(--ease-ui);
 }
 
 .numero {
+  flex: none;
+  width: 2.5em;
+  font-size: 0.75rem;
+  letter-spacing: 0;
   color: var(--ink-2-inverse);
   transition: color var(--t-micro) var(--ease-ui);
 }
 
+.projet:hover,
+.projet:focus-visible,
 .projet:hover .numero,
 .projet:focus-visible .numero {
   color: var(--accent);
+}
+
+/* Les pages, en mono petit, sur une ligne en bas. */
+.pages {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-5);
+  border-top: 1px solid var(--line-inverse);
+  padding-top: var(--s-2);
+}
+
+.page {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.page:hover,
+.page:focus-visible {
+  text-decoration-color: currentColor;
 }
 
 .menu :focus-visible {
@@ -125,15 +144,28 @@
 @media (max-width: 900px) {
   .contenu {
     grid-template-columns: 1fr;
-    row-gap: var(--s-6);
-    align-content: start;
+  }
+
+  .projets {
+    align-self: start;
   }
 
   .maquette {
-    width: min(70vw, 360px);
+    width: min(60vw, 300px);
     top: auto;
-    bottom: var(--s-4);
+    bottom: calc(var(--s-7) + 44px);
     transform: none;
-    opacity: 0.6;
+    opacity: 0.5;
+  }
+}
+
+/* La barre masque les pages sous 720 px : l'overlay les garde, en taille normale. */
+@media (max-width: 720px) {
+  .pages {
+    column-gap: var(--s-3);
+  }
+
+  .page {
+    font-size: 1rem;
   }
 }
