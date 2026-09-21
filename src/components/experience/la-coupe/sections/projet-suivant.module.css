@@ -22,6 +22,10 @@
   height: 40vh;
   min-height: 240px;
   overflow: hidden;
+}
+
+/* `.conteneur .bloc` : passer devant `.lc a { color: inherit }`, sinon la légende reste en encre sur la photo. */
+.conteneur .bloc {
   color: var(--paper);
 }
 
