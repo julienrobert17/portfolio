@@ -31,6 +31,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#a8a898",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -43,6 +44,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#e8e8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -55,6 +57,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#a8a898",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -67,6 +70,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#e8e8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -79,6 +83,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -91,6 +96,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#d8d8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -103,6 +109,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#e8e8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -115,6 +122,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b8a898",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -127,6 +135,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -139,6 +148,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b8b8b8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -151,6 +161,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#382818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -163,6 +174,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#5898c8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -175,6 +187,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -187,6 +200,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -199,6 +213,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#d8d8c8",
     "largeurs": [
       480,
+      800,
       960,
       1440
     ],
@@ -210,6 +225,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8c8b8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -222,6 +238,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b8c8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -234,6 +251,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#a8a898",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -241,13 +259,15 @@ export const photos: Record<string, PhotoGeneree> = {
     "lqip": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACwAwCdASoYAA4APtFapkyoJSOiMAgBABoJZQC06CEuADU0uK6vUAD9zuvm+P4qqresqcHMSWeNqb/BlTX1Xmun4dYMOAsfLHjjEIGSyHGIARtxtID2gAAA"
   },
   "ecole-des-hauts-champs-02": {
-    "width": 1440,
-    "height": 960,
+    "width": 1920,
+    "height": 1280,
     "couleur": "#a89878",
     "largeurs": [
       480,
+      800,
       960,
-      1440
+      1440,
+      1920
     ],
     "lqip": "data:image/webp;base64,UklGRkQAAABXRUJQVlA4IDgAAABQAwCdASoYABAAPtFWpEuqpKOhsAgBUBoJZQCsAELm7/e9AAD9/GxqmUho0/BUUUU9VflXxEAAAA=="
   },
@@ -257,6 +277,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b89868",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -269,6 +290,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#886858",
     "largeurs": [
       480,
+      800,
       960,
       1440
     ],
@@ -280,6 +302,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#f8f8e8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -292,6 +315,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#d8c8b8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -304,6 +328,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#081818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -316,6 +341,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#584838",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -328,6 +354,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#682818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -340,6 +367,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#d8c8b8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -352,6 +380,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#080808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -364,6 +393,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -376,6 +406,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -388,6 +419,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#a8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -400,6 +432,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#885838",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -412,6 +445,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -424,6 +458,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#382828",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -436,6 +471,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#585858",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -448,6 +484,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#080808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -460,6 +497,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#685848",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -472,6 +510,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -484,6 +523,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#685848",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -496,6 +536,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#785848",
     "largeurs": [
       480,
+      800,
       960,
       1440
     ],
@@ -507,6 +548,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#988888",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -519,6 +561,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#f8f8e8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -531,6 +574,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8c8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -543,6 +587,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#e8e8d8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -555,6 +600,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#282828",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -567,6 +613,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#080808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -579,6 +626,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#080808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -591,6 +639,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#281818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -603,6 +652,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#383828",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -615,6 +665,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -627,6 +678,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#786858",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -639,6 +691,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#887868",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -651,6 +704,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#282818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -663,6 +717,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#281808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -675,6 +730,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#285878",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -687,6 +743,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#b8b8a8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -699,6 +756,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#6888a8",
     "largeurs": [
       480,
+      800,
       960
     ],
     "lqip": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAABwBQCdASoYAB4APr1Qn0unJSMht/qoAOAXiUATplAAY3NdXz7nWmb4M6jBqyGaKEI5RQ0AAP6HZ2jKOnUApsFB2Jw+gSdCT1AUiPNq3H9m87ps6Y7WbGdlGkzbc59fgyqbZlLl8Zc7d4fVDPOU+JtC5TfAKmI5Jungu+gPBYM+3zzIDwAAAA=="
@@ -709,6 +767,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#080808",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -721,6 +780,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#281818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -733,6 +793,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#887868",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -745,6 +806,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#f8f8e8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -757,6 +819,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8a878",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -769,6 +832,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#989888",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -781,6 +845,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#c8c8b8",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -793,6 +858,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#181818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -805,6 +871,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#887868",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920
@@ -817,6 +884,7 @@ export const photos: Record<string, PhotoGeneree> = {
     "couleur": "#884818",
     "largeurs": [
       480,
+      800,
       960,
       1440,
       1920

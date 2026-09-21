@@ -182,7 +182,10 @@ async function plancheProjet(prefixe: string, cleApi: string, pris: Set<string>,
 }
 
 /** Largeurs servies en srcset ; la plus grande que la source permet donne width/height. */
-const LARGEURS = [480, 960, 1440, 1920]
+// 800 plutôt que 720 : un écran de 412 px en 1,75x demande 721 px et sauterait à 960 ; 800 couvre aussi 360 à 400 px en 2x.
+const LARGEURS = [480, 800, 960, 1440, 1920]
+/** Jusqu'à 960 px les fichiers ne sont vus que sur écrans denses (2x, 3x) : qualité plus basse, invisible à cette densité. */
+const QUALITE = { dense: { webp: 60, avif: 35 }, pleine: { webp: 72, avif: 40 } }
 
 interface Meta {
   width: number
@@ -219,9 +222,9 @@ export async function traiter(source: Buffer, ratio: Ratio, cle: string): Promis
     const base = largeur === width ? grand : await sharp(grand).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
     const sorties: Array<[string, Buffer]> = []
     for (const format of ['webp', 'avif'] as const) {
-      let qualite = format === 'webp' ? 72 : 40
+      let qualite = QUALITE[largeur <= 960 ? 'dense' : 'pleine'][format]
       let sortie = await sharp(base)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
-      while (sortie.length > POIDS_MAX && qualite > 30) {
+      while (sortie.length > POIDS_MAX && qualite > 28) {
         qualite -= 6
         sortie = await sharp(base)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
       }
