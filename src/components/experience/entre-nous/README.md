@@ -294,3 +294,15 @@ Le classement et les révélations les plus denses y demandent une vingtaine à
 une quarantaine de pixels de défilement. Tout reste atteignable, mais c'est
 serré : en paysage, **côte à côte est nettement plus confortable**. Les trois
 autres combinaisons tiennent sans défilement.
+
+## À faire à la fusion de cette branche
+
+`/experience/entre-nous` n'existe que sur `fix/resonance`. Sa tuile, elle, était
+`featured` en base et menait donc à une 404 sur la home de production : le
+21 septembre 2026 elle est passée à `featured: false`, et `task-manager-app` à
+`featured: true` pour garder une grille de six.
+
+À la fusion, refaire l'inverse, en base et dans `prisma/seed.ts` :
+
+- `entre-nous` → `featured: true`
+- `task-manager-app` → `featured: false`
