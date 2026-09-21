@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { MEDIA } from '../lib/animation'
 import { onTick } from '../lib/ticker'
 import styles from './curseur.module.css'
@@ -8,12 +8,23 @@ import styles from './curseur.module.css'
 type Etat = 'default' | 'link' | 'view'
 
 const LERP = 0.15
+
+/** Réglages rapides du curseur : tailles en pixels et libellé de l'état « voir ». */
+export const REGLAGES_CURSEUR = {
+  point: 8,
+  lien: 40,
+  voir: 56,
+  libelle: 'Voir',
+} as const
 const REDUIT = '(prefers-reduced-motion: reduce)'
 
 /** État demandé par l'élément sous le pointeur, par délégation. */
 function etatDe(cible: EventTarget | null): Etat {
   if (!(cible instanceof Element)) return 'default'
-  if (cible.closest('[data-curseur="view"]')) return 'view'
+  // Un état explicite l'emporte : `view` sur les blocs, `default` sur les lignes d'index
+  // (l'image flottante y est l'affordance, le curseur reste un point).
+  const explicite = cible.closest<HTMLElement>('[data-curseur]')?.dataset.curseur
+  if (explicite === 'view' || explicite === 'default' || explicite === 'link') return explicite
   if (cible.closest('a, button')) return 'link'
   return 'default'
 }
@@ -118,9 +129,17 @@ function brancher(racine: HTMLElement, reduit: MediaQueryList): () => void {
   return debrancher
 }
 
+const VARIABLES = {
+  '--c-point': `${REGLAGES_CURSEUR.point}px`,
+  '--c-voir': `${REGLAGES_CURSEUR.voir}px`,
+  '--c-echelle-lien': String(REGLAGES_CURSEUR.lien / REGLAGES_CURSEUR.voir),
+} as CSSProperties
+
 /**
- * Curseur : point de 8 px en `difference`, cercle vide de 40 px sur les
- * liens et boutons, pastille « Voir → » de 88 px sur `[data-curseur="view"]`.
+ * Curseur en `difference` (voir le CSS pour la chaîne de mélange) : point de
+ * 8 px, anneau de 40 px sur les liens et boutons, anneau de 56 px « Voir » sur
+ * `[data-curseur="view"]`, point conservé sur `[data-curseur="default"]`.
+ * Tailles et libellé dans REGLAGES_CURSEUR.
  * Pointeur fin seulement (activé et désactivé au gré de `(pointer: fine)`),
  * caché avant le premier mouvement et quand la souris quitte la fenêtre.
  * Sous reduced motion il reste monté mais suit sans lerp. États délégués
@@ -151,9 +170,10 @@ export default function Curseur() {
   }, [])
 
   return (
-    <div ref={ref} className={styles.curseur} data-etat="default" data-visible="false" aria-hidden="true">
-      <div className={styles.point}>
-        <span className={styles.libelle}>Voir →</span>
+    <div ref={ref} className={styles.curseur} style={VARIABLES} data-etat="default" data-visible="false" aria-hidden="true">
+      <div className={styles.point} />
+      <div className={styles.anneau}>
+        <span className={styles.libelle}>{REGLAGES_CURSEUR.libelle}</span>
       </div>
     </div>
   )

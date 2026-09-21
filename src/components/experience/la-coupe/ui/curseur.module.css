@@ -1,8 +1,13 @@
 /*
- * Curseur personnalisé : un conteneur fixe positionné par le ticker (jamais
- * de transition sur sa position), un point dont la taille et la bordure
- * transitionnent selon l'état. Le natif est masqué par la classe `actif`
- * posée sur <html> seulement quand le composant est monté et actif.
+ * Curseur personnalisé. Le natif est masqué par la classe `actif` posée sur
+ * <html> seulement quand le composant est monté et actif.
+ *
+ * Mélange : `mix-blend-mode: difference` est posé sur l'élément fixe
+ * lui-même, enfant direct de la racine `.lc`. Un élément fixe avec z-index
+ * crée un contexte d'empilement : un mélange posé sur un de ses enfants ne
+ * verrait que l'intérieur vide de ce groupe, jamais la page. Tout ce que le
+ * curseur contient est en #fff pur : noir sur papier, blanc sur encre,
+ * pixel par pixel quand il chevauche les deux.
  */
 .actif,
 .actif * {
@@ -14,12 +19,12 @@
   top: 0;
   left: 0;
   z-index: 100;
+  width: 0;
+  height: 0;
   opacity: 0;
   pointer-events: none;
-  /* Le mélange est posé ici, sur l'élément fixe enfant direct de `.lc` : fixe + z-index crée un
-   * contexte d'empilement, et un `difference` posé sur un enfant ne verrait que l'intérieur vide
-   * de ce groupe, jamais la page (point blanc sur papier blanc). */
   mix-blend-mode: difference;
+  color: #fff;
   transition: opacity var(--t-micro) var(--ease-ui);
 }
 
@@ -27,51 +32,68 @@
   opacity: 1;
 }
 
-/* Tout en #fff pur sous le `difference` du conteneur : noir sur papier, blanc sur encre. */
-.point {
-  --taille: 8px;
+/* Deux calques centrés sur le pointeur, animés par scale et opacité seulement : jamais de saut. */
+.point,
+.anneau {
   position: absolute;
   top: 0;
   left: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+  transition:
+    scale 300ms var(--ease-ui),
+    opacity 300ms var(--ease-ui);
+}
+
+.point {
+  width: var(--c-point);
+  height: var(--c-point);
+  background: #fff;
+}
+
+.anneau {
   display: grid;
   place-items: center;
-  width: var(--taille);
-  height: var(--taille);
-  translate: -50% -50%;
-  border-radius: 50%;
-  border: 0 solid #fff;
-  background: #fff;
-  transition:
-    width var(--t-micro) var(--ease-ui),
-    height var(--t-micro) var(--ease-ui),
-    border-width var(--t-micro) var(--ease-ui),
-    background-color var(--t-micro) var(--ease-ui);
+  width: var(--c-voir);
+  height: var(--c-voir);
+  border: 1px solid #fff;
+  scale: 0.3;
+  opacity: 0;
 }
 
-.curseur[data-etat='link'] .point {
-  --taille: 40px;
-  border-width: 1px;
-  background: transparent;
-}
-
+/* Liens et boutons : le même anneau, ramené à la taille « lien ». */
+.curseur[data-etat='link'] .point,
 .curseur[data-etat='view'] .point {
-  --taille: 88px;
-  background: #fff;
+  scale: 0;
+  opacity: 0;
+}
+
+.curseur[data-etat='link'] .anneau {
+  scale: var(--c-echelle-lien);
+  opacity: 1;
+}
+
+.curseur[data-etat='view'] .anneau {
+  scale: 1;
+  opacity: 1;
 }
 
 .libelle {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1;
   white-space: nowrap;
-  color: #000;
+  /* Le tracking ajoute un blanc après la dernière lettre : on recentre. */
+  margin-right: -0.08em;
   opacity: 0;
-  transition: opacity var(--t-micro) var(--ease-ui);
+  transition: opacity 200ms var(--ease-ui);
 }
 
 .curseur[data-etat='view'] .libelle {
   opacity: 1;
+  transition-delay: 100ms;
 }
 
 /* Jamais au tactile : le JavaScript ne s'active pas non plus. */
@@ -85,6 +107,7 @@
 @media (prefers-reduced-motion: reduce) {
   .curseur,
   .point,
+  .anneau,
   .libelle {
     transition: none;
   }

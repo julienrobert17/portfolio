@@ -10,10 +10,20 @@ const HAUTEUR = 260
 const LERP = 0.12
 const ROTATION_MAX = 3
 const MARGE_FOCUS = 16
+/** L'image ne recouvre jamais le curseur : ancrée à cette distance, à droite et sous le point. */
+const DECALAGE = 32
+const MARGE_BORD = 8
+
+/** Coin haut-gauche de l'image pour un pointeur donné ; bascule à gauche ou au-dessus faute de place. */
+function placement(cx: number, cy: number): [number, number] {
+  const x = cx + DECALAGE + LARGEUR > window.innerWidth - MARGE_BORD ? cx - DECALAGE - LARGEUR : cx + DECALAGE
+  const y = cy + DECALAGE + HAUTEUR > window.innerHeight - MARGE_BORD ? cy - DECALAGE - HAUTEUR : cy + DECALAGE
+  return [x, y]
+}
 
 /**
- * Image 200 × 260 qui suit le curseur au survol des lignes `[data-image]`
- * du conteneur parent (lerp 0,12, rotation ±3° selon la vélocité, fondu
+ * Image 200 × 260 qui accompagne le curseur au survol des lignes `[data-image]`
+ * du conteneur parent, ancrée à 32 px à droite et sous le point (lerp 0,12, rotation ±3° selon la vélocité, fondu
  * 250 ms), pointeur fin seulement. Au focus clavier, la même image apparaît
  * ancrée à droite de la ligne. Rien au tactile. À placer dans l'élément qui
  * contient les lignes : les écouteurs sont délégués au parent, les lignes
@@ -41,12 +51,14 @@ export default function ImageFlottante() {
     }
     const arret = onTick(() => {
       if (!etat.visible || etat.ancree) return
-      const dx = etat.cx - etat.x
+      // `x, y` : coin haut-gauche de l'image, qui rejoint son placement en douceur (bascule comprise).
+      const [tx, ty] = placement(etat.cx, etat.cy)
+      const dx = tx - etat.x
       etat.x += dx * LERP
-      etat.y += (etat.cy - etat.y) * LERP
+      etat.y += (ty - etat.y) * LERP
       etat.vx += (dx * LERP - etat.vx) * 0.2
       const rot = gsap.utils.clamp(-ROTATION_MAX, ROTATION_MAX, etat.vx * 0.15)
-      racine.style.transform = `translate3d(${etat.x - LARGEUR / 2}px, ${etat.y - HAUTEUR / 2}px, 0) rotate(${rot}deg)`
+      racine.style.transform = `translate3d(${etat.x}px, ${etat.y}px, 0) rotate(${rot}deg)`
     })
     const ecouteurs: Array<() => void> = [arret]
 
@@ -61,8 +73,7 @@ export default function ImageFlottante() {
         etat.cx = e.clientX
         etat.cy = e.clientY
         if (!etat.visible) {
-          etat.x = e.clientX
-          etat.y = e.clientY
+          ;[etat.x, etat.y] = placement(e.clientX, e.clientY)
         }
         montrer(ligne.dataset.image ?? '', ligne.dataset.imageAlt ?? '')
       }
