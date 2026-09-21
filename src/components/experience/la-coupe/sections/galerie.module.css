@@ -53,6 +53,7 @@
   flex: none;
 }
 
+/* Desktop : une ligne, la place ne manque pas. */
 .texte {
   min-width: 0;
   overflow: hidden;
@@ -65,14 +66,39 @@
   overflow: hidden;
 }
 
-@media (max-width: 720px) {
-  .item {
+/*
+ * Sous 900 px le motif « verticale » se déplie comme les autres : la case prend toute la largeur
+ * et la légende repasse sous l'image, alignée sur la même marge.
+ */
+@media (max-width: 900px) {
+  .item[data-acote] {
     grid-column: 1 / -1 !important;
   }
 
-  /* Sous 720 px tout est en pleine largeur : la légende repasse sous l'image. */
   .aCote {
     display: flex;
+  }
+
+  /* En colonne, `align-self` joue sur l'horizontale : sans cela la légende partait à droite. */
+  .aCote .legende {
+    align-self: stretch;
+    padding-bottom: 0;
+  }
+
+  /* Deux lignes au plus, sans ellipse sur une seule : la légende se déploie puis s'arrête. */
+  .texte {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    text-overflow: clip;
+  }
+}
+
+@media (max-width: 720px) {
+  .item {
+    grid-column: 1 / -1 !important;
   }
 
   .grille {

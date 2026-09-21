@@ -82,7 +82,7 @@ export default function Galerie({ projet }: GalerieProps) {
         {cases.map(({ index, colonnes, sizes, aCote }) => {
           const image = imageProjet(projet, index + 1)
           return (
-            <li key={image.src} className={styles.item} style={{ gridColumn: colonnes }}>
+            <li key={image.src} className={styles.item} style={{ gridColumn: colonnes }} data-acote={aCote || undefined}>
               <figure className={`${styles.figure} ${aCote ? styles.aCote : ''}`} data-plein={colonnes === '1 / -1' || undefined}>
                 <div className={styles.cadre}>
                   <Photo image={image} sizes={sizes} />
