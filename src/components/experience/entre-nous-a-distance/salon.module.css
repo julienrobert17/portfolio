@@ -206,3 +206,84 @@
   border-top: 1px solid var(--trait);
   padding-top: 12px;
 }
+
+/* ══ La fin, en trois temps ══ */
+
+/*
+ * LA COUTURE — la seule animation ample du mode.
+ *
+ * En présentiel, la ligne séparait deux territoires et sa disparition était le
+ * geste. Ici elle n'a jamais séparé personne : elle a dit l'état du lien. Sa
+ * sortie est donc l'inverse d'une disparition — elle s'étale sur toute la
+ * largeur, s'éclaire une dernière fois, puis s'efface. C'est le seul moment où
+ * quelque chose occupe l'écran entier.
+ */
+.ligneCouture {
+  animation: coutureLigne 2600ms var(--ease) both;
+}
+
+@keyframes coutureLigne {
+  0%   { width: min(320px, 70%); height: 2px;  opacity: 0.85; box-shadow: none; }
+  38%  { width: 100%;            height: 3px;  opacity: 1;    box-shadow: 0 0 26px 4px rgba(200, 164, 92, 0.5); }
+  70%  { width: 100%;            height: 3px;  opacity: 1;    box-shadow: 0 0 26px 4px rgba(200, 164, 92, 0.5); }
+  100% { width: 100%;            height: 0;    opacity: 0;    box-shadow: none; }
+}
+
+.coutureTexte {
+  /* Sans cet alignement, le bloc animé laisse ses enfants à gauche : le titre
+     paraît centré parce qu'il est large, le bouton non. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  animation: coutureArrive 1100ms var(--ease) both;
+  animation-delay: 1900ms;
+}
+
+@keyframes coutureArrive {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Les prénoms perdent leur « toi » : les deux écrans se rejoignent. */
+.placesFondues .nomPlace {
+  transition: opacity 900ms var(--ease);
+}
+
+/* ── La dernière question ── */
+.poser {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(24px, 6.5vh, 38px);
+  line-height: 1.2;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.derniereQuestion {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(21px, 5.6vh, 32px);
+  line-height: 1.22;
+  margin: 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+/*
+ * L'extinction. Le fondu est conservé sous mouvement réduit : c'est une
+ * variation de lumière, pas un déplacement, et c'est le point de la scène.
+ */
+.eteint {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 5000ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ligneCouture,
+  .coutureTexte {
+    animation: none;
+  }
+}

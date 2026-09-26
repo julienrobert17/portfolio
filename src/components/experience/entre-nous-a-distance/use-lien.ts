@@ -509,6 +509,34 @@ export function useLien() {
     resync: useCallback(() => {
       if (codeRef.current) ouvrir(codeRef.current, true)
     }, [ouvrir]),
+    /**
+     * Simule un écran éteint pendant `ms`, en passant par LE VRAI CHEMIN.
+     *
+     * On ne triche pas sur l'état interne : on ferme le flux comme iOS le
+     * ferait, on gèle l'horloge de panne, on photographie l'index — puis au
+     * réveil on rouvre en resynchronisation complète. C'est exactement ce que
+     * produit un téléphone posé face contre table, et c'est le geste que
+     * l'expérience demande pendant une question parlée.
+     */
+    veille: useCallback(
+      (ms: number) => {
+        if (codeRef.current === null) return
+        enVeilleRef.current = true
+        avantVeilleRef.current = etatRef.current
+          ? { index: etatRef.current.index, phase: etatRef.current.phase }
+          : null
+        sourceRef.current?.close()
+        sourceRef.current = null
+        setLien((l) => ({ ...l, etat: 'ferme', enVeille: true, panneDepuisMs: null }))
+        setTimeout(() => {
+          enVeilleRef.current = false
+          panneDepuisRef.current = 0
+          setLien((l) => ({ ...l, etat: 'reprise', enVeille: false, panneDepuisMs: null }))
+          if (codeRef.current) ouvrir(codeRef.current, true)
+        }, ms)
+      },
+      [ouvrir],
+    ),
   }
 
   /**
@@ -536,10 +564,33 @@ export function useLien() {
 
   const oublierRetour = useCallback(() => setRetour(null), [])
 
+  /**
+   * Recharge toutes les révélations depuis le serveur.
+   *
+   * Appelée avant l'ordre du jour : les révélations reçues par le flux ne
+   * survivent pas à un rechargement, et la fin de partie est précisément le
+   * moment où on ne peut pas se permettre de les avoir perdues.
+   */
+  const rapatrierReponses = useCallback(async () => {
+    if (!etat) return
+    const r = await fetch(
+      `/api/entre-nous/reponses?code=${encodeURIComponent(etat.code)}`,
+    ).catch(() => null)
+    if (!r?.ok) return
+    const brut = (await r.json()) as Record<string, { a: unknown; b: unknown }>
+    setRevelations((deja) => {
+      const fusion = { ...deja }
+      for (const [questionId, paire] of Object.entries(brut)) {
+        fusion[questionId] = { questionId, ...paire } as Revelation
+      }
+      return fusion
+    })
+  }, [etat])
+
   return {
     clientId, etat, cote, lien, journal, latences, conflits, entrer, agir, provoquer,
     revelations, valides, miennes, etatQuestion, repondre,
-    retard, setRetard, retour, oublierRetour, salleMemorisee,
+    retard, setRetard, retour, oublierRetour, salleMemorisee, rapatrierReponses,
   }
 }
 

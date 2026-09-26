@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import styles from './salon.module.css'
 import PanneauDebug from './debug/panneau'
 import Jeu from './jeu'
+import Fin from './fin'
 import { useLien } from './use-lien'
 import { NOMS } from '../entre-nous/content'
 import { BANQUE } from '../entre-nous/questions/pool'
@@ -245,6 +246,23 @@ export default function AppADistance() {
     )
   }
 
+  // ── La fin, en trois temps : elle prend l'écran entier ──
+  if (etat.phase === 'couture' || etat.phase === 'ordre' || etat.phase === 'derniere') {
+    return (
+      <>
+        {run !== null && <Fin lien={lien} run={run} phase={etat.phase} />}
+        {debug && (
+          <PanneauDebug
+            lien={lien}
+            empreinte={monEmpreinte}
+            fausse={fausserEmpreinte}
+            setFausse={setFausserEmpreinte}
+          />
+        )}
+      </>
+    )
+  }
+
   // ── La salle ──
   const lienEnPeine = info.etat !== 'ouvert'
   const enJeu = etat.phase === 'jeu'
@@ -258,6 +276,9 @@ export default function AppADistance() {
     enJeu && question !== null && lien.etatQuestion(question.id) === 'en-vol'
   /* Pendant une question parlée, poser son téléphone est ce qu'on demande. */
   const questionParlee = enJeu && question?.mecanique === 'a-voix-haute'
+  /* Après la dernière, « suivante » n'a plus de sens : on entre dans la fin. */
+  const derniereQuestion =
+    question === null || run === null || etat.index + 1 >= run.questions.length
 
   return (
     <>
@@ -322,9 +343,13 @@ export default function AppADistance() {
               <button
                 type="button"
                 className={styles.btn}
-                onClick={() => void lien.agir('index', { index: etat.index + 1 })}
+                onClick={() =>
+                  void (derniereQuestion
+                    ? lien.agir('phase', { phase: 'couture' })
+                    : lien.agir('index', { index: etat.index + 1 }))
+                }
               >
-                {TEXTES.jeu.suivante}
+                {derniereQuestion ? TEXTES.jeu.versLaFin : TEXTES.jeu.suivante}
               </button>
             </div>
           </>

@@ -80,6 +80,7 @@ export default function PanneauDebug({ lien, empreinte, fausse, setFausse }: Pan
               cle="en panne depuis"
               val={info.panneDepuisMs === null ? '—' : `${(info.panneDepuisMs / 1000).toFixed(1)} s`}
             />
+            <Ligne cle="écran" val={info.enVeille ? 'ÉTEINT' : 'allumé'} />
             <Ligne
               cle="ferme le flux dans"
               val={resteMs === null ? '—' : `${Math.max(0, Math.round(resteMs / 1000))} s`}
@@ -160,6 +161,20 @@ export default function PanneauDebug({ lien, empreinte, fausse, setFausse }: Pan
               >
                 {fausse ? 'empreinte faussée ✓' : 'fausser l’empreinte'}
               </button>
+            </div>
+            <div className={styles.actions}>
+              {/* Écran éteint : le chemin nominal du mode, pas une panne. */}
+              {[5, 20, 60].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`${styles.bouton} ${info.enVeille ? styles.boutonRouge : ''}`}
+                  disabled={info.enVeille}
+                  onClick={() => provoquer.veille(s * 1000)}
+                >
+                  écran éteint {s} s
+                </button>
+              ))}
             </div>
             <div className={styles.actions}>
               {[0, 800, 2500].map((ms) => (

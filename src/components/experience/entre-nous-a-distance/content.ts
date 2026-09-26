@@ -34,6 +34,7 @@ export const TEXTES = {
   jeu: {
     question: 'question {n}',
     suivante: 'Question suivante',
+    versLaFin: 'Terminer',
     /** La consigne des « à voix haute », version deux appareils. */
     aVoixHaute: 'À vous dire dans l’appel. Rien à saisir ici.',
     /** « c'est dit » suppose qu'on vient de parler à côté de soi. */
@@ -41,6 +42,30 @@ export const TEXTES = {
     finDuDeroule: 'Fin du déroulé.',
     pasBranchee: 'Mécanique « {m} » — pas encore branchée à distance.',
     questionPassee: 'Cette question est passée pendant que tu répondais.',
+  },
+  /**
+   * LA FIN, EN TROIS TEMPS — et l'ordre compte.
+   *
+   * « Posez les téléphones » ne peut pas ouvrir la couture : l'ordre du jour
+   * qui suit se lit à l'écran, et une consigne démentie trente secondes plus
+   * tard ne vaut rien. Elle ouvre donc le DERNIER temps, celui qui se joue
+   * uniquement dans la voix, et plus rien après elle n'attend un geste.
+   *
+   * Ce que la couture dit à la place, c'est ce qui est vrai à cet instant :
+   * les deux écrans viennent de devenir identiques. Pendant toute la partie
+   * chacun voyait sa propre version — son prénom marqué « toi », ses réponses
+   * d'abord. C'est fini, et c'est la dernière chose que l'écran fait de son
+   * propre chef.
+   */
+  couture: {
+    titre: 'Vous regardez la même chose.',
+    sous: 'Pour la première fois depuis tout à l’heure, vos deux écrans sont identiques.',
+    continuer: 'Continuer',
+  },
+  derniere: {
+    poser: 'Posez les téléphones.',
+    consigne: 'Ce qui suit ne se tape pas.',
+    apres: 'Il n’y a rien après.',
   },
   /**
    * L'intercalaire du retour. Il ne s'affiche QUE si quelque chose a bougé
