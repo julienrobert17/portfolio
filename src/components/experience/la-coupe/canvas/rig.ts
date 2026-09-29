@@ -1,5 +1,6 @@
-import { EdgesGeometry, type Group, LineBasicMaterial, type Mesh, MeshStandardMaterial, type OrthographicCamera, Plane, Vector3 } from 'three'
+import { EdgesGeometry, Group, LineBasicMaterial, type Mesh, MeshStandardMaterial, type OrthographicCamera, Plane, Vector3 } from 'three'
 import { hero, setCanvasPret, setModeHero } from '../lib/hero-store'
+import { CibleMenu } from './cible-menu'
 import type { MaquetteConstruite } from './geometrie'
 import { HAUTEUR_COUPE } from './maquette'
 import { DIRECTION_CAMERA } from './projection'
@@ -46,6 +47,9 @@ export class RigHero {
   readonly materiau: MeshStandardMaterial
   readonly materiauAretes: LineBasicMaterial
   readonly aretes: EdgesGeometry
+  /** Fils de fer des projets survolés dans le menu, à insérer dans le groupe qui tourne. */
+  readonly massings = new Group()
+  private cibleMenu: CibleMenu
   /** Point du monde dont la projection tombe au centre du SVG statique. */
   readonly cible: Vector3
   readonly largeurProjetee: number
@@ -68,6 +72,7 @@ export class RigHero {
     // Les contours sont clippés aussi, sinon ils flottent au-dessus de la coupe.
     this.materiauAretes = new LineBasicMaterial({ color: '#151412', transparent: true, opacity: 0.35, clippingPlanes: [this.plan] })
     this.aretes = new EdgesGeometry(maquette.geometrie, 15)
+    this.cibleMenu = new CibleMenu(this.massings, this.materiauAretes)
     const { bornes } = maquette
     const cx = (bornes.minX + bornes.maxX) / 2
     const cy = (bornes.minY + bornes.maxY) / 2
@@ -86,6 +91,8 @@ export class RigHero {
     this.materiauAretes.opacity = menu ? 0.4 : 0.35
     this.materiauAretes.clippingPlanes = menu ? [] : [this.plan]
     this.materiauAretes.needsUpdate = true
+    this.massings.visible = menu
+    if (!menu) this.cibleMenu.reposer()
     hero.sale = true
   }
 
@@ -95,6 +102,8 @@ export class RigHero {
       this.angleMenu += options.delta * VITESSE_MENU
       hero.sale = true
     }
+    // Le modèle suit le projet survolé ; la rotation, elle, ne s'interrompt jamais.
+    this.cibleMenu.frame(performance.now(), options.tourne)
     groupe.rotation.set(0, this.angleMenu, 0)
     groupe.updateMatrixWorld(true)
     const large = taille.width >= 900
@@ -169,5 +178,6 @@ export class RigHero {
     this.aretes.dispose()
     this.materiau.dispose()
     this.materiauAretes.dispose()
+    this.cibleMenu.dispose()
   }
 }
