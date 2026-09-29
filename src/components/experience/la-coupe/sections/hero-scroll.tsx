@@ -21,7 +21,7 @@ import { onTick } from '../lib/ticker'
 const DEBUT_FONDU_TITRE = 0.8
 const OPACITE_TITRE_FIN = 0.15
 const SCRUB = 0.25
-/** Intro : la coupe descend seule du faîtage au plancher du premier niveau. */
+/** Intro : la coupe descend seule du faîtage jusque sous la dalle du premier niveau. */
 const DUREE_INTRO = 1.8
 /** Elle attend la fin du fondu croisé SVG → 3D (600 ms en CSS). */
 const ATTENTE_FONDU = 0.6
@@ -33,7 +33,7 @@ const RATTRAPAGE = 0.14
 /**
  * Côté client du hero. Décide du mode (canvas ou repli), mesure le repère de
  * la maquette SVG pour cadrer la caméra, fait descendre la coupe (intro, puis
- * 170vh de course, 140vh au tactile, scène en position sticky, sans pin) et
+ * 120vh de course, 100vh au tactile, scène en position sticky, sans pin) et
  * pousse sa valeur au store : le canvas, la cote et l'opacité du titre la
  * lisent sans setState. Parallaxe souris au pointeur fin.
  */
@@ -80,7 +80,7 @@ export default function HeroScroll() {
 
   /*
    * La coupe. Trois états : `attente` (le canvas n'a rien rendu, la coupe suit le scroll depuis le
-   * faîtage), `intro` (elle descend seule jusqu'au plancher du premier niveau), `scroll` (elle suit
+   * faîtage), `intro` (elle descend seule jusque sous la dalle du premier niveau), `scroll` (elle suit
    * le scroll, la course restante remise à l'échelle depuis là où elle se trouve). Tout passe par
    * `coupe`, que lisent aussi la rotation, le recul et le fondu du titre.
    */

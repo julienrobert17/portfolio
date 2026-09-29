@@ -1,4 +1,4 @@
-import { HAUTEUR_COUPE, MAQUETTE } from '../canvas/maquette'
+import { EPAISSEUR_DALLE, HAUTEUR_COUPE, MAQUETTE } from '../canvas/maquette'
 
 /**
  * Du scroll à la coupe. `course` et `coupe` vont de 0 à 1 : 0, rien n'est
@@ -30,11 +30,12 @@ export function courbeInverse(coupe: number): number {
 }
 
 /**
- * Fin de l'intro, et état de repos du hero : la coupe au plancher du premier
- * niveau. Trois centimètres au-dessus de la dalle, jamais coplanaire avec sa
- * face supérieure (le stencil scintillerait).
+ * Fin de l'intro, et état de repos du hero : la coupe sous la dalle du premier
+ * niveau, trois centimètres sous sa face inférieure. Le repos montre les pièces
+ * du rez-de-chaussée, jamais la dalle pleine : sa traversée se fait dans
+ * l'intro, en mouvement.
  */
-export const COUPE_REPOS = 1 - (MAQUETTE.etage.z + 0.03) / HAUTEUR_COUPE
+export const COUPE_REPOS = 1 - (MAQUETTE.etage.z - EPAISSEUR_DALLE - 0.03) / HAUTEUR_COUPE
 
 /**
  * Origine de la course pour que la position de scroll `course` donne la
