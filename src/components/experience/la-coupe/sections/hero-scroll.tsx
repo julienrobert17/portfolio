@@ -3,7 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { HAUTEUR_COUPE } from '../canvas/maquette'
-import { COUPE_REPOS, coupeDe, origineDe } from '../lib/coupe-progression'
+import { COUPE_REPOS, coupeDe, courbeIntro, origineDe } from '../lib/coupe-progression'
 import { formatMetres } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
 import {
@@ -166,7 +166,7 @@ export default function HeroScroll() {
         c: COUPE_REPOS,
         duration: DUREE_INTRO,
         delay: ATTENTE_FONDU,
-        ease: 'power2.out',
+        ease: courbeIntro,
         onUpdate: () => appliquer(intro.c),
         onComplete: reprendre,
       })

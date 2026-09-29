@@ -49,3 +49,24 @@ export function origineDe(coupe: number, course: number): number {
 }
 
 export const coupeDe = (origine: number, course: number): number => courbe(origine + (1 - origine) * borner(course))
+
+/**
+ * Courbe de l'intro. Vitesse constante du faîtage jusqu'à la face inférieure
+ * de la dalle du premier niveau, puis décélération (power2.out) sur les trois
+ * centimètres qui restent jusqu'au repos, raccordée à la même vitesse. Avec
+ * `power2.out` sur toute la course la coupe ralentissait en arrivant et
+ * restait plus de 200 ms dans la dalle, face pleine à l'écran ; à vitesse
+ * constante elle la traverse en moins de 100 ms.
+ */
+const COURSE_INTRO = HAUTEUR_COUPE * COUPE_REPOS
+const PART_DROITE = (HAUTEUR_COUPE - (MAQUETTE.etage.z - EPAISSEUR_DALLE)) / COURSE_INTRO
+// Durée du freinage pour que la vitesse soit continue au raccord : power2.out part à la pente 2.
+const FIN_DROITE = 1 / (1 + (2 * (1 - PART_DROITE)) / PART_DROITE)
+
+export function courbeIntro(t: number): number {
+  if (t <= 0) return 0
+  if (t >= 1) return 1
+  if (t <= FIN_DROITE) return (t / FIN_DROITE) * PART_DROITE
+  const u = (t - FIN_DROITE) / (1 - FIN_DROITE)
+  return PART_DROITE + (1 - PART_DROITE) * (1 - (1 - u) * (1 - u))
+}
