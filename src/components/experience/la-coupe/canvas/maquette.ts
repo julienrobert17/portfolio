@@ -44,6 +44,13 @@ export const MAQUETTE = {
 /** Hauteur totale de la coupe, du sol au point le plus haut (le faîtage). */
 export const HAUTEUR_COUPE = Math.max(...MAQUETTE.volumes.map((v) => v.z + v.h))
 
+/**
+ * Hauteur de la coupe au repos du hero : fin de l'intro, position de scroll 0, retour depuis le
+ * menu et repli statique. Sous la dalle du premier niveau, avec de quoi freiner après l'avoir
+ * traversée : le repos montre les pièces du rez-de-chaussée.
+ */
+export const HAUTEUR_REPOS = 2.6
+
 /** Coupe transversale de la fiche, dérivée des volumes : même hauteur que le hero. */
 export function coupeDepuisMaquette(legende: string): DescripteurCoupe {
   return {

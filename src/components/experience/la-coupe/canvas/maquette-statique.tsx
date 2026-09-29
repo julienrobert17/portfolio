@@ -1,3 +1,4 @@
+import { HAUTEUR_REPOS } from './maquette'
 import { geometrieMaquette, polygone, type TeinteFace } from './maquette-faces'
 
 /**
@@ -16,7 +17,7 @@ const FILLS: Record<TeinteFace, string> = {
 }
 
 export default function MaquetteStatique({ className }: { className?: string }) {
-  const { faces, viewBox, planCoupe } = geometrieMaquette()
+  const { faces, viewBox, planCoupe } = geometrieMaquette({ plan: HAUTEUR_REPOS })
   const { minX, minY, largeur, hauteur } = viewBox
   return (
     <svg

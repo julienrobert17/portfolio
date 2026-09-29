@@ -1,4 +1,4 @@
-import { EPAISSEUR_DALLE, HAUTEUR_COUPE, MAQUETTE } from '../canvas/maquette'
+import { EPAISSEUR_DALLE, HAUTEUR_COUPE, HAUTEUR_REPOS, MAQUETTE } from '../canvas/maquette'
 
 /**
  * Du scroll à la coupe. `course` et `coupe` vont de 0 à 1 : 0, rien n'est
@@ -30,12 +30,11 @@ export function courbeInverse(coupe: number): number {
 }
 
 /**
- * Fin de l'intro, et état de repos du hero : la coupe sous la dalle du premier
- * niveau, trois centimètres sous sa face inférieure. Le repos montre les pièces
- * du rez-de-chaussée, jamais la dalle pleine : sa traversée se fait dans
- * l'intro, en mouvement.
+ * Fin de l'intro, et état de repos du hero : la coupe à `HAUTEUR_REPOS`, sous
+ * la dalle du premier niveau. Le repos montre les pièces du rez-de-chaussée,
+ * jamais la dalle pleine : sa traversée se fait dans l'intro, en mouvement.
  */
-export const COUPE_REPOS = 1 - (MAQUETTE.etage.z - EPAISSEUR_DALLE - 0.03) / HAUTEUR_COUPE
+export const COUPE_REPOS = 1 - HAUTEUR_REPOS / HAUTEUR_COUPE
 
 /**
  * Origine de la course pour que la position de scroll `course` donne la
@@ -52,8 +51,8 @@ export const coupeDe = (origine: number, course: number): number => courbe(origi
 
 /**
  * Courbe de l'intro. Vitesse constante du faîtage jusqu'à la face inférieure
- * de la dalle du premier niveau, puis décélération (power2.out) sur les trois
- * centimètres qui restent jusqu'au repos, raccordée à la même vitesse. Avec
+ * de la dalle du premier niveau, puis décélération (power2.out) sur les 35 cm
+ * qui restent jusqu'au repos, raccordée à la même vitesse : 200 ms environ. Avec
  * `power2.out` sur toute la course la coupe ralentissait en arrivant et
  * restait plus de 200 ms dans la dalle, face pleine à l'écran ; à vitesse
  * constante elle la traverse en moins de 100 ms.

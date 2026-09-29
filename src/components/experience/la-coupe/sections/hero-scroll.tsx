@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import { HAUTEUR_COUPE } from '../canvas/maquette'
+import { HAUTEUR_COUPE, HAUTEUR_REPOS } from '../canvas/maquette'
 import { COUPE_REPOS, coupeDe, courbeIntro, origineDe } from '../lib/coupe-progression'
 import { formatMetres } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
@@ -21,7 +21,7 @@ import { onTick } from '../lib/ticker'
 const DEBUT_FONDU_TITRE = 0.8
 const OPACITE_TITRE_FIN = 0.15
 const SCRUB = 0.25
-/** Intro : la coupe descend seule du faîtage jusque sous la dalle du premier niveau. */
+/** Intro : la coupe descend seule du faîtage jusqu'à la hauteur de repos, sous la dalle du premier niveau. */
 const DUREE_INTRO = 1.8
 /** Elle attend la fin du fondu croisé SVG → 3D (600 ms en CSS). */
 const ATTENTE_FONDU = 0.6
@@ -74,7 +74,7 @@ export default function HeroScroll() {
     section.dataset.canvas = pret ? 'pret' : 'absent'
     if (mode === 'statique') {
       const cote = section.querySelector<HTMLElement>('[data-hero="cote"]')
-      if (cote) cote.textContent = formatMetres(HAUTEUR_COUPE / 2)
+      if (cote) cote.textContent = formatMetres(HAUTEUR_REPOS)
     }
   }, [mode, pret])
 

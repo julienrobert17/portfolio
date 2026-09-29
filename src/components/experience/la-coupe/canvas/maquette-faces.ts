@@ -61,7 +61,7 @@ function facesToit(v: Volume): Face[] {
  * volumes traversés sont tronqués et leur dessus prend la teinte `coupe`
  * (terre cuite). Sert à la tuile du carrousel du portfolio.
  */
-export function geometrieMaquette(options: { coupe?: number } = {}): GeometrieMaquette {
+export function geometrieMaquette(options: { coupe?: number; plan?: number } = {}): GeometrieMaquette {
   const volumes = [...MAQUETTE.volumes]
     .filter((v) => v.role !== 'vide' && v.role !== 'escalier')
     .sort((a, b) => profondeur(a.x + a.l / 2, a.y + a.p / 2, 0) - profondeur(b.x + b.l / 2, b.y + b.p / 2, 0) || a.z - b.z)
@@ -96,8 +96,9 @@ export function geometrieMaquette(options: { coupe?: number } = {}): GeometrieMa
   const minY = Math.min(...ys) - marge
   const largeur = Math.max(...xs) + marge - minX
   const hauteur = Math.max(...ys) + marge - minY
-  // Plan de coupe du repli statique, à mi-hauteur, sur l'emprise du socle élargie.
-  const zCoupe = HAUTEUR_COUPE / 2
+  // Plan de coupe du repli statique, sur l'emprise du socle élargie : à mi-hauteur par défaut
+  // (image Open Graph), à la hauteur de repos du hero quand `plan` la donne.
+  const zCoupe = options.plan ?? HAUTEUR_COUPE / 2
   const m = 0.8
   const planCoupe = socle
     ? [

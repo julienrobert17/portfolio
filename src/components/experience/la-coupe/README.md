@@ -77,7 +77,7 @@ cote du hero, la coupe de la fiche et celle du footer affichent la même valeur.
 
 ```
 canvas/projection.ts        azimut 30°, plongée 30°, communs au SVG et à la caméra
-canvas/maquette-statique    SVG axonométrique : placeholder, puis repli (coupe à mi-hauteur)
+canvas/maquette-statique    SVG axonométrique : placeholder, puis repli (coupe à la hauteur de repos)
 canvas/geometrie.ts         maquette creuse (murs, dalles trouées, refends, toit, escalier), une géométrie fusionnée
 canvas/rig.ts               tout l'impératif : plan de coupe, matériaux, caméra, parallaxe
 canvas/coupe.tsx            face coupée par stencil (webgl_clipping_stencil), en --accent
@@ -98,7 +98,7 @@ tourne la maquette de 20°, recule la caméra de 15 % et efface le titre sur les
 20 derniers %. La cote affiche la hauteur au-dessus de laquelle tout est coupé.
 
 Repli (`prefers-reduced-motion`, WebGL absent, échec de chargement, erreur de
-scène) : pas de pin, SVG conservé avec le plan de coupe dessiné à mi-hauteur,
+scène) : pas de pin, SVG conservé avec le plan de coupe dessiné à la hauteur de repos (2,60 m),
 cote fixe en `--accent`. En développement, `window.__laCoupeHero` permet de
 piloter la progression depuis la console.
 
