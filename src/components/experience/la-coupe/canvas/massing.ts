@@ -2,14 +2,14 @@ import { BoxGeometry, BufferGeometry, Float32BufferAttribute } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { DescripteurCoupe, DescripteurPlan, Projet } from '../content/types'
 import { construireMaquette } from './geometrie'
-import { EPAISSEUR_DALLE, EPAISSEUR_MUR, MAQUETTE } from './maquette'
+import { EPAISSEUR_DALLE, MAQUETTE } from './maquette'
 
 /**
- * Volume de masse d'un projet, extrudé de ses descripteurs plan et coupe :
- * emprise, refends en parois fines, niveaux avec leurs dalles, vide
- * traversant (dalles en quatre boîtes, sans CSG), sous-sol enterré, toit plat,
- * à deux pentes ou mono. Une géométrie fusionnée non indexée, faite pour être
- * rendue en fil de fer dans le menu.
+ * Volume de masse d'un projet, extrudé de ses descripteurs plan et coupe,
+ * réduit à ce qui se lit en fil de fer : l'enveloppe (un seul volume, sous-sol
+ * compris), les dalles, le vide traversant (dalles en quatre boîtes, sans
+ * CSG), le toit et les refends du seul rez-de-chaussée. Une géométrie fusionnée
+ * non indexée.
  *
  * Tous les massings tiennent dans la même boîte : la plus grande dimension au
  * sol vaut `TAILLE_SOL`, la hauteur suit. Un projet très haut pour son
@@ -40,12 +40,6 @@ function dalle(l: number, p: number, zHaut: number, vide?: [number, number, numb
     boite(x0, 0, z0, x1 - x0, y0, EPAISSEUR_DALLE),
     boite(x0, y1, z0, x1 - x0, p - y1, EPAISSEUR_DALLE),
   ]
-}
-
-function murs(l: number, p: number, z0: number, z1: number): Array<BufferGeometry | null> {
-  const e = EPAISSEUR_MUR
-  const h = z1 - z0
-  return [boite(0, 0, z0, l, e, h), boite(0, p - e, z0, l, e, h), boite(0, e, z0, e, p - 2 * e, h), boite(l - e, e, z0, e, p - 2 * e, h)]
 }
 
 /**
@@ -84,10 +78,8 @@ function toiture(c: DescripteurCoupe, axe: Axe, l: number, p: number, z: number)
   const portee = axe === 'x' ? l : p
   const longueur = axe === 'x' ? p : l
   const h = hauteurDuToit(c)
-  if (c.toit === 'plat' || h <= 0) {
-    // Acrotère : un relevé de quarante centimètres sur le pourtour.
-    return murs(l, p, z, z + 0.4).filter((g): g is BufferGeometry => g !== null)
-  }
+  // Toit plat : la dalle haute de l'enveloppe suffit.
+  if (c.toit === 'plat' || h <= 0) return []
   const profil: [number, number][] =
     c.toit === 'mono'
       ? [
@@ -156,22 +148,24 @@ export function construireMassing(projet: Projet): BufferGeometry | null {
       vide = axe === 'x' ? [a, c0, b, c0 + cote] : [c0, a, c0 + cote, b]
     }
 
-    const parties: Array<BufferGeometry | null> = []
-    if (enterre > 0) parties.push(...murs(l, p, -enterre, 0), ...dalle(l, p, -enterre + EPAISSEUR_DALLE))
-    parties.push(...dalle(l, p, 0))
+    const hauteurNiveaux = coupe.niveaux.reduce((somme, h) => somme + h + EPAISSEUR_DALLE, 0)
+    // L'enveloppe : un seul volume, du fond du sous-sol à la dalle haute.
+    const parties: Array<BufferGeometry | null> = [boite(0, 0, -enterre, l, p, enterre + hauteurNiveaux)]
+    if (enterre > 0) parties.push(...dalle(l, p, 0))
     let z = 0
     coupe.niveaux.forEach((hauteur, i) => {
       const plafond = z + hauteur + EPAISSEUR_DALLE
-      const dernier = i === coupe.niveaux.length - 1
-      parties.push(...murs(l, p, z, plafond))
-      // Le vide troue les planchers intermédiaires, pas la dalle haute qui porte le toit.
-      parties.push(...dalle(l, p, plafond, dernier ? undefined : vide))
-      for (const [x1, y1, x2, y2] of plan.murs) {
-        parties.push(
-          x1 === x2
-            ? boite(x1 - REFEND / 2, Math.min(y1, y2), z, REFEND, Math.abs(y2 - y1), hauteur)
-            : boite(Math.min(x1, x2), y1 - REFEND / 2, z, Math.abs(x2 - x1), REFEND, hauteur),
-        )
+      // Planchers intermédiaires seulement (la dalle haute est la face de l'enveloppe), troués par le vide.
+      if (i < coupe.niveaux.length - 1) parties.push(...dalle(l, p, plafond, vide))
+      // Refends du rez-de-chaussée seulement : aux étages ils brouillent le dessin.
+      if (i === 0) {
+        for (const [x1, y1, x2, y2] of plan.murs) {
+          parties.push(
+            x1 === x2
+              ? boite(x1 - REFEND / 2, Math.min(y1, y2), z, REFEND, Math.abs(y2 - y1), hauteur)
+              : boite(Math.min(x1, x2), y1 - REFEND / 2, z, Math.abs(x2 - x1), REFEND, hauteur),
+          )
+        }
       }
       z = plafond
     })
