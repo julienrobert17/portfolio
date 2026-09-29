@@ -24,7 +24,7 @@ export interface CadreHero {
 interface EtatHero {
   mode: ModeHero
   canvasPret: boolean
-  /** 0 : rien de coupé ; 1 : coupe au sol. Lissée par le scrub. */
+  /** La coupe : 0, rien de coupé ; 1, au sol. Intro puis scroll (voir lib/coupe-progression). */
   progression: number
   /** Position de scroll où le pin se termine ; Infinity tant qu'il n'existe pas. */
   finPin: number

@@ -1,5 +1,5 @@
 /* Un écran par défaut (sans JavaScript, repli statique). Avec le canvas :
- * 100svh + 300svh de course (220svh au tactile), la scène reste collée. */
+ * 100svh + 170svh de course (140svh au tactile), la scène reste collée. */
 .hero {
   position: relative;
   height: auto;
@@ -7,13 +7,13 @@
 
 .hero[data-mode='attente'],
 .hero[data-mode='canvas'] {
-  height: 400svh;
+  height: 270svh;
 }
 
 @media (pointer: coarse) {
   .hero[data-mode='attente'],
   .hero[data-mode='canvas'] {
-    height: 320svh;
+    height: 240svh;
   }
 }
 
