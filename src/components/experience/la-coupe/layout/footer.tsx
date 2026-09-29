@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { credits } from '../content/credits'
 import { projets } from '../content/projets'
 import { site } from '../content/site'
@@ -11,6 +12,9 @@ import FooterCta from './footer-cta'
 import LocalTime from './local-time'
 import styles from './footer.module.css'
 
+/** Hauteur maximale du dessin de coupe, en pixels. */
+const HAUTEUR_DESSIN = 800
+
 /**
  * Pied de page inversé, pleine hauteur. Le dessin de coupe en bas se tracera
  * à l'entrée dans la vue (Phase 3) ; l'email deviendra magnétique (Phase 4).
@@ -18,6 +22,9 @@ import styles from './footer.module.css'
 export default function Footer() {
   const coupe = projets[0].dessins.find((d) => d.type === 'coupe')
   const dessin = coupe ? rendreDessin(coupe, 1400) : null
+  // La coupe transversale (11 m) est plus haute que large : à pleine largeur elle dépasserait un
+  // écran. Sa largeur est bornée pour que le bloc garde la hauteur qu'il avait, 800 px au plus.
+  const largeurMax = dessin ? Math.round((HAUTEUR_DESSIN * dessin.largeur) / dessin.hauteur) : 0
   const { contact, reseaux, footer } = site
   return (
     <footer className={`lc-container ${styles.footer}`}>
@@ -98,7 +105,7 @@ export default function Footer() {
       </Apparition>
 
       {dessin ? (
-        <div className={styles.dessin}>
+        <div className={styles.dessin} style={{ '--dessin-max': `${largeurMax}px` } as CSSProperties}>
           <DessinSvg dessin={dessin} encre="paper" anime trigger="footer" />
         </div>
       ) : null}
