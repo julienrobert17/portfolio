@@ -50,6 +50,8 @@ export default function Scene({ mode }: SceneProps) {
       <directionalLight position={[-8, 14, 10]} intensity={1.7} color="#fff8ee" />
       <hemisphereLight args={['#f3f0ea', '#5c5853', 1.2]} />
       <group ref={racine} position={[cx, 0, cz]}>
+        {/* Massings des projets, centrés sur l'axe de rotation ; visibles dans le menu seulement. */}
+        <primitive object={rig.massings} />
         <group position={[-cx, 0, -cz]}>
           <mesh geometry={maquette.geometrie} material={rig.materiau} renderOrder={2} />
           <lineSegments geometry={rig.aretes} material={rig.materiauAretes} renderOrder={3} />

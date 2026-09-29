@@ -9,6 +9,7 @@ import { formatNumero } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
 import { abonnerHero, hero, lireCanvasPret, lireFaux } from '../lib/hero-store'
 import { getLenis } from '../lib/lenis-store'
+import { signalerSortie, signalerSurvol } from '../lib/menu-cible-store'
 import { abonnerMenu, lireMenu, lireMenuServeur, naviguer, navigation, setMenuOuvert } from '../lib/navigation-store'
 import LienTransition from './lien-transition'
 import LocalTime from './local-time'
@@ -98,6 +99,7 @@ export default function Menu() {
       }
     }
 
+    signalerSortie()
     // Fermeture (sauf au premier rendu, où rien n'est ouvert).
     if (premierRendu.current) {
       premierRendu.current = false
@@ -118,6 +120,21 @@ export default function Menu() {
     })
   }, [ouvert])
 
+  const slugDe = (cible: EventTarget) => (cible as Element).closest<HTMLElement>('[data-slug]')?.dataset.slug
+  const auSurvol = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return
+    const slug = slugDe(e.target)
+    if (slug) signalerSurvol(slug)
+    else signalerSortie()
+  }
+  const auFocus = (e: React.FocusEvent) => {
+    // Le focus posé à l'ouverture du menu n'est pas un choix : seul le clavier vise un projet.
+    const slug = slugDe(e.target)
+    if (slug && (e.target as Element).matches(':focus-visible')) signalerSurvol(slug, true)
+  }
+  const auBlur = (e: React.FocusEvent) => {
+    if (!(e.relatedTarget instanceof Element) || !e.relatedTarget.closest('[data-slug]')) signalerSortie()
+  }
   const auClicFond = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) setMenuOuvert(false)
   }
@@ -162,9 +179,10 @@ export default function Menu() {
             </li>
           ))}
         </ul>
-        <ol className={styles.projets}>
+        {/* Le fil de fer suit la ligne survolée (pointeur fin) ou focalisée ; le rig décide du reste. */}
+        <ol className={styles.projets} onPointerMove={auSurvol} onPointerLeave={signalerSortie} onFocus={auFocus} onBlur={auBlur}>
           {projets.map((p, i) => (
-            <li key={p.slug} data-menu-item>
+            <li key={p.slug} data-menu-item data-slug={p.slug}>
               <LienTransition
                 href={`${site.base}/projets/${p.slug}`}
                 label={p.titre}

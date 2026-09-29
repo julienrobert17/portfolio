@@ -86,7 +86,7 @@
 
 .dessin {
   --ink-2: var(--ink-2-inverse);
-  max-width: 1400px;
+  max-width: min(1400px, var(--dessin-max, 1400px));
   width: 100%;
   margin-inline: auto;
 }

@@ -6,6 +6,8 @@ import { typographier } from '../lib/typo'
  * Les huit projets, dans l'ordre de l'index. Contenu placeholder : chaque
  * fiche est réaliste mais fictive. Les images sont des SVG générés par
  * `scripts/generate-la-coupe-placeholders.ts` à partir de cette liste.
+ * Les coupes sont toutes transversales : leur largeur est la portée courte de
+ * l'emprise du plan. Les massings du menu en déduisent le sens du faîtage.
  */
 export const projets: Projet[] = typographier([
   {
@@ -89,7 +91,7 @@ export const projets: Projet[] = typographier([
       },
       {
         type: 'coupe',
-        largeur: 60,
+        largeur: 36,
         niveaux: [9.5],
         toit: 'deux-pentes',
         legende: 'Coupe transversale sur les sheds',
@@ -137,10 +139,10 @@ export const projets: Projet[] = typographier([
       },
       {
         type: 'coupe',
-        largeur: 26,
+        largeur: 22,
         niveaux: [4.2, 3.4, 4.6],
         toit: 'mono',
-        legende: 'Coupe longitudinale',
+        legende: 'Coupe transversale',
       },
     ],
     teinte: 78,
@@ -227,7 +229,7 @@ export const projets: Projet[] = typographier([
       },
       {
         type: 'coupe',
-        largeur: 8,
+        largeur: 4.5,
         niveaux: [2.6, 2.5],
         toit: 'mono',
         legende: 'Coupe sur la baie',
@@ -325,10 +327,10 @@ export const projets: Projet[] = typographier([
       },
       {
         type: 'coupe',
-        largeur: 30,
+        largeur: 14,
         niveaux: [5.2],
         toit: 'plat',
-        legende: 'Coupe longitudinale, seuils décroissants',
+        legende: 'Coupe transversale',
       },
     ],
     teinte: 210,
@@ -369,10 +371,10 @@ export const projets: Projet[] = typographier([
       },
       {
         type: 'coupe',
-        largeur: 24,
+        largeur: 6,
         niveaux: [2.8],
         toit: 'mono',
-        legende: 'Coupe longitudinale, porte-à-faux sur la pente',
+        legende: 'Coupe transversale, porte-à-faux sur la pente',
       },
     ],
     teinte: 150,

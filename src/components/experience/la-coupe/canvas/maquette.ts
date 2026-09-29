@@ -48,12 +48,13 @@ export const HAUTEUR_COUPE = Math.max(...MAQUETTE.volumes.map((v) => v.z + v.h))
 export function coupeDepuisMaquette(legende: string): DescripteurCoupe {
   return {
     type: 'coupe',
-    largeur: SOCLE.l,
+    // Transversale : sur la portée courte, celle que franchissent les deux pans du toit.
+    largeur: SOCLE.p,
     niveaux: [SOCLE.z + SOCLE.h - EPAISSEUR_DALLE, ETAGE.h - EPAISSEUR_DALLE],
     toit: 'deux-pentes',
     hauteurToit: TOIT.h,
     enterre: MAQUETTE.enterre,
-    vide: [VIDE.x, VIDE.x + VIDE.l],
+    vide: [VIDE.y, VIDE.y + VIDE.p],
     legende,
   }
 }
