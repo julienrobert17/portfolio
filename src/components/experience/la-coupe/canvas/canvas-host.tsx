@@ -26,7 +26,7 @@ const RETARD_THREE = 3000
  * Hôte du canvas, monté dans le layout : une couche fixe derrière la page.
  * Décide du mode (WebGL, mouvement réduit), charge three (voir plus bas),
  * avance la scène sur le ticker partagé seulement quand quelque chose a
- * changé, et suit le hero une fois le pin terminé.
+ * changé, et suit la section hero au défilement.
  */
 export default function CanvasHost() {
   const pathname = usePathname()
@@ -108,7 +108,8 @@ export default function CanvasHost() {
     let dernierY = 0
     return onTick((temps) => {
       if (!hero.actif) return
-      const y = menu ? 0 : Math.min(0, hero.finPin - window.scrollY)
+      // La scène est attachée à la section hero, en tête de page : elle sort de l'écran avec elle.
+      const y = menu ? 0 : -window.scrollY
       if (y !== dernierY && hote.current) {
         hote.current.style.transform = `translate3d(0, ${y}px, 0)`
         dernierY = y

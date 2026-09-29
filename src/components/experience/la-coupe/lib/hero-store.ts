@@ -1,6 +1,5 @@
 /**
- * État partagé du hero entre trois arbres React distincts : la section (pin,
- * cote, titre), l'hôte du canvas (layout) et la scène. Les valeurs lues à
+ * État partagé du hero entre trois arbres React distincts : la section (cote), l'hôte du canvas (layout) et la scène. Les valeurs lues à
  * chaque frame sont des champs mutables ; seuls `mode` et `canvasPret`
  * passent par React (useSyncExternalStore).
  */
@@ -9,9 +8,9 @@ export type ModeHero =
   | 'indecis'
   /** WebGL disponible, chargement de three lancé après le premier rendu. */
   | 'attente'
-  /** Canvas monté et première frame rendue : coupe pilotée par le scroll. */
+  /** Canvas monté et première frame rendue : l'intro de la coupe peut jouer. */
   | 'canvas'
-  /** Repli : SVG statique avec coupe à mi-hauteur, cote fixe, pas de pin. */
+  /** Repli : SVG statique avec le plan de coupe à la hauteur de repos, cote fixe. */
   | 'statique'
 
 export interface CadreHero {
@@ -24,10 +23,13 @@ export interface CadreHero {
 interface EtatHero {
   mode: ModeHero
   canvasPret: boolean
-  /** La coupe : 0, rien de coupé ; 1, au sol. Intro puis scroll (voir lib/coupe-progression). */
+  /** La coupe : 0, rien de coupé ; 1, au sol. Animée par l'intro (voir lib/coupe-progression). */
   progression: number
-  /** Position de scroll où le pin se termine ; Infinity tant qu'il n'existe pas. */
-  finPin: number
+  /**
+   * L'intro n'a plus à jouer : elle l'a déjà fait, ou la page chargée n'était pas l'accueil
+   * (on y arrive alors par le menu, un lien ou l'historique, à l'état de repos).
+   */
+  introJouee: boolean
   cadre: CadreHero | null
   /** Souris normalisée dans [-1, 1], (0, 0) au centre de la fenêtre. */
   souris: { x: number; y: number }
@@ -41,7 +43,7 @@ export const hero: EtatHero = {
   mode: 'indecis',
   canvasPret: false,
   progression: 0,
-  finPin: Infinity,
+  introJouee: false,
   cadre: null,
   souris: { x: 0, y: 0 },
   actif: false,

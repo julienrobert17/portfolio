@@ -1,31 +1,10 @@
-/* Un écran par défaut (sans JavaScript, repli statique). Avec le canvas :
- * 100svh + 120svh de course (100svh au tactile), la scène reste collée. */
+/* Un écran, qui défile avec la page : la coupe joue seule, le scroll ne la pilote pas. */
 .hero {
   position: relative;
-  height: auto;
-}
-
-.hero[data-mode='attente'],
-.hero[data-mode='canvas'] {
-  height: 220svh;
-}
-
-@media (pointer: coarse) {
-  .hero[data-mode='attente'],
-  .hero[data-mode='canvas'] {
-    height: 200svh;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero {
-    height: auto;
-  }
 }
 
 .scene {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100svh;
   display: grid;
   grid-template-rows: auto 1fr auto;

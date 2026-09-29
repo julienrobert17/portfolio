@@ -3,7 +3,8 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { HAUTEUR_COUPE, HAUTEUR_REPOS } from '../canvas/maquette'
-import { COUPE_REPOS, coupeDe, courbeIntro, origineDe } from '../lib/coupe-progression'
+import { site } from '../content/site'
+import { COUPE_REPOS, DUREE_INTRO, courbeIntro } from '../lib/coupe-progression'
 import { formatMetres } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
 import {
@@ -15,27 +16,12 @@ import {
   lireMode,
   lireModeServeur,
 } from '../lib/hero-store'
-import { onTick } from '../lib/ticker'
-
-/** Part de la coupe sur laquelle le titre s'efface (les 20 derniers %). */
-const DEBUT_FONDU_TITRE = 0.8
-const OPACITE_TITRE_FIN = 0.15
-const SCRUB = 0.25
-/** Intro : la coupe descend seule du faîtage jusqu'à la hauteur de repos, sous la dalle du premier niveau. */
-const DUREE_INTRO = 1.8
-/** Elle attend la fin du fondu croisé SVG → 3D (600 ms en CSS). */
-const ATTENTE_FONDU = 0.6
-/** Progression de scroll au-delà de laquelle l'utilisateur a pris la main. */
-const SEUIL_SCROLL = 0.002
-/** Part de l'écart comblée à chaque frame quand la coupe rattrape le scroll. */
-const RATTRAPAGE = 0.14
 
 /**
  * Côté client du hero. Décide du mode (canvas ou repli), mesure le repère de
- * la maquette SVG pour cadrer la caméra, fait descendre la coupe (intro, puis
- * 120vh de course, 100vh au tactile, scène en position sticky, sans pin) et
- * pousse sa valeur au store : le canvas, la cote et l'opacité du titre la
- * lisent sans setState. Parallaxe souris au pointeur fin.
+ * la maquette SVG pour cadrer la caméra, joue l'intro de la coupe et pousse sa
+ * valeur au store : le canvas et la cote la lisent sans setState. La section
+ * tient en un écran et défile avec la page. Parallaxe souris au pointeur fin.
  */
 export default function HeroScroll() {
   const ancre = useRef<HTMLSpanElement>(null)
@@ -47,6 +33,14 @@ export default function HeroScroll() {
   useEffect(() => {
     deciderModeHero()
   }, [reduit])
+
+  // L'intro n'appartient qu'au chargement de l'accueil : une arrivée par navigation interne
+  // (le document a été chargé sur une autre page) trouve la coupe au repos.
+  useEffect(() => {
+    const entree = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+    const chargee = entree ? new URL(entree.name).pathname.replace(/\/$/, '') : window.location.pathname
+    if (chargee !== site.base) hero.introJouee = true
+  }, [])
 
   // Repère de la maquette SVG, relatif au haut de la section (qui sera épinglée en haut).
   useEffect(() => {
@@ -79,129 +73,56 @@ export default function HeroScroll() {
   }, [mode, pret])
 
   /*
-   * La coupe. Trois états : `attente` (le canvas n'a rien rendu, la coupe suit le scroll depuis le
-   * faîtage), `intro` (elle descend seule jusque sous la dalle du premier niveau), `scroll` (elle suit
-   * le scroll, la course restante remise à l'échelle depuis là où elle se trouve). Tout passe par
-   * `coupe`, que lisent aussi la rotation, le recul et le fondu du titre.
+   * La coupe descend seule, une fois par chargement de la page : du faîtage au repos, cote
+   * comprise ; la rotation et le recul de la maquette lisent la même valeur. Le scroll n'y touche
+   * pas : il fait défiler la page, l'intro continue. Au retour sur l'accueil (menu, historique),
+   * ou si le canvas est déjà prêt, l'état de repos est posé directement.
    */
   useEffect(() => {
     if (!actif) return
     const section = ancre.current?.closest('section')
-    const titre = section?.querySelector<HTMLElement>('[data-hero="titre"]')
     const cote = section?.querySelector<HTMLElement>('[data-hero="cote"]')
-    if (!section || !titre || !cote) return
-    const { gsap, ScrollTrigger } = registerGsap()
-    const proxy = { s: 0 }
-    const intro = { c: 0 }
-    let etat: 'attente' | 'intro' | 'scroll' = 'attente'
-    let origine = 0
-    let coupe = 0
-    /** Le scroll a pris de l'avance sur la coupe : elle le rejoint en douceur, sans saut. */
-    let rattrapage = false
-    let animation: gsap.core.Tween | null = null
-
+    if (!section || !cote) return
+    const { gsap } = registerGsap()
     const appliquer = (c: number) => {
-      coupe = c
       hero.progression = c
       hero.sale = true
       cote.textContent = formatMetres(HAUTEUR_COUPE * (1 - c))
-      const fondu = Math.max(0, (c - DEBUT_FONDU_TITRE) / (1 - DEBUT_FONDU_TITRE))
-      titre.style.opacity = (1 - fondu * (1 - OPACITE_TITRE_FIN)).toFixed(3)
     }
-    /** Reprise par le scroll, depuis la coupe courante. */
-    const reprendre = () => {
-      animation?.kill()
-      animation = null
-      etat = 'scroll'
-      origine = origineDe(coupe, proxy.s)
-      rattrapage = coupeDe(origine, proxy.s) - coupe > 0.002
-    }
-    const suivre = () => {
-      if (etat === 'intro') return
-      const cible = coupeDe(origine, proxy.s)
-      if (!rattrapage) appliquer(cible)
-    }
+    let animation: gsap.core.Tween | null = null
+    let desabonner: (() => void) | null = null
 
-    const tween = gsap.to(proxy, {
-      s: 1,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: SCRUB,
-        onRefresh: (st) => {
-          hero.finPin = st.end
-        },
-        // Le moindre scroll pendant l'intro l'annule : la coupe repart de là où elle est.
-        onUpdate: (st) => {
-          if (etat === 'intro' && st.progress > SEUIL_SCROLL) reprendre()
-        },
-      },
-      onUpdate: suivre,
-    })
-    const declencheur = tween.scrollTrigger
-    if (declencheur) hero.finPin = declencheur.end
-    ScrollTrigger.refresh()
-
-    const arretTick = onTick(() => {
-      if (!rattrapage) return
-      const cible = coupeDe(origine, proxy.s)
-      const c = coupe + (cible - coupe) * RATTRAPAGE
-      if (Math.abs(cible - c) < 0.001) {
-        rattrapage = false
-        appliquer(cible)
-      } else appliquer(c)
-    })
-
-    const lancerIntro = () => {
-      // Déjà descendu dans la page (restauration du scroll, lien profond) : pas d'intro.
-      if ((declencheur?.progress ?? 0) > SEUIL_SCROLL) {
-        etat = 'scroll'
-        return
-      }
-      etat = 'intro'
-      intro.c = coupe
+    const jouer = () => {
+      hero.introJouee = true
+      const intro = { c: 0 }
       animation = gsap.to(intro, {
         c: COUPE_REPOS,
         duration: DUREE_INTRO,
-        delay: ATTENTE_FONDU,
         ease: courbeIntro,
         onUpdate: () => appliquer(intro.c),
-        onComplete: reprendre,
+        onComplete: () => appliquer(COUPE_REPOS),
       })
     }
 
-    let desabonner: (() => void) | null = null
-    if (hero.canvasPret) {
-      // Retour à l'accueil, canvas déjà prêt : pas d'intro, le repos est sa fin.
-      appliquer(COUPE_REPOS)
-      reprendre()
-      suivre()
-    } else {
+    if (hero.introJouee) appliquer(COUPE_REPOS)
+    else if (hero.canvasPret) jouer()
+    else {
+      appliquer(0)
       desabonner = abonnerHero(() => {
-        if (!hero.canvasPret || etat !== 'attente') return
+        if (!hero.canvasPret || hero.introJouee) return
         desabonner?.()
         desabonner = null
-        lancerIntro()
+        jouer()
       })
     }
 
     return () => {
       desabonner?.()
-      arretTick()
+      // Départ en cours d'intro : elle ne sera pas rejouée, la coupe est posée au repos.
       animation?.kill()
-      declencheur?.kill()
-      tween.kill()
-      hero.finPin = Infinity
-      hero.progression = 0
+      hero.progression = hero.introJouee ? COUPE_REPOS : 0
       hero.sale = true
-      titre.style.opacity = ''
       cote.textContent = formatMetres(HAUTEUR_COUPE)
-      // Bascule en repli en cours de route (contexte WebGL perdu) : la section
-      // perd sa course, les autres déclencheurs de la page doivent se remesurer
-      // une fois le nouveau layout posé.
-      if (hero.mode === 'statique') requestAnimationFrame(() => ScrollTrigger.refresh())
     }
   }, [actif])
 

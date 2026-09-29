@@ -1,7 +1,7 @@
 # La Coupe
 
 Site de démonstration d'un atelier d'architecture, construit comme une coupe :
-le scroll traverse l'œuvre. Identité placeholder (Atelier Mireille Vasseur),
+à l'arrivée, le plan descend dans la maquette du projet phare. Identité placeholder (Atelier Mireille Vasseur),
 huit projets fictifs, images SVG générées.
 
 Routes : `/experience/la-coupe`, `/projets`, `/projets/[slug]`, `/atelier`, `/contact`
@@ -85,22 +85,26 @@ canvas/scene.tsx            l'arbre R3F ; prop mode: 'hero' | 'menu' (menu : Pha
 canvas/scene-canvas.tsx     le seul <Canvas>, frameloop="never", chargé en import dynamique
 canvas/canvas-host.tsx      couche fixe dans le layout : décision, chargement à l'inactivité, rendu à la demande
 canvas/garde-canvas.tsx     error boundary → repli statique
-sections/hero-scroll.tsx    pin 300vh (220vh tactile), scrub 0.4, cote, fondu du titre, parallaxe
+sections/hero-scroll.tsx    intro de la coupe (2,6 s, une fois par chargement), cote, parallaxe
+lib/coupe-progression.ts    hauteur de repos et courbe de l'intro
 lib/hero-store.ts           état partagé (mode, progression, cadre, souris, sale)
 lib/ticker.ts               la seule boucle : gsap.ticker → lenis.raf() et advance()
 ```
 
 Déroulé : le SVG est affiché au premier rendu ; three se charge après
 `requestIdleCallback` ; à la deuxième frame rendue, fondu croisé 600 ms vers
-le canvas, cadré sur le repère du SVG (même projection, même largeur). Le hero
-est épinglé ; la progression 0 → 1 descend le plan de coupe du faîtage au sol,
-tourne la maquette de 20°, recule la caméra de 15 % et efface le titre sur les
-20 derniers %. La cote affiche la hauteur au-dessus de laquelle tout est coupé.
+le canvas, cadré sur le repère du SVG (même projection, même largeur). La
+coupe n'est pas pilotée par le scroll : dès la première frame du canvas elle
+descend seule du faîtage à 1,00 m (hauteur conventionnelle d'un plan), à
+vitesse constante puis en freinant sur les 40 derniers centimètres, en 2,6 s.
+La maquette tourne et la caméra recule sur la même durée ; la cote suit. Une
+fois par chargement : au retour sur l'accueil l'état de repos est posé
+directement. Le hero tient en un écran et défile avec la page, scène comprise.
 
 Repli (`prefers-reduced-motion`, WebGL absent, échec de chargement, erreur de
-scène) : pas de pin, SVG conservé avec le plan de coupe dessiné à la hauteur de repos (2,60 m),
+scène) : SVG conservé avec le plan de coupe dessiné à la hauteur de repos (1,00 m),
 cote fixe en `--accent`. En développement, `window.__laCoupeHero` permet de
-piloter la progression depuis la console.
+lire et poser la progression depuis la console.
 
 ## Styles
 
@@ -147,7 +151,7 @@ magnétisme (`ui/magnetisme.tsx`, `[data-magnetique]`), préchargeur (`layout/pr
 ## Phases
 
 - [x] Phase 1 — site statique navigable, sans animation
-- [x] Phase 2 — hero R3F, plan de coupe au scroll, cote animée
+- [x] Phase 2 — hero R3F, plan de coupe, cote animée (au scroll à l'origine, en intro autonome depuis septembre 2026)
 - [x] Phase 3 — révélations, sticky stacking, dessins tracés, index animé
 - [x] Phase 4 — menu, transitions de page, curseur, magnétisme, préchargeur
 - [x] Phase 5 — Lighthouse, accessibilité, navigateurs, SEO, préparation de la fusion

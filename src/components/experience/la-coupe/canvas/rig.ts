@@ -5,7 +5,7 @@ import type { MaquetteConstruite } from './geometrie'
 import { HAUTEUR_COUPE } from './maquette'
 import { DIRECTION_CAMERA } from './projection'
 
-const ROTATION_SCROLL = (20 * Math.PI) / 180
+const ROTATION_INTRO = (20 * Math.PI) / 180
 const PARALLAXE = (4 * Math.PI) / 180
 const LERP_SOURIS = 0.08
 const RECUL = 0.15
@@ -146,7 +146,7 @@ export class RigHero {
     s.y += (hero.souris.y - s.y) * LERP_SOURIS
     if (Math.abs(hero.souris.x - s.x) > 0.001 || Math.abs(hero.souris.y - s.y) > 0.001) hero.sale = true
 
-    groupe.rotation.y = ROTATION_SCROLL * p + PARALLAXE * s.x
+    groupe.rotation.y = ROTATION_INTRO * p + PARALLAXE * s.x
     groupe.rotation.x = PARALLAXE * s.y
     groupe.updateMatrixWorld(true)
 
