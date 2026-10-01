@@ -1,11 +1,15 @@
 import { HAUTEUR_REPOS } from './maquette'
-import { geometrieMaquette, polygone, type TeinteFace } from './maquette-faces'
+import { geometrieMaquette, polygone, type Face, type TeinteFace } from './maquette-faces'
 
 /**
- * Rendu statique de la maquette en axonométrie isométrique : sert de
- * placeholder pendant le chargement de three (Phase 2) et de repli sans
- * WebGL ou sous prefers-reduced-motion. La géométrie (faces, emprise, plan
- * de coupe) vient de maquette-faces.ts, partagée avec l'image Open Graph.
+ * Rendu statique de la maquette en axonométrie isométrique. Deux rendus du
+ * même dessin, dans le même cadre :
+ * - `entier` : la maison complète, placeholder du canvas avant l'intro (qui
+ *   part du faîtage) et repli du menu ;
+ * - `tranche` : la maison coupée à la hauteur de repos, murs en terre cuite,
+ *   rien au-dessus du plan. C'est le repli sans WebGL ou sous mouvement
+ *   réduit, et le placeholder quand l'intro a déjà joué.
+ * La géométrie vient de maquette-faces.ts, partagée avec l'image Open Graph.
  */
 const FILLS: Record<TeinteFace, string> = {
   haut: 'var(--paper)',
@@ -16,29 +20,40 @@ const FILLS: Record<TeinteFace, string> = {
   coupe: 'var(--accent)',
 }
 
-export default function MaquetteStatique({ className }: { className?: string }) {
-  const { faces, viewBox, planCoupe } = geometrieMaquette({ plan: HAUTEUR_REPOS })
+interface MaquetteStatiqueProps {
+  className?: string
+  rendu?: 'entier' | 'tranche'
+}
+
+const dessiner = (faces: Face[]) =>
+  faces
+    // Sans l'ombre portée du socle : la scène 3D n'en a pas, elle disparaîtrait au fondu croisé.
+    .filter((f) => f.teinte !== 'ombre')
+    .map((f, i) => <polygon key={i} points={polygone(f.points)} fill={FILLS[f.teinte]} vectorEffect="non-scaling-stroke" />)
+
+export default function MaquetteStatique({ className, rendu = 'entier' }: MaquetteStatiqueProps) {
+  const { faces, viewBox, interieur } = geometrieMaquette(rendu === 'tranche' ? { coupe: HAUTEUR_REPOS, creux: true } : {})
   const { minX, minY, largeur, hauteur } = viewBox
   return (
     <svg
       viewBox={`${minX.toFixed(2)} ${minY.toFixed(2)} ${largeur.toFixed(2)} ${hauteur.toFixed(2)}`}
       className={className}
+      data-rendu={rendu}
       role="img"
       aria-hidden="true"
       focusable="false"
       style={{ aspectRatio: `${largeur.toFixed(0)} / ${hauteur.toFixed(0)}` }}
     >
-      <g stroke="var(--ink)" strokeOpacity={0.7} strokeWidth={0.8} strokeLinejoin="round" vectorEffect="non-scaling-stroke">
-        {/* Sans l'ombre portée du socle : la scène 3D n'en a pas, elle disparaîtrait au fondu croisé. */}
-        {faces
-          .filter((f) => f.teinte !== 'ombre')
-          .map((f, i) => (
-            <polygon key={i} points={polygone(f.points)} fill={FILLS[f.teinte]} vectorEffect="non-scaling-stroke" />
-          ))}
-      </g>
-      {planCoupe ? (
-        <polygon data-plan-coupe points={polygone(planCoupe)} fill="var(--accent)" fillOpacity={0.16} stroke="var(--accent)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      {interieur ? (
+        <clipPath id="lc-ouverture">
+          <polygon points={polygone(interieur.ouverture)} />
+        </clipPath>
       ) : null}
+      <g stroke="var(--ink)" strokeOpacity={0.7} strokeWidth={0.8} strokeLinejoin="round" vectorEffect="non-scaling-stroke">
+        {dessiner(faces)}
+        {/* L'intérieur, vu par l'ouverture : sol, murs du fond, refends coupés. */}
+        {interieur ? <g clipPath="url(#lc-ouverture)">{dessiner(interieur.faces)}</g> : null}
+      </g>
     </svg>
   )
 }

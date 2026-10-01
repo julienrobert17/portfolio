@@ -94,15 +94,15 @@ lib/ticker.ts               la seule boucle : gsap.ticker → lenis.raf() et adv
 Déroulé : le SVG est affiché au premier rendu ; three se charge après
 `requestIdleCallback` ; à la deuxième frame rendue, fondu croisé 600 ms vers
 le canvas, cadré sur le repère du SVG (même projection, même largeur). La
-coupe n'est pas pilotée par le scroll : dès la première frame du canvas elle
+coupe n'est pas pilotée par le scroll : une fois le fondu croisé terminé, elle
 descend seule du faîtage à 1,00 m (hauteur conventionnelle d'un plan), à
 vitesse constante puis en freinant sur les 40 derniers centimètres, en 2,6 s.
 La maquette tourne et la caméra recule sur la même durée ; la cote suit. Une
-fois par chargement : au retour sur l'accueil l'état de repos est posé
-directement. Le hero tient en un écran et défile avec la page, scène comprise.
+fois par session, à la première arrivée sur l'accueil quel que soit le chemin
+(marque en sessionStorage) ; ensuite l'état de repos est posé directement. Le hero tient en un écran et défile avec la page, scène comprise.
 
 Repli (`prefers-reduced-motion`, WebGL absent, échec de chargement, erreur de
-scène) : SVG conservé avec le plan de coupe dessiné à la hauteur de repos (1,00 m),
+scène) : le SVG passe à son rendu tranché à la hauteur de repos (1,00 m), murs coupés en terre cuite,
 cote fixe en `--accent`. En développement, `window.__laCoupeHero` permet de
 lire et poser la progression depuis la console.
 

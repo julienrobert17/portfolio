@@ -25,10 +25,7 @@ interface EtatHero {
   canvasPret: boolean
   /** La coupe : 0, rien de coupé ; 1, au sol. Animée par l'intro (voir lib/coupe-progression). */
   progression: number
-  /**
-   * L'intro n'a plus à jouer : elle l'a déjà fait, ou la page chargée n'était pas l'accueil
-   * (on y arrive alors par le menu, un lien ou l'historique, à l'état de repos).
-   */
+  /** L'intro a déjà joué dans la session (marque en sessionStorage) : la coupe est au repos. */
   introJouee: boolean
   cadre: CadreHero | null
   /** Souris normalisée dans [-1, 1], (0, 0) au centre de la fenêtre. */

@@ -1,4 +1,5 @@
-import { HAUTEUR_COUPE, MAQUETTE, type Volume } from './maquette'
+import { projets } from '../content/projets'
+import { EPAISSEUR_MUR, HAUTEUR_COUPE, MAQUETTE, type Volume } from './maquette'
 import { profondeur, projeter as projeterMetres } from './projection'
 
 /**
@@ -25,7 +26,14 @@ export interface GeometrieMaquette {
   viewBox: { minX: number; minY: number; largeur: number; hauteur: number }
   /** Plan de coupe à mi-hauteur sur l'emprise élargie du socle ; null sans socle. */
   planCoupe: Point[] | null
+  /**
+   * Intérieur vu par la coupe (option `creux`) : ce qu'on aperçoit par l'ouverture, sol, faces
+   * intérieures des murs du fond et refends coupés. À dessiner après `faces`, rogné à `ouverture`.
+   */
+  interieur: { ouverture: Point[]; faces: Face[] } | null
 }
+
+const REFEND = 0.15
 
 function projeter(x: number, y: number, z: number): Point {
   const [sx, sy] = projeterMetres(x, y, z)
@@ -60,8 +68,12 @@ function facesToit(v: Volume): Face[] {
  * `coupe` (mètres) tranche la maquette : ce qui est au-dessus disparaît, les
  * volumes traversés sont tronqués et leur dessus prend la teinte `coupe`
  * (terre cuite). Sert à la tuile du carrousel du portfolio.
+ *
+ * `creux` (repli statique du hero) montre en plus l'intérieur par l'ouverture : seuls les murs
+ * restent en terre cuite, comme dans la scène 3D au repos. Le cadre est alors celui de la maquette
+ * entière, pour que les deux rendus du hero se superposent exactement.
  */
-export function geometrieMaquette(options: { coupe?: number; plan?: number } = {}): GeometrieMaquette {
+export function geometrieMaquette(options: { coupe?: number; plan?: number; creux?: boolean } = {}): GeometrieMaquette {
   const volumes = [...MAQUETTE.volumes]
     .filter((v) => v.role !== 'vide' && v.role !== 'escalier')
     .sort((a, b) => profondeur(a.x + a.l / 2, a.y + a.p / 2, 0) - profondeur(b.x + b.l / 2, b.y + b.p / 2, 0) || a.z - b.z)
@@ -89,8 +101,37 @@ export function geometrieMaquette(options: { coupe?: number; plan?: number } = {
     }
     faces.push(...(v.role === 'toit' ? facesToit(v) : facesBoite(v)))
   }
-  const xs = faces.flatMap((f) => f.points.map((p) => p[0]))
-  const ys = faces.flatMap((f) => f.points.map((p) => p[1]))
+  let interieur: GeometrieMaquette['interieur'] = null
+  if (options.creux && coupe !== undefined && socle && coupe > 0 && coupe < socle.z + socle.h) {
+    const e = EPAISSEUR_MUR
+    const x0 = socle.x + e
+    const y0 = socle.y + e
+    const x1 = socle.x + socle.l - e
+    const y1 = socle.y + socle.p - e
+    const murs = projets.find((p) => p.slug === 'maison-des-vignes')?.dessins.find((d) => d.type === 'plan')?.murs ?? []
+    const refends = murs
+      .map(([ax, ay, bx, by]): Volume => {
+        const vertical = ax === bx
+        return vertical
+          ? { role: 'socle', x: ax - REFEND / 2, y: Math.max(y0, Math.min(ay, by)), l: REFEND, p: Math.min(y1, Math.max(ay, by)) - Math.max(y0, Math.min(ay, by)), z: 0, h: coupe }
+          : { role: 'socle', x: Math.max(x0, Math.min(ax, bx)), y: ay - REFEND / 2, l: Math.min(x1, Math.max(ax, bx)) - Math.max(x0, Math.min(ax, bx)), p: REFEND, z: 0, h: coupe }
+      })
+      .sort((a, b) => profondeur(a.x + a.l / 2, a.y + a.p / 2, 0) - profondeur(b.x + b.l / 2, b.y + b.p / 2, 0))
+    interieur = {
+      ouverture: [projeter(x0, y0, coupe), projeter(x1, y0, coupe), projeter(x1, y1, coupe), projeter(x0, y1, coupe)],
+      faces: [
+        // Le sol, puis les faces intérieures des deux murs du fond (nord et ouest), les seules visibles.
+        { teinte: 'haut', points: [projeter(x0, y0, 0), projeter(x1, y0, 0), projeter(x1, y1, 0), projeter(x0, y1, 0)] },
+        { teinte: 'sud', points: [projeter(x0, y0, 0), projeter(x1, y0, 0), projeter(x1, y0, coupe), projeter(x0, y0, coupe)] },
+        { teinte: 'est', points: [projeter(x0, y0, 0), projeter(x0, y1, 0), projeter(x0, y1, coupe), projeter(x0, y0, coupe)] },
+        ...refends.flatMap((r) => facesBoite(r, 'coupe')),
+      ],
+    }
+  }
+  // Cadre : celui des faces dessinées, ou de la maquette entière quand les deux rendus se superposent.
+  const cadre = options.creux ? geometrieMaquette().faces : faces
+  const xs = cadre.flatMap((f) => f.points.map((p) => p[0]))
+  const ys = cadre.flatMap((f) => f.points.map((p) => p[1]))
   const marge = 12
   const minX = Math.min(...xs) - marge
   const minY = Math.min(...ys) - marge
@@ -108,5 +149,5 @@ export function geometrieMaquette(options: { coupe?: number; plan?: number } = {
         projeter(socle.x - m, socle.y + socle.p + m, zCoupe),
       ]
     : null
-  return { faces, viewBox: { minX, minY, largeur, hauteur }, planCoupe }
+  return { faces, viewBox: { minX, minY, largeur, hauteur }, planCoupe, interieur }
 }

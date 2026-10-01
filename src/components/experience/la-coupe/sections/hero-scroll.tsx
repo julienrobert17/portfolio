@@ -3,7 +3,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { HAUTEUR_COUPE, HAUTEUR_REPOS } from '../canvas/maquette'
-import { site } from '../content/site'
 import { COUPE_REPOS, DUREE_INTRO, courbeIntro } from '../lib/coupe-progression'
 import { formatMetres } from '../lib/format'
 import { registerGsap } from '../lib/gsap'
@@ -16,6 +15,27 @@ import {
   lireMode,
   lireModeServeur,
 } from '../lib/hero-store'
+
+const CLE_INTRO = 'lc-intro-vue'
+/** Durée du fondu croisé SVG → 3D (600 ms en CSS), que l'intro laisse finir. */
+const ATTENTE_FONDU = 0.6
+
+/** sessionStorage peut manquer (navigation privée stricte, stockage bloqué) : l'intro rejoue alors. */
+function introDejaVue(): boolean {
+  try {
+    return window.sessionStorage.getItem(CLE_INTRO) === '1'
+  } catch {
+    return false
+  }
+}
+
+function marquerIntroVue(): void {
+  try {
+    window.sessionStorage.setItem(CLE_INTRO, '1')
+  } catch {
+    // Sans stockage, la marque en mémoire (`hero.introJouee`) suffit pour la page en cours.
+  }
+}
 
 /**
  * Côté client du hero. Décide du mode (canvas ou repli), mesure le repère de
@@ -34,12 +54,12 @@ export default function HeroScroll() {
     deciderModeHero()
   }, [reduit])
 
-  // L'intro n'appartient qu'au chargement de l'accueil : une arrivée par navigation interne
-  // (le document a été chargé sur une autre page) trouve la coupe au repos.
+  // L'intro joue à la première arrivée sur l'accueil dans la session, quel que soit le chemin ;
+  // ensuite la coupe est au repos. La marque est en sessionStorage : elle survit au rechargement.
   useEffect(() => {
-    const entree = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
-    const chargee = entree ? new URL(entree.name).pathname.replace(/\/$/, '') : window.location.pathname
-    if (chargee !== site.base) hero.introJouee = true
+    if (introDejaVue()) hero.introJouee = true
+    const section = ancre.current?.closest('section')
+    if (section && hero.introJouee) section.dataset.repos = ''
   }, [])
 
   // Repère de la maquette SVG, relatif au haut de la section (qui sera épinglée en haut).
@@ -73,10 +93,10 @@ export default function HeroScroll() {
   }, [mode, pret])
 
   /*
-   * La coupe descend seule, une fois par chargement de la page : du faîtage au repos, cote
-   * comprise ; la rotation et le recul de la maquette lisent la même valeur. Le scroll n'y touche
-   * pas : il fait défiler la page, l'intro continue. Au retour sur l'accueil (menu, historique),
-   * ou si le canvas est déjà prêt, l'état de repos est posé directement.
+   * La coupe descend seule, une fois par session, à la première arrivée sur l'accueil : du faîtage
+   * au repos, cote comprise ; la rotation et le recul de la maquette lisent la même valeur. Le
+   * scroll n'y touche pas : il fait défiler la page, l'intro continue. Ensuite, l'état de repos
+   * est posé directement.
    */
   useEffect(() => {
     if (!actif) return
@@ -94,18 +114,24 @@ export default function HeroScroll() {
 
     const jouer = () => {
       hero.introJouee = true
+      marquerIntroVue()
       const intro = { c: 0 }
       animation = gsap.to(intro, {
         c: COUPE_REPOS,
         duration: DUREE_INTRO,
+        // Après le fondu croisé SVG → 3D : tant qu'il dure, la scène doit coïncider avec le SVG.
+        delay: ATTENTE_FONDU,
         ease: courbeIntro,
         onUpdate: () => appliquer(intro.c),
         onComplete: () => appliquer(COUPE_REPOS),
       })
     }
 
-    if (hero.introJouee) appliquer(COUPE_REPOS)
-    else if (hero.canvasPret) jouer()
+    if (hero.introJouee || introDejaVue()) {
+      hero.introJouee = true
+      section.dataset.repos = ''
+      appliquer(COUPE_REPOS)
+    } else if (hero.canvasPret) jouer()
     else {
       appliquer(0)
       desabonner = abonnerHero(() => {

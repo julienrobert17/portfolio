@@ -26,24 +26,36 @@
 }
 
 .svg {
+  display: block;
   width: 100%;
   height: auto;
   transition: opacity 600ms var(--ease-ui);
 }
 
-/* Fondu croisé : le SVG s'efface quand le canvas a rendu sa première frame. */
-.hero[data-canvas='pret'] .svg {
+/*
+ * Deux rendus superposés. La maison entière est le placeholder du canvas avant l'intro, qui part
+ * du faîtage. La maison tranchée à la hauteur de repos est le repli statique, et le placeholder
+ * quand l'intro a déjà joué dans la session (`data-repos`) : le fondu croisé reste exact.
+ */
+.svg[data-rendu='tranche'] {
+  position: absolute;
+  inset: 0;
   opacity: 0;
 }
 
-/* Repli statique : le plan de coupe est dessiné à la hauteur de repos dans le SVG. */
-.svg [data-plan-coupe] {
+.hero[data-mode='statique'] .svg[data-rendu='entier'],
+.hero[data-repos] .svg[data-rendu='entier'] {
   opacity: 0;
-  transition: opacity 600ms var(--ease-ui);
 }
 
-.hero[data-mode='statique'] .svg [data-plan-coupe] {
+.hero[data-mode='statique'] .svg[data-rendu='tranche'],
+.hero[data-repos] .svg[data-rendu='tranche'] {
   opacity: 1;
+}
+
+/* Fondu croisé : le SVG s'efface quand le canvas a rendu sa première frame. */
+.hero[data-canvas='pret'] .svg[data-rendu] {
+  opacity: 0;
 }
 
 .hero[data-mode='statique'] .coteValeur {
@@ -78,7 +90,9 @@
 
 @media (max-width: 900px) {
   .maquette {
-    position: static;
+    /* Dans le flux, mais toujours repère du rendu tranché superposé. */
+    position: relative;
+    inset: auto;
     transform: none;
     /* Mobile : la maquette prend 85 % de la largeur. */
     width: min(85vw, 460px);

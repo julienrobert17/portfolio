@@ -18,7 +18,9 @@ export default function Hero() {
 
       <p className="lc-visually-hidden">{site.hero.canvasLabel}</p>
       <div className={styles.maquette} data-hero="maquette" aria-hidden="true">
+        {/* Deux rendus superposés du même dessin ; le mode décide lequel se voit (hero.module.css). */}
         <MaquetteStatique className={styles.svg} />
+        <MaquetteStatique className={styles.svg} rendu="tranche" />
       </div>
       <HeroScroll />
 
