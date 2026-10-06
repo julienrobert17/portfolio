@@ -3,6 +3,7 @@
 import type { Project } from '@prisma/client'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
+import ProjectCardVideo from '@/components/home/project-card-video'
 
 interface Props {
   projects: Project[]
@@ -73,7 +74,9 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         }}
       >
-        {projects.map((project, i) => (
+        {projects.map((project, i) => {
+          const hasVisual = Boolean(project.imageUrl || project.videoUrl)
+          return (
           <article
             key={project.id}
             className="project-card card-reveal"
@@ -87,9 +90,10 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
               >
                 <span style={{
                   fontFamily: 'monospace',
-                  fontSize: 10,
+                  fontSize: 12,
                   letterSpacing: '0.2em',
-                  color: 'rgba(74,222,128,0.55)',
+                  color: '#4ade80',
+                  textShadow: '0 0 12px rgba(74,222,128,0.6), 0 0 28px rgba(74,222,128,0.35)',
                   animation: 'proto-pulse 3s ease-in-out infinite',
                 }}>
                   420 Ma
@@ -128,7 +132,7 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   backgroundRepeat: 'no-repeat',
                 }}
               />
-            ) : (
+            ) : hasVisual ? (
               <div
                 className="project-card-bg"
                 style={{
@@ -136,6 +140,43 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   backgroundImage: project.imageUrl ? `url(${project.imageUrl})` : undefined,
                 }}
               />
+            ) : (
+              /*
+               * Pas d'image ni de vidéo : fond typographique assumé, le titre
+               * répété en diagonale, très grand et quasi transparent.
+               */
+              <div
+                className="project-card-bg"
+                style={{ backgroundColor: '#1a3d2b', overflow: 'hidden' }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transform: 'rotate(-18deg) translate(-12%, -18%)',
+                    transformOrigin: 'top left',
+                    fontFamily: 'var(--font-geist-mono), monospace',
+                    fontSize: 'clamp(56px, 7vw, 84px)',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    letterSpacing: '-0.02em',
+                    whiteSpace: 'nowrap',
+                    color: '#d0f0d2',
+                    opacity: 0.06,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {Array.from({ length: 6 }, (_, line) => (
+                    <div key={line} style={{ marginLeft: line * 48 }}>{project.title}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {project.videoUrl && (
+              <ProjectCardVideo src={project.videoUrl} poster={project.imageUrl ?? undefined} />
             )}
 
             {/* Dégradé sombre vers le bas */}
@@ -152,9 +193,9 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
               top: 20,
               right: 20,
               zIndex: 2,
-              fontSize: 11,
+              fontSize: hasVisual ? 11 : 13,
               fontWeight: 700,
-              color: 'rgba(255,255,255,0.8)',
+              color: hasVisual ? 'rgba(255,255,255,0.8)' : '#d0f0d2',
               textShadow: '0 1px 3px rgba(0,0,0,0.6)',
               letterSpacing: '0.08em',
               fontVariantNumeric: 'tabular-nums',
@@ -232,7 +273,8 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
               </div>
             </div>
           </article>
-        ))}
+          )
+        })}
       </div>
     </section>
   )
