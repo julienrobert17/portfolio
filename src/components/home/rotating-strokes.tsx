@@ -17,6 +17,14 @@ export default function RotatingStrokes({ isLeaving = false }: Props) {
   const [duration, setDuration] = useState(12)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Retour à la vitesse de base à chaque changement de isLeaving, ajusté
+  // pendant le rendu (pattern « adjusting state when a prop changes »)
+  const [prevLeaving, setPrevLeaving] = useState(isLeaving)
+  if (prevLeaving !== isLeaving) {
+    setPrevLeaving(isLeaving)
+    setDuration(12)
+  }
+
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
 
@@ -32,8 +40,6 @@ export default function RotatingStrokes({ isLeaving = false }: Props) {
           return next
         })
       }, 50)
-    } else {
-      setDuration(12)
     }
 
     return () => {
