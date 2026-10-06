@@ -1,107 +1,39 @@
-# Portfolio — Brief Claude Code
+# Portfolio — CLAUDE.md
 
-## Stack
-- Next.js 16.2.6 App Router, TypeScript strict
-- Tailwind CSS pour le style global
-- Prisma + PostgreSQL (Neon) pour la DB
-- Pas de librairie de composants UI (pas de shadcn, pas de MUI)
-- react-simple-maps pour les cartes géographiques
+## Règles de travail (économie)
+- Glob/Grep pour localiser ; lire un fichier entier seulement pour le modifier.
+- Jamais lire node_modules, .next, public/ (lister les noms au plus), ni les lockfiles.
+- Pas de résumé du code lu, pas de ré-explication. Réponses courtes, en français.
+- Aucune nouvelle dépendance sans demander d'abord, en une ligne. Aucun refactor hors périmètre.
+- Avant chaque commit : `npx tsc --noEmit` et `npm run lint` (pas `npm run build` sauf demande).
+- Un commit par tâche, message en français, concis. Pas de `any`, pas de `console.log`.
+- Jamais `text-zinc-*`/`border-zinc-*`/`bg-zinc-*` → `text-foreground`, `text-muted-foreground`, `border-border`, `bg-background`.
+- Ne pas créer de fichiers dans src/app sans demander. Secrets (DATABASE_URL) jamais côté client.
+- Next 16 ≠ docs connues : voir AGENTS.md et node_modules/next/dist/docs/ en cas de doute d'API.
 
-## Structure des fichiers
-- /src/app → routes Next.js (App Router)
-- /src/components → composants réutilisables
-- /src/lib → utilitaires, client Prisma, helpers
-- /src/types → types TypeScript partagés
-- /prisma → schema et migrations
-- /src/lib/i18n.ts → système de traductions FR/EN
+## Stack constatée
+- Next 16.2.6 App Router (src/app, pas de pages/), React 19.2, TypeScript strict, alias `@/*` → src/*.
+- Tailwind v4 via `@theme inline` dans globals.css (pas de tailwind.config). CSS modules seulement dans src/components/experience/*.
+- Prisma + PostgreSQL Neon (adapter pg). Modèles : Project, Experience, Salle, Participant, Reponse, Evenement.
+- Animations maison (keyframes CSS, reveal, scroll-controller). gsap installé mais inutilisé. 3D : three + @react-three/fiber/drei/postprocessing.
+- Pas de lib UI, pas de framer-motion, pas de Prettier. ESLint 9 flat config.
 
-## Conventions de code
-- Toujours typer explicitement les props des composants
-- Server Components par défaut, 'use client' uniquement si nécessaire
-- Les appels Prisma se font dans les Server Components ou les Route Handlers
-- Nommer les fichiers en kebab-case, les composants en PascalCase
-- Inline styles pour le jeu Geodatle (dark theme custom, pas Tailwind)
+## Arborescence utile
+- src/app/layout.tsx — layout racine unique, metadata globale, polices Geist/Geist_Mono/Plus_Jakarta_Sans, monte CustomCursor et ConditionalHeader
+- src/app/globals.css — variables couleur, @theme, keyframes fadeFlip/slideUp/slideInRight
+- src/app/page.tsx — home ; routes : /contact, /lab, /projects/[slug] (pas d'index /projects), /games/geodatle, /experience/{entre-nous,entre-nous-a-distance,prototaxites,un-moment-hors-du-temps}
+- src/app/api/ — contact, owid, countries, entre-nous/{reponses,flux,action,salle}
+- src/components/layout/ — header.tsx, conditional-header.tsx (masqué sur /games/*)
+- src/components/home/ — hero-section, rotating-strokes, scroll-controller, featured-projects, experiences-section
+- src/components/ui/ — custom-cursor, reveal, typewriter
+- src/components/projects/ — project-grid, project-filters (non importés actuellement)
+- src/components/games/geodatle/ — jeu Geodatle (inline styles dark, pas Tailwind)
+- src/components/experience/ — une expérience par dossier, code nommé en français
+- src/lib/data.ts — requêtes Prisma projets/expériences ; src/lib/prisma.ts — client ; src/lib/i18n.ts — FR/EN
+- prisma/schema.prisma, prisma/seed.ts — schéma et seed ; scripts/generate-countries.mjs — données pays
+- RAPPORT_GRAPHISME.md — direction artistique
 
-## Ce qu'il ne faut jamais faire
-- Pas de `any`
-- Pas de `console.log`
-- Ne jamais exposer DATABASE_URL ou secrets côté client
-- Ne pas créer de fichiers dans /src/app sans me demander d'abord
-- **Jamais utiliser text-zinc-*, border-zinc-*, bg-zinc-***
-  → utiliser text-muted-foreground, border-border,
-  bg-background, text-foreground à la place
-- Ne jamais modifier les fichiers dans /mnt/skills/public (read-only)
-
-## Projet principal — Geodatle
-Jeu de géographie quotidien type Wordle.
-- Route : /games/geodatle
-- Composants : /src/components/games/geodatle/
-- Libs : /src/lib/geodatle-data.ts, /src/lib/geodatle-game.ts
-- Données : RestCountries API + Our World in Data (CSV)
-- Seed quotidien UTC via hashCode(date ISO)
-- i18n FR/EN avec détection navigator.language
-- Responsive : tableau desktop / grille 2x4 mobile
-
-### Fichiers clés Geodatle
-- game-board.tsx → composant principal, split GameBoard/GameBoardInner
-- guess-row.tsx → une ligne de résultat (desktop <tr> / mobile <div>)
-- world-map.tsx → carte react-simple-maps
-- result-screen.tsx → modale résultat avec timer UTC
-- rules-modal.tsx → modale règles avec indicateurs
-- lang-context.tsx → Context React langue FR/EN
-
-### Système de couleurs Geodatle
-- Vert #15803d → similar (≤15% d'écart)
-- Jaune/Orange #ca8a04 → close (≤25% d'écart)
-- Rouge #c2410c → far (>25% d'écart)
-- Rouge foncé #b91c1c → continent faux
-- Gris rgba(255,255,255,0.08) → données manquantes
-
-### Emojis indicateurs
-- 🌍 Continent, 👥 Population, 🗺️ Superficie
-- 🪙 Pauvreté, ❤️ Espérance de vie, 🥩 Viande
-- 🌿 CO₂, 👶 Fertilité
-
-## Portfolio principal
-- / → Hero avec Typewriter + custom cursor violet
-- /projects → filtrage par tags via URL searchParams
-- /projects/[slug] → page détail dynamique
-- /contact → formulaire avec Route Handler /api/contact
-- Header sticky avec ConditionalHeader (masqué sur /games/*)
-- Custom cursor désactivé sur /games/*
-
-## APIs internes
-- /api/countries → données RestCountries (revalidate 24h)
-- /api/owid → données Our World in Data CSV (revalidate 24h)
-- /api/contact → envoi formulaire contact
-
-## Déploiement
-- GitHub : julienrobert17/portfolio
-- Vercel : portfolio-eight-sable-66.vercel.app
-- Build command : npx prisma generate && npm run build
-- Variable d'env requise : DATABASE_URL (Neon)
-
-## État actuel (juin 2026)
-
-### Fait
-- Portfolio complet (home, projets, contact)
-- Geodatle entièrement fonctionnel avec responsive mobile
-- Système i18n FR/EN
-- Modale règles + timer compte à rebours UTC
-- Persistance localStorage (état de la partie)
-- Mode debug (?debug=true)
-- Migration RestCountries → JSON statique (World Bank + world-countries npm)
-- Script scripts/generate-countries.mjs pour regénérer les données
-- Séparation Amériques Nord/Sud via subregion mledoze
-- Carte monde responsive basée sur hauteur avec ResizeObserver
-- Légende indicateurs dans modale règles
-- Custom cursor désactivé sur /games/*
-- Bouton ? fixe mobile (bottom-right)
-- Labels indicateurs permanents sur toutes les lignes mobile
-
-### En cours / À faire
-- Home page : animations scroll-driven (texte qui vole, 
-  révélation au scroll, section réalisations en cards)
-- Expérience Three.js standalone orientée impact écologique/social
-  (paysage montagne nuit + sphères navigables — mis de côté)
-- Valider comportement scroll/focus input mobile
+## Conventions et couleurs
+- Fichiers kebab-case, composants PascalCase, dossiers par feature. Server Components par défaut, 'use client' si nécessaire. Prisma uniquement côté serveur.
+- Variables : --background #ffffff / #0a0a0a (dark), --foreground #171717 / #ededed, --page-padding clamp(32px,6vw,100px) ; @theme : --color-background, --color-foreground, --font-sans, --font-mono. Geodatle : vert #15803d, jaune #ca8a04, rouge #c2410c, rouge foncé #b91c1c.
+- Dev : `npm run dev`. Déploiement Vercel, build `npx prisma generate && npm run build`.
