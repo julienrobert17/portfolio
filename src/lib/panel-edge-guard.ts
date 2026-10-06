@@ -1,79 +1,137 @@
 /**
  * Garde d'intention sur les butées d'un panneau à défilement interne.
  *
- * Un wheel (ou un delta de swipe) dans le sens d'une butée ne fait basculer
- * de panneau que s'il traduit un geste volontaire, pas l'inertie du geste
- * qui a amené le conteneur en butée. Fonctions pures : l'état est une valeur,
- * le contrôleur conserve la dernière version retournée.
+ * Le geste en cours au moment de l'arrivée en butée est entièrement ignoré,
+ * quelle que soit sa durée (inertie du trackpad comprise). Seul un nouveau
+ * geste, commencé alors qu'on est déjà en butée, peut faire basculer, après
+ * 80 px cumulés dans le sens de la butée. Fonctions pures : l'état est une
+ * valeur, le contrôleur conserve la dernière version retournée.
  */
 
-/** Après l'arrivée en butée, les deltas dans son sens sont ignorés pendant ce délai (inertie). */
-export const EDGE_GUARD_MS = 400
 /** Cumul de deltas, dans le sens de la butée, nécessaire pour basculer. */
 export const EDGE_CUMUL_PX = 80
 /** Le cumul repart de zéro après ce silence. */
 export const EDGE_RESET_MS = 500
-/** En dessous de cette amplitude, un delta ne compte pas (résidu d'inertie). */
-export const EDGE_MIN_DELTA = 4
+/** Nouveau geste (molette) : aucun événement depuis ce délai. */
+export const NEW_GESTURE_SILENCE_MS = 120
+/** Nouveau geste (molette) : ré-accélération d'au moins ce facteur sur une queue d'inertie décroissante… */
+export const NEW_GESTURE_FACTOR = 2
+/** … et d'au moins cette amplitude. */
+export const NEW_GESTURE_MIN_PX = 8
 
 /** 1 = vers le bas (butée basse), -1 = vers le haut (butée haute). */
 export type EdgeDirection = 1 | -1
+export type DeltaSource = 'wheel' | 'touch'
 
 export interface EdgeSnapshot {
   atTop: boolean
   atBottom: boolean
-  /** Le contenu dépasse le conteneur. Sinon le délai d'inertie est nul : un geste suffit. */
-  overflows: boolean
 }
 
 export interface EdgeGuardState {
-  /** Instant d'arrivée en butée haute / basse, null si le conteneur n'y est pas. */
-  topSince: number | null
-  bottomSince: number | null
-  /** Cumul des deltas dans le sens courant, et instant du dernier delta compté. */
+  /** Le conteneur est en butée haute / basse (suivi des arrivées et départs). */
+  atTop: boolean
+  atBottom: boolean
+  /** Verrou de chaque butée : posé à l'arrivée, levé par un nouveau geste. */
+  topLocked: boolean
+  bottomLocked: boolean
+  /** Suivi des deltas pour la détection de nouveau geste à la molette. */
+  lastAt: number
+  lastAbs: number
+  decreasing: boolean
+  /** Cumul des deltas dans le sens courant depuis la levée du verrou. */
   cumul: number
   direction: EdgeDirection | 0
-  lastAt: number
 }
 
 export const initialEdgeGuard: EdgeGuardState = {
-  topSince: null,
-  bottomSince: null,
+  atTop: false,
+  atBottom: false,
+  topLocked: false,
+  bottomLocked: false,
+  lastAt: -Infinity,
+  lastAbs: 0,
+  decreasing: false,
   cumul: 0,
   direction: 0,
-  lastAt: 0,
 }
 
-/** Enregistre les arrivées et départs de butée d'après l'état du conteneur (scroll, affichage). */
-export function noteEdges(state: EdgeGuardState, snap: EdgeSnapshot, now: number): EdgeGuardState {
+/**
+ * Suit les arrivées et départs de butée d'après l'état du conteneur (scroll,
+ * affichage). Toute arrivée pose le verrou de la butée ; la quitter le réarme
+ * pour la prochaine arrivée.
+ */
+export function noteEdges(state: EdgeGuardState, snap: EdgeSnapshot): EdgeGuardState {
+  const arrivedTop = snap.atTop && !state.atTop
+  const arrivedBottom = snap.atBottom && !state.atBottom
   return {
     ...state,
-    topSince: snap.atTop ? (state.topSince ?? now) : null,
-    bottomSince: snap.atBottom ? (state.bottomSince ?? now) : null,
+    atTop: snap.atTop,
+    atBottom: snap.atBottom,
+    topLocked: snap.atTop ? (state.topLocked || arrivedTop) : false,
+    bottomLocked: snap.atBottom ? (state.bottomLocked || arrivedBottom) : false,
+    cumul: arrivedTop || arrivedBottom ? 0 : state.cumul,
   }
 }
 
-/** Décide, pour un delta (wheel ou swipe), s'il faut basculer de panneau dans son sens. */
+/** Un nouveau geste commence (touchstart) : les verrous des butées sautent. */
+export function beginGesture(state: EdgeGuardState): EdgeGuardState {
+  return { ...state, topLocked: false, bottomLocked: false, cumul: 0, direction: 0 }
+}
+
+/**
+ * Suivi d'un delta sans décision (panneau sans défilement, le hero) : le
+ * geste en cours reste connu quand le panneau suivant s'affiche.
+ */
+export function trackDelta(state: EdgeGuardState, delta: number, now: number): EdgeGuardState {
+  const abs = Math.abs(delta)
+  return { ...state, lastAt: now, lastAbs: abs, decreasing: abs < state.lastAbs }
+}
+
+/**
+ * Affichage d'un panneau : butées, verrous et cumul repartent de zéro pour ce
+ * conteneur, le suivi du geste est conservé. S'il est déjà en butée, le verrou
+ * est posé à l'affichage.
+ */
+export function enterPanel(state: EdgeGuardState, snap: EdgeSnapshot): EdgeGuardState {
+  return noteEdges(
+    { ...state, atTop: false, atBottom: false, topLocked: false, bottomLocked: false, cumul: 0, direction: 0 },
+    snap,
+  )
+}
+
+/** Détection d'un nouveau geste à la molette : silence, ou ré-accélération sur une queue d'inertie. */
+function isNewWheelGesture(state: EdgeGuardState, abs: number, now: number): boolean {
+  if (now - state.lastAt >= NEW_GESTURE_SILENCE_MS) return true
+  return state.decreasing && abs > NEW_GESTURE_FACTOR * state.lastAbs && abs > NEW_GESTURE_MIN_PX
+}
+
+/** Décide, pour un delta (molette ou swipe, positif vers le bas), s'il faut basculer dans son sens. */
 export function registerDelta(
   state: EdgeGuardState,
   snap: EdgeSnapshot,
   delta: number,
   now: number,
+  source: DeltaSource = 'wheel',
 ): { state: EdgeGuardState; flip: boolean } {
-  const noted = noteEdges(state, snap, now)
-  if (Math.abs(delta) < EDGE_MIN_DELTA) return { state: noted, flip: false }
-
+  let next = noteEdges(state, snap)
+  const abs = Math.abs(delta)
   const direction: EdgeDirection = delta > 0 ? 1 : -1
-  const since = direction === 1 ? noted.bottomSince : noted.topSince
+
+  if (source === 'wheel' && isNewWheelGesture(next, abs, now)) next = beginGesture(next)
+
+  const silence = now - next.lastAt
+  next = trackDelta(next, delta, now)
+
+  const atEdge = direction === 1 ? next.atBottom : next.atTop
+  const locked = direction === 1 ? next.bottomLocked : next.topLocked
   // Pas en butée dans ce sens : le conteneur défile, rien à cumuler
-  if (since === null) return { state: { ...noted, cumul: 0, direction, lastAt: now }, flip: false }
+  if (!atEdge) return { state: { ...next, cumul: 0, direction }, flip: false }
+  // Geste d'arrivée en butée : ignoré jusqu'à un nouveau geste
+  if (locked) return { state: next, flip: false }
 
-  // Inertie du geste d'arrivée
-  const delay = snap.overflows ? EDGE_GUARD_MS : 0
-  if (now - since < delay) return { state: noted, flip: false }
-
-  const sameRun = noted.direction === direction && now - noted.lastAt <= EDGE_RESET_MS
-  const cumul = (sameRun ? noted.cumul : 0) + Math.abs(delta)
-  if (cumul >= EDGE_CUMUL_PX) return { state: { ...noted, cumul: 0, direction, lastAt: now }, flip: true }
-  return { state: { ...noted, cumul, direction, lastAt: now }, flip: false }
+  const sameRun = next.direction === direction && silence <= EDGE_RESET_MS
+  const cumul = (sameRun ? next.cumul : 0) + abs
+  if (cumul >= EDGE_CUMUL_PX) return { state: { ...next, cumul: 0, direction }, flip: true }
+  return { state: { ...next, cumul, direction }, flip: false }
 }

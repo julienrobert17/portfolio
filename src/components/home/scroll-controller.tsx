@@ -7,8 +7,8 @@ import HeroSection from '@/components/home/hero-section'
 import FeaturedProjects from '@/components/home/featured-projects'
 import AboutSection from '@/components/home/about-section'
 import PanelCounter from '@/components/ui/panel-counter'
-import { initialEdgeGuard, noteEdges, registerDelta } from '@/lib/panel-edge-guard'
-import type { EdgeGuardState, EdgeSnapshot } from '@/lib/panel-edge-guard'
+import { beginGesture, enterPanel, initialEdgeGuard, noteEdges, registerDelta, trackDelta } from '@/lib/panel-edge-guard'
+import type { DeltaSource, EdgeGuardState, EdgeSnapshot } from '@/lib/panel-edge-guard'
 
 type View = 'hero' | 'projects' | 'about'
 
@@ -31,11 +31,7 @@ const DURATION = '600ms'
 // Butées d'un conteneur à défilement interne (2px de tolérance pour les sous-pixels)
 const atTop = (el: HTMLElement) => el.scrollTop <= 2
 const atBottom = (el: HTMLElement) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2
-const snapshot = (el: HTMLElement): EdgeSnapshot => ({
-  atTop: atTop(el),
-  atBottom: atBottom(el),
-  overflows: el.scrollHeight - el.clientHeight > 1,
-})
+const snapshot = (el: HTMLElement): EdgeSnapshot => ({ atTop: atTop(el), atBottom: atBottom(el) })
 
 type ScrollView = Exclude<View, 'hero'>
 
@@ -55,9 +51,10 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     if (panel === 'about') return aboutScrollRef.current
     return null
   }, [])
-  // Garde d'intention symétrique par panneau défilant (src/lib/panel-edge-guard.ts) :
-  // molette et swipe ne basculent qu'après un geste franc depuis la butée, pas sur l'inertie.
-  const guards = useRef<Record<ScrollView, EdgeGuardState>>({ projects: initialEdgeGuard, about: initialEdgeGuard })
+  // Garde d'intention sur les butées (src/lib/panel-edge-guard.ts) : le geste qui amène en
+  // butée est ignoré, seul un nouveau geste bascule. Un seul état : le suivi du geste est
+  // celui du flux d'entrée, il survit au changement de panneau.
+  const guard = useRef<EdgeGuardState>(initialEdgeGuard)
 
   useEffect(() => { viewRef.current = view }, [view])
 
@@ -71,8 +68,8 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       const el = scrollContainer(next)
       if (el && next !== 'hero') {
         el.scrollTop = forward ? 0 : el.scrollHeight
-        // Déjà en butée à l'affichage : l'instant d'arrivée est celui de l'affichage
-        guards.current[next] = noteEdges(initialEdgeGuard, snapshot(el), performance.now())
+        // Déjà en butée à l'affichage : verrou posé, le geste en cours ne basculera pas
+        guard.current = enterPanel(guard.current, snapshot(el))
       }
       setView(next)
     }
@@ -116,32 +113,36 @@ export default function ScrollController({ projects, caseStudies }: Props) {
 
   useEffect(() => {
     const panels: ScrollView[] = ['projects', 'about']
-    // Arrivées et départs de butée, au scroll de chaque conteneur
+    // Arrivées et départs de butée, au scroll du conteneur courant
     const noteEdgesOf = (panel: ScrollView) => {
       const el = scrollContainer(panel)
-      if (el) guards.current[panel] = noteEdges(guards.current[panel], snapshot(el), performance.now())
+      if (el && viewRef.current === panel) guard.current = noteEdges(guard.current, snapshot(el))
     }
     const scrollHandlers = panels.map((panel) => [panel, () => noteEdgesOf(panel)] as const)
 
     // Un delta de molette ou de swipe (positif vers le bas) sur le panneau courant
-    const handleDelta = (delta: number, now: number) => {
+    const handleDelta = (delta: number, now: number, source: DeltaSource) => {
       const current = viewRef.current
       if (current === 'hero') {
+        // Pas de défilement sur le hero : on suit le geste pour que le panneau suivant le connaisse
+        guard.current = trackDelta(guard.current, delta, now)
         if (delta > 0) goTo('projects')
         return
       }
       const el = scrollContainer(current)
       if (!el) return
-      const result = registerDelta(guards.current[current], snapshot(el), delta, now)
-      guards.current[current] = result.state
+      const result = registerDelta(guard.current, snapshot(el), delta, now, source)
+      guard.current = result.state
       if (result.flip) step(delta > 0 ? 1 : -1)
     }
 
-    const onWheel = (e: WheelEvent) => handleDelta(e.deltaY, performance.now())
+    const onWheel = (e: WheelEvent) => handleDelta(e.deltaY, performance.now(), 'wheel')
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY
       lastTouchY.current = e.touches[0].clientY
+      // Un toucher est toujours un nouveau geste
+      guard.current = beginGesture(guard.current)
     }
 
     const onTouchMove = (e: TouchEvent) => {
@@ -150,7 +151,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
         if (touchStartY.current - y > 30) goTo('projects')
         return
       }
-      handleDelta(lastTouchY.current - y, performance.now())
+      handleDelta(lastTouchY.current - y, performance.now(), 'touch')
       lastTouchY.current = y
     }
 
