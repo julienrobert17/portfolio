@@ -26,15 +26,25 @@ interface Props {
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const DURATION = '600ms'
 
+// Butées d'un conteneur à défilement interne (2px de tolérance pour les sous-pixels)
+const atTop = (el: HTMLElement) => el.scrollTop <= 2
+const atBottom = (el: HTMLElement) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2
+
 export default function ScrollController({ projects, caseStudies }: Props) {
   const [view, setView] = useState<View>('hero')
   const [isLeaving, setIsLeaving] = useState(false)
   const transitioning = useRef(false)
   const touchStartY = useRef(0)
   const viewRef = useRef<View>('hero')
-  // Le panneau À propos peut défiler en interne (mobile) : on ne change de
-  // panneau vers le haut que lorsqu'il est revenu en haut.
+  // Les panneaux réalisations et À propos défilent en interne : on ne change
+  // de panneau que lorsque leur conteneur est en butée dans le sens demandé.
+  const projectsScrollRef = useRef<HTMLDivElement>(null)
   const aboutScrollRef = useRef<HTMLDivElement>(null)
+  const scrollContainer = useCallback((panel: View): HTMLDivElement | null => {
+    if (panel === 'projects') return projectsScrollRef.current
+    if (panel === 'about') return aboutScrollRef.current
+    return null
+  }, [])
 
   useEffect(() => { viewRef.current = view }, [view])
 
@@ -42,26 +52,35 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     if (transitioning.current || next === viewRef.current) return
     transitioning.current = true
 
+    // Le panneau d'arrivée est en haut quand on avance, en bas quand on recule
+    const forward = ORDER.indexOf(next) > ORDER.indexOf(viewRef.current)
+    const show = () => {
+      const el = scrollContainer(next)
+      if (el) el.scrollTop = forward ? 0 : el.scrollHeight
+      setView(next)
+    }
+
     if (viewRef.current === 'hero') {
       // Animate hero out, then switch view
       setIsLeaving(true)
       setTimeout(() => {
-        setView(next)
+        show()
         setIsLeaving(false)
         setTimeout(() => { transitioning.current = false }, 600)
       }, 1000)
     } else {
-      setView(next)
+      show()
       setTimeout(() => { transitioning.current = false }, 900)
     }
-  }, [])
+  }, [scrollContainer])
 
   const step = useCallback((direction: 1 | -1) => {
     const current = viewRef.current
-    if (direction === -1 && current === 'about' && (aboutScrollRef.current?.scrollTop ?? 0) > 0) return
+    const el = scrollContainer(current)
+    if (el && (direction === 1 ? !atBottom(el) : !atTop(el))) return
     const next = ORDER[ORDER.indexOf(current) + direction]
     if (next) goTo(next)
-  }, [goTo])
+  }, [goTo, scrollContainer])
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
@@ -139,8 +158,10 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       <div style={panelStyle('hero')}>
         <HeroSection onStart={() => goTo('projects')} isLeaving={isLeaving} />
       </div>
-      <div style={panelStyle('projects')}>
-        <FeaturedProjects projects={projects} isActive={view === 'projects'} caseStudies={caseStudies} />
+      <div style={{ ...panelStyle('projects'), overflow: 'hidden' }}>
+        <div ref={projectsScrollRef} style={{ height: '100%', overflowY: 'auto' }}>
+          <FeaturedProjects projects={projects} isActive={view === 'projects'} caseStudies={caseStudies} />
+        </div>
       </div>
       <div style={{ ...panelStyle('about'), overflow: 'hidden' }}>
         <div ref={aboutScrollRef} style={{ height: '100%', overflowY: 'auto' }}>
