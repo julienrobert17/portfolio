@@ -2,10 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
-// À REMPLACER par les vrais profils
-const GITHUB_URL = 'https://github.com/A_REMPLACER'
-const LINKEDIN_URL = 'https://linkedin.com/in/A_REMPLACER'
+import { GITHUB_URL, LINKEDIN_URL } from '@/lib/links'
 
 export default function Header() {
   const pathname = usePathname()

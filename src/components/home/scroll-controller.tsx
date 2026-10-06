@@ -5,8 +5,17 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Project } from '@prisma/client'
 import HeroSection from '@/components/home/hero-section'
 import FeaturedProjects from '@/components/home/featured-projects'
+import AboutSection from '@/components/home/about-section'
 
-type View = 'hero' | 'projects'
+type View = 'hero' | 'projects' | 'about'
+
+const ORDER: View[] = ['hero', 'projects', 'about']
+
+// La home n'est pas scrollable : les ancres de la nav sont traduites en bascule de panneau.
+const HASH_TO_VIEW: Record<string, View> = {
+  '#realisations': 'projects',
+  '#a-propos': 'about',
+}
 
 interface Props {
   projects: Project[]
@@ -20,39 +29,47 @@ export default function ScrollController({ projects }: Props) {
   const [isLeaving, setIsLeaving] = useState(false)
   const transitioning = useRef(false)
   const touchStartY = useRef(0)
+  const viewRef = useRef<View>('hero')
+  // Le panneau À propos peut défiler en interne (mobile) : on ne change de
+  // panneau vers le haut que lorsqu'il est revenu en haut.
+  const aboutScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { viewRef.current = view }, [view])
 
   const goTo = useCallback((next: View) => {
-    if (transitioning.current) return
+    if (transitioning.current || next === viewRef.current) return
     transitioning.current = true
 
-    if (next === 'projects') {
+    if (viewRef.current === 'hero') {
       // Animate hero out, then switch view
       setIsLeaving(true)
       setTimeout(() => {
-        setView('projects')
+        setView(next)
         setIsLeaving(false)
         setTimeout(() => { transitioning.current = false }, 600)
       }, 1000)
     } else {
-      // Simple fade back to hero
-      setView('hero')
+      setView(next)
       setTimeout(() => { transitioning.current = false }, 900)
     }
   }, [])
 
-  const viewRef = useRef<View>('hero')
-  useEffect(() => { viewRef.current = view }, [view])
+  const step = useCallback((direction: 1 | -1) => {
+    const current = viewRef.current
+    if (direction === -1 && current === 'about' && (aboutScrollRef.current?.scrollTop ?? 0) > 0) return
+    const next = ORDER[ORDER.indexOf(current) + direction]
+    if (next) goTo(next)
+  }, [goTo])
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
     return () => { document.documentElement.style.overflow = '' }
   }, [])
 
-  // Le lien "Projets" de la nav pointe sur /#realisations : la home n'étant pas
-  // scrollable, on traduit l'ancre en bascule de panneau.
   useEffect(() => {
     const onHash = () => {
-      if (window.location.hash === '#realisations' && viewRef.current === 'hero') goTo('projects')
+      const target = HASH_TO_VIEW[window.location.hash]
+      if (target && target !== viewRef.current) goTo(target)
     }
     onHash()
     window.addEventListener('hashchange', onHash)
@@ -61,8 +78,8 @@ export default function ScrollController({ projects }: Props) {
 
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
-      if (e.deltaY > 0 && viewRef.current === 'hero') goTo('projects')
-      else if (e.deltaY < 0 && viewRef.current === 'projects') goTo('hero')
+      if (e.deltaY > 0) step(1)
+      else if (e.deltaY < 0) step(-1)
     }
 
     const onTouchStart = (e: TouchEvent) => {
@@ -71,51 +88,57 @@ export default function ScrollController({ projects }: Props) {
 
     const onTouchMove = (e: TouchEvent) => {
       const delta = touchStartY.current - e.touches[0].clientY
-      if (delta > 30 && viewRef.current === 'hero') goTo('projects')
-      else if (delta < -30 && viewRef.current === 'projects') goTo('hero')
+      if (delta > 30) step(1)
+      else if (delta < -30) step(-1)
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') step(1)
+      else if (e.key === 'ArrowUp' || e.key === 'PageUp') step(-1)
     }
 
     window.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('keydown', onKeyDown)
 
     return () => {
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('keydown', onKeyDown)
     }
-  }, [goTo])
+  }, [step])
 
-  const panelBase: CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    overflow: 'hidden',
-    transition: `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}`,
-  }
-
-  const heroStyle: CSSProperties = {
-    ...panelBase,
-    opacity: view === 'hero' ? 1 : 0,
-    transform: view === 'hero' ? 'translateY(0)' : 'translateY(-40px)',
-    transitionDelay: view === 'hero' ? '300ms' : '0ms',
-    pointerEvents: view === 'hero' ? 'auto' : 'none',
-  }
-
-  const projectsStyle: CSSProperties = {
-    ...panelBase,
-    opacity: view === 'projects' ? 1 : 0,
-    transform: view === 'projects' ? 'translateY(0)' : 'translateY(40px)',
-    transitionDelay: view === 'projects' ? '300ms' : '0ms',
-    pointerEvents: view === 'projects' ? 'auto' : 'none',
+  function panelStyle(panel: View): CSSProperties {
+    const active = view === panel
+    const above = ORDER.indexOf(panel) < ORDER.indexOf(view)
+    return {
+      position: 'absolute',
+      inset: 0,
+      overflow: 'hidden',
+      transition: `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}`,
+      opacity: active ? 1 : 0,
+      transform: active ? 'translateY(0)' : `translateY(${above ? -40 : 40}px)`,
+      transitionDelay: active ? '300ms' : '0ms',
+      pointerEvents: active ? 'auto' : 'none',
+    }
   }
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      <div style={heroStyle}>
+      <div style={panelStyle('hero')}>
         <HeroSection onStart={() => goTo('projects')} isLeaving={isLeaving} />
       </div>
-      <div style={projectsStyle}>
+      <div style={panelStyle('projects')}>
         <FeaturedProjects projects={projects} isActive={view === 'projects'} />
+      </div>
+      <div style={{ ...panelStyle('about'), overflow: 'hidden' }}>
+        <div ref={aboutScrollRef} style={{ height: '100%', overflowY: 'auto' }}>
+          <AboutSection />
+        </div>
       </div>
     </div>
   )
