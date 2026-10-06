@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getGeoDateData } from '@/lib/geodatle-data'
 import { getDailyCountry } from '@/lib/geodatle-game'
 import GameBoard from '@/components/games/geodatle/game-board'
+import { accentStyle } from '@/lib/accents'
 
 export const metadata: Metadata = {
   title: 'Geodatle — Devine le pays du jour',
@@ -20,7 +21,7 @@ export default async function CountrylePage({
   const target = getDailyCountry(countries, debugMode)
 
   return (
-    <main style={{ background: '#0f1117', minHeight: '100dvh' }}>
+    <main data-project="geodatle" style={{ ...accentStyle('geodatle'), background: '#0f1117', minHeight: '100dvh' }}>
       <GameBoard countries={countries} target={target} debugMode={debugMode} />
     </main>
   )

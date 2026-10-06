@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Nunito } from 'next/font/google'
 import LoaderADistance from '@/components/experience/entre-nous-a-distance/loader'
+import { accentStyle } from '@/lib/accents'
 
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' })
 const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito', display: 'swap' })
@@ -15,7 +16,9 @@ export default function EntreNousADistancePage() {
   return (
     <main
       className={`${fraunces.variable} ${nunito.variable}`}
+      data-project="entre-nous-a-distance"
       style={{
+        ...accentStyle('entre-nous-a-distance'),
         position: 'fixed',
         inset: 0,
         overflow: 'hidden',

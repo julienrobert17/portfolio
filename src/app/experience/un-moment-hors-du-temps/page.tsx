@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Nunito } from 'next/font/google'
 import InvitationLoader from '@/components/experience/un-moment-hors-du-temps/invitation-loader'
+import { accentStyle } from '@/lib/accents'
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -24,7 +25,9 @@ export default function UnMomentHorsDuTempsPage() {
   return (
     <main
       className={`${fraunces.variable} ${nunito.variable}`}
+      data-project="un-moment-hors-du-temps"
       style={{
+        ...accentStyle('un-moment-hors-du-temps'),
         position: 'fixed',
         inset: 0,
         overflowY: 'auto',

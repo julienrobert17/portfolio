@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import PrototaxitesLoader from '@/components/experience/prototaxites/PrototaxitesLoader'
+import { accentStyle } from '@/lib/accents'
 
 export const metadata: Metadata = {
   title: 'Prototaxites — Une expérience',
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function PrototaxitesPage() {
   return (
     <main
+      data-project="prototaxites"
       style={{
+        ...accentStyle('prototaxites'),
         position: 'fixed',
         inset: 0,
         height: '100dvh',

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { accentStyle } from '@/lib/accents'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -13,7 +14,7 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound()
 
   return (
-    <main className="max-w-2xl mx-auto px-6 py-16">
+    <main className="max-w-2xl mx-auto px-6 py-16" data-project={slug} style={accentStyle(slug)}>
 
       {/* Back */}
       <Link

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Nunito } from 'next/font/google'
 import EntreNousLoader from '@/components/experience/entre-nous/entre-nous-loader'
+import { accentStyle } from '@/lib/accents'
 
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' })
 const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito', display: 'swap' })
@@ -15,7 +16,9 @@ export default function EntreNousPage() {
   return (
     <main
       className={`${fraunces.variable} ${nunito.variable}`}
+      data-project="entre-nous"
       style={{
+        ...accentStyle('entre-nous'),
         position: 'fixed',
         inset: 0,
         overflow: 'hidden',

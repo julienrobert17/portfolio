@@ -1,6 +1,8 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import type { Project } from '@prisma/client'
+import { getAccent } from '@/lib/accents'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import ProjectCardVideo from '@/components/home/project-card-video'
@@ -80,6 +82,7 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
           <article
             key={project.id}
             className="project-card card-reveal"
+            style={{ '--card-accent': getAccent(project.slug) } as CSSProperties}
           >
             {/* Image de fond */}
             {project.slug === 'prototaxites' ? (
@@ -92,8 +95,8 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   fontFamily: 'monospace',
                   fontSize: 12,
                   letterSpacing: '0.2em',
-                  color: '#4ade80',
-                  textShadow: '0 0 12px rgba(74,222,128,0.6), 0 0 28px rgba(74,222,128,0.35)',
+                  color: 'var(--accent)',
+                  textShadow: '0 0 12px color-mix(in oklch, var(--accent) 60%, transparent), 0 0 28px color-mix(in oklch, var(--accent) 35%, transparent)',
                   animation: 'proto-pulse 3s ease-in-out infinite',
                 }}>
                   420 Ma
@@ -195,7 +198,7 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
               zIndex: 2,
               fontSize: hasVisual ? 11 : 13,
               fontWeight: 700,
-              color: hasVisual ? 'rgba(255,255,255,0.8)' : '#d0f0d2',
+              color: 'var(--accent-dim)',
               textShadow: '0 1px 3px rgba(0,0,0,0.6)',
               letterSpacing: '0.08em',
               fontVariantNumeric: 'tabular-nums',
@@ -223,8 +226,8 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                       backgroundColor: 'rgba(4,18,11,0.65)',
                       backdropFilter: 'blur(6px)',
                       WebkitBackdropFilter: 'blur(6px)',
-                      border: '1px solid rgba(74,222,128,0.25)',
-                      color: '#4ade80',
+                      border: '1px solid color-mix(in oklch, var(--accent) 25%, transparent)',
+                      color: 'var(--accent)',
                       fontSize: 10,
                       fontWeight: 600,
                       letterSpacing: '0.05em',
@@ -263,7 +266,7 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
-                      color: '#4ade80',
+                      color: 'var(--accent)',
                       textDecoration: 'none',
                     }}
                   >
