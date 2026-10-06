@@ -223,16 +223,8 @@ body {
 .nf-subtitle.is-late > .nf-main { opacity: 0; }
 .nf-subtitle.is-late > .nf-alt { opacity: 1; }
 
-/* Toast des easter eggs */
-@keyframes toast-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: none; }
-}
-.egg-toast { animation: toast-in 200ms ease both; }
-
 @media (prefers-reduced-motion: reduce) {
   .nf-subtitle > span { transition: none; }
-  .egg-toast { animation: none; }
 }
 
 @keyframes panel-counter-in {
