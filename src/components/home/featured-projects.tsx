@@ -44,6 +44,7 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
 
   return (
     <section
+      id="realisations"
       style={{
         padding: '80px 24px 120px',
         maxWidth: 1140,
@@ -153,7 +154,8 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
               zIndex: 2,
               fontSize: 11,
               fontWeight: 700,
-              color: 'rgba(255,255,255,0.3)',
+              color: 'rgba(255,255,255,0.8)',
+              textShadow: '0 1px 3px rgba(0,0,0,0.6)',
               letterSpacing: '0.08em',
               fontVariantNumeric: 'tabular-nums',
             }}>
@@ -177,7 +179,10 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                     style={{
                       padding: '2px 8px',
                       borderRadius: 9999,
-                      backgroundColor: 'rgba(74,222,128,0.15)',
+                      backgroundColor: 'rgba(4,18,11,0.65)',
+                      backdropFilter: 'blur(6px)',
+                      WebkitBackdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(74,222,128,0.25)',
                       color: '#4ade80',
                       fontSize: 10,
                       fontWeight: 600,

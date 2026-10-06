@@ -3,6 +3,8 @@ import RotatingStrokes from '@/components/home/rotating-strokes'
 
 const EASE_IN  = 'cubic-bezier(0.4, 0, 1, 1)'
 const EASE_OUT = 'cubic-bezier(0.16,1,0.3,1)'
+// Vert pâle désaturé, entre le texte (#d0f0d2) et le fond (#0d271e)
+const ROLE_COLOR = '#8fb89c'
 
 interface Props {
   onStart: () => void
@@ -90,12 +92,21 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
         </div>
       </div>
 
-      {/* Texte — passe par-dessus l'image */}
+      {/*
+        Texte — passe par-dessus l'image.
+        Occupe la hauteur sous la nav (56px) et centre verticalement ;
+        le padding-bottom > padding-top remonte légèrement le bloc au-dessus du centre optique.
+      */}
       <div style={{
         position: 'absolute',
-        top: '50vh',
-        transform: 'translateY(-50%)',
+        top: '56px',
+        bottom: 0,
         left: 'clamp(120px, 18vw, 280px)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        paddingTop: '2vh',
+        paddingBottom: '8vh',
         zIndex: 2,
       }}>
         <h1 style={{
@@ -122,25 +133,31 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
           </span>
           <span style={{
             display: 'block',
-            fontSize: 'clamp(28px, 3.8vw, 52px)',
-            color: '#4ade80',
-            marginTop: '8px',
+            fontSize: 'clamp(17px, 2.3vw, 31px)',
+            fontWeight: 500,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2,
+            color: ROLE_COLOR,
+            marginTop: '14px',
             animation: isLeaving ? slideOut(120) : slideIn(380),
           }}>
-            Développeur
-          </span>
-          <span style={{
-            display: 'block',
-            fontSize: 'clamp(28px, 3.8vw, 52px)',
-            color: '#4ade80',
-            animation: isLeaving ? slideOut(240) : slideIn(460),
-          }}>
-            Full Stack
+            Développeur Full Stack
           </span>
         </h1>
 
+        <p style={{
+          margin: '24px 0 40px',
+          maxWidth: '45ch',
+          fontSize: 'clamp(18px, 1.3vw, 20px)',
+          fontWeight: 400,
+          lineHeight: 1.5,
+          color: ROLE_COLOR,
+          animation: isLeaving ? slideOut(240) : slideIn(480),
+        }}>
+          Je construis des interfaces où l&apos;interaction fait partie du propos.
+        </p>
+
         <div style={{
-          marginTop: '40px',
           animation: isLeaving ? slideOut(360) : slideIn(600),
         }}>
           <button onClick={onStart} className="hero-btn-link" style={{
@@ -160,7 +177,7 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
             border: 'none',
             cursor: 'pointer',
           }}>
-            Découvrir Mes Projets
+            Découvrir mes projets
             <span className="hero-arrow" style={{ backgroundColor: '#0d271e' }}>
               <span className="hero-arrow-tail" />
               <svg className="hero-arrow-head" width="6" height="12" viewBox="0 0 6 12" fill="none">

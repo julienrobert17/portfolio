@@ -48,6 +48,17 @@ export default function ScrollController({ projects }: Props) {
     return () => { document.documentElement.style.overflow = '' }
   }, [])
 
+  // Le lien "Projets" de la nav pointe sur /#realisations : la home n'étant pas
+  // scrollable, on traduit l'ancre en bascule de panneau.
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === '#realisations' && viewRef.current === 'hero') goTo('projects')
+    }
+    onHash()
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [goTo])
+
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       if (e.deltaY > 0 && viewRef.current === 'hero') goTo('projects')
