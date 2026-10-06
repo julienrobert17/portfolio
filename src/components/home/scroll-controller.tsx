@@ -6,6 +6,7 @@ import type { Project } from '@prisma/client'
 import HeroSection from '@/components/home/hero-section'
 import FeaturedProjects from '@/components/home/featured-projects'
 import AboutSection from '@/components/home/about-section'
+import PanelCounter from '@/components/ui/panel-counter'
 
 type View = 'hero' | 'projects' | 'about'
 
@@ -129,6 +130,11 @@ export default function ScrollController({ projects }: Props) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+      <PanelCounter
+        index={ORDER.indexOf(view)}
+        count={ORDER.length}
+        onSelect={(i) => goTo(ORDER[i])}
+      />
       <div style={panelStyle('hero')}>
         <HeroSection onStart={() => goTo('projects')} isLeaving={isLeaving} />
       </div>

@@ -157,6 +157,15 @@ body {
   transform: translateY(0);
 }
 
+@keyframes panel-counter-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.panel-counter-num {
+  animation: panel-counter-in 250ms ease both;
+}
+
 @keyframes proto-pulse {
   0%, 100% { opacity: 0.6; }
   50%       { opacity: 1;   }
