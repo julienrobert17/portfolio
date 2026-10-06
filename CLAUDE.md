@@ -6,7 +6,6 @@
 - Pas de résumé du code lu, pas de ré-explication. Réponses courtes, en français.
 - Aucune nouvelle dépendance sans demander d'abord, en une ligne. Aucun refactor hors périmètre.
 - Avant chaque commit : `npx tsc --noEmit` doit passer. Pour le lint, lance `npx eslint <fichiers modifiés>` uniquement sur les fichiers touchés dans la session ; aucune nouvelle erreur n'est tolérée dans ces fichiers, les erreurs préexistantes ailleurs sont hors périmètre et ne doivent pas être corrigées sans demande explicite. Pas `npm run build` sauf demande.
-- Dette connue : 9 erreurs lint préexistantes (react-hooks/set-state-in-effect) dans prototaxites, geodatle et home — session dédiée prévue.
 - Un commit par tâche, message en français, concis. Pas de `any`, pas de `console.log`.
 - Jamais `text-zinc-*`/`border-zinc-*`/`bg-zinc-*` → `text-foreground`, `text-muted-foreground`, `border-border`, `bg-background`.
 - Ne pas créer de fichiers dans src/app sans demander. Secrets (DATABASE_URL) jamais côté client.
