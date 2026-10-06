@@ -1,17 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { GITHUB_URL, LINKEDIN_URL } from '@/lib/links'
 
 export default function Header() {
-  const pathname = usePathname()
-  const isDark = pathname === '/' || pathname === '/contact' || pathname.startsWith('/games') || pathname.startsWith('/projects')
-  const color = isDark ? '#d0f0d2' : '#171717'
-  // Fond de la page à 85 % : vert forêt sur les routes sombres, sinon le --background du thème
-  const background = isDark
-    ? 'rgba(13,39,30,0.85)'
-    : 'color-mix(in srgb, var(--background) 85%, transparent)'
+  // Toutes les routes qui affichent le header (home, contact, projets, 404) sont sur le vert forêt.
+  const color = '#d0f0d2'
+  const background = 'rgba(13,39,30,0.85)'
 
   const linkStyle = {
     color,

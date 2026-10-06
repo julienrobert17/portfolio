@@ -4,6 +4,7 @@ import "./globals.css";
 import CustomCursor from "@/components/ui/custom-cursor";
 import ConditionalHeader from "@/components/layout/conditional-header";
 import ConditionalFooter from "@/components/layout/conditional-footer";
+import EasterEggs from "@/components/ui/easter-eggs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({
         <ConditionalHeader />
         {children}
         <ConditionalFooter />
+        <EasterEggs />
       </body>
     </html>
   );
