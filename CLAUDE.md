@@ -20,16 +20,18 @@
 - Pas de lib UI, pas de framer-motion, pas de Prettier. ESLint 9 flat config.
 
 ## Arborescence utile
-- src/app/layout.tsx — layout racine unique, metadata globale, polices Geist/Geist_Mono/Plus_Jakarta_Sans, monte CustomCursor et ConditionalHeader
+- src/app/layout.tsx — layout racine unique, metadata globale, polices Geist/Geist_Mono/Plus_Jakarta_Sans, monte CustomCursor, ConditionalHeader, ConditionalFooter, EasterEggs ; src/app/not-found.tsx — 404 (corps client dans src/components/not-found/)
 - src/app/globals.css — variables couleur, @theme, keyframes fadeFlip/slideUp/slideInRight
 - src/app/page.tsx — home ; routes : /contact, /lab, /projects/[slug] (pas d'index /projects), /games/geodatle, /experience/{entre-nous,entre-nous-a-distance,prototaxites,un-moment-hors-du-temps}
 - src/app/api/ — contact, owid, countries, entre-nous/{reponses,flux,action,salle}
-- src/components/layout/ — header.tsx, conditional-header.tsx (masqué sur /games/*)
-- src/components/home/ — hero-section, rotating-strokes, scroll-controller, featured-projects, experiences-section
-- src/components/ui/ — custom-cursor, reveal, typewriter
+- src/components/layout/ — header, footer, conditional-header/footer (routes immersives via src/lib/routes.ts ; footer aussi masqué sur la home, rendue en compact dans about-section)
+- src/components/home/ — hero-section, scroll-controller (3 panneaux hero/projects/about, hash → panneau), featured-projects, project-card-video, about-section
+- src/components/ui/ — custom-cursor, reveal, typewriter, panel-counter, scroll-progress, easter-eggs
+- src/components/projects/ — case-study, case-study-toc ; contenu dans content/case-studies/<slug>.md lu par src/lib/case-studies.ts (fs, tracé dans next.config.ts)
 - src/components/games/geodatle/ — jeu Geodatle (inline styles dark, pas Tailwind)
 - src/components/experience/ — une expérience par dossier, code nommé en français
 - src/lib/data.ts — requêtes Prisma projets/expériences ; src/lib/prisma.ts — client ; src/lib/i18n.ts — FR/EN
+- src/lib/accents.ts — `--accent` par slug (getAccent/accentStyle, posé sur le <main> des pages projet) ; src/lib/links.ts — URLs GitHub/LinkedIn/repo (placeholders A_REMPLACER)
 - prisma/schema.prisma, prisma/seed.ts — schéma et seed ; scripts/generate-countries.mjs — données pays
 - RAPPORT_GRAPHISME.md — direction artistique
 
