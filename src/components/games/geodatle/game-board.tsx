@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react'
 import type { CountryData } from '@/lib/geodatle-data'
 import type { GuessResult, GameStatus } from '@/lib/geodatle-game'
 import { evaluateGuess, isWin } from '@/lib/geodatle-game'
@@ -11,6 +11,22 @@ import RulesModal from '@/components/games/geodatle/rules-modal'
 import { LangProvider, useLang } from '@/components/games/geodatle/lang-context'
 
 const MAX_GUESSES = 8
+
+// Lecture du stockage local comme source externe : rendu serveur neutre,
+// valeurs réelles au premier rendu client (remplace les effets de montage).
+const subscribeNoop = () => () => {}
+const readSavedGame = () => localStorage.getItem('geodatle-game-state')
+const readRulesSeen = () => localStorage.getItem('geodatle-rules-seen') !== null
+
+type SavedGame = { date: string; guesses: GuessResult[]; status: GameStatus }
+
+function parseSavedGame(raw: string): SavedGame | null {
+  try {
+    return JSON.parse(raw) as SavedGame
+  } catch {
+    return null
+  }
+}
 
 
 const centred: React.CSSProperties = {
@@ -39,9 +55,24 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
 
   const today = new Date().toISOString().slice(0, 10)
 
-  useEffect(() => {
-    if (!localStorage.getItem('geodatle-rules-seen')) setShowRules(true)
-  }, [])
+  // undefined côté serveur, null | string côté client
+  const savedRaw = useSyncExternalStore(subscribeNoop, readSavedGame, () => undefined)
+  const rulesSeen = useSyncExternalStore(subscribeNoop, readRulesSeen, () => true)
+
+  // Initialisation unique au premier rendu client, pendant le rendu
+  const [initialized, setInitialized] = useState(false)
+  if (savedRaw !== undefined && !initialized) {
+    setInitialized(true)
+    if (!rulesSeen) setShowRules(true)
+    if (!debugMode && savedRaw !== null) {
+      const saved = parseSavedGame(savedRaw)
+      if (saved && saved.date === today && saved.status !== 'playing') {
+        setGuesses(saved.guesses)
+        setStatus(saved.status)
+        setModalOpen(true)
+      }
+    }
+  }
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
@@ -50,23 +81,16 @@ function GameBoardInner({ countries, target, debugMode }: GameBoardProps) {
     return () => window.removeEventListener('resize', check)
   }, [])
 
+  // Nettoyage d'une sauvegarde périmée ou corrompue (sans setState)
   useEffect(() => {
     if (debugMode) return
     const raw = localStorage.getItem('geodatle-game-state')
     if (!raw) return
-    try {
-      const saved = JSON.parse(raw) as { date: string; guesses: GuessResult[]; status: GameStatus }
-      if (saved.date === today && saved.status !== 'playing') {
-        setGuesses(saved.guesses)
-        setStatus(saved.status)
-        setModalOpen(true)
-      } else {
-        localStorage.removeItem('geodatle-game-state')
-      }
-    } catch {
+    const saved = parseSavedGame(raw)
+    if (!saved || saved.date !== today || saved.status === 'playing') {
       localStorage.removeItem('geodatle-game-state')
     }
-  }, [])
+  }, [debugMode, today])
 
   function handleCloseRules() {
     setShowRules(false)
