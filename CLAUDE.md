@@ -5,7 +5,8 @@
 - Jamais lire node_modules, .next, public/ (lister les noms au plus), ni les lockfiles.
 - Pas de résumé du code lu, pas de ré-explication. Réponses courtes, en français.
 - Aucune nouvelle dépendance sans demander d'abord, en une ligne. Aucun refactor hors périmètre.
-- Avant chaque commit : `npx tsc --noEmit` et `npm run lint` (pas `npm run build` sauf demande).
+- Avant chaque commit : `npx tsc --noEmit` doit passer. Pour le lint, lance `npx eslint <fichiers modifiés>` uniquement sur les fichiers touchés dans la session ; aucune nouvelle erreur n'est tolérée dans ces fichiers, les erreurs préexistantes ailleurs sont hors périmètre et ne doivent pas être corrigées sans demande explicite. Pas `npm run build` sauf demande.
+- Dette connue : 9 erreurs lint préexistantes (react-hooks/set-state-in-effect) dans prototaxites, geodatle et home — session dédiée prévue.
 - Un commit par tâche, message en français, concis. Pas de `any`, pas de `console.log`.
 - Jamais `text-zinc-*`/`border-zinc-*`/`bg-zinc-*` → `text-foreground`, `text-muted-foreground`, `border-border`, `bg-background`.
 - Ne pas créer de fichiers dans src/app sans demander. Secrets (DATABASE_URL) jamais côté client.
@@ -15,7 +16,7 @@
 - Next 16.2.6 App Router (src/app, pas de pages/), React 19.2, TypeScript strict, alias `@/*` → src/*.
 - Tailwind v4 via `@theme inline` dans globals.css (pas de tailwind.config). CSS modules seulement dans src/components/experience/*.
 - Prisma + PostgreSQL Neon (adapter pg). Modèles : Project, Experience, Salle, Participant, Reponse, Evenement.
-- Animations maison (keyframes CSS, reveal, scroll-controller). gsap installé mais inutilisé. 3D : three + @react-three/fiber/drei/postprocessing.
+- Animations maison (keyframes CSS, reveal, scroll-controller). 3D : three + @react-three/fiber/drei/postprocessing.
 - Pas de lib UI, pas de framer-motion, pas de Prettier. ESLint 9 flat config.
 
 ## Arborescence utile
@@ -26,7 +27,6 @@
 - src/components/layout/ — header.tsx, conditional-header.tsx (masqué sur /games/*)
 - src/components/home/ — hero-section, rotating-strokes, scroll-controller, featured-projects, experiences-section
 - src/components/ui/ — custom-cursor, reveal, typewriter
-- src/components/projects/ — project-grid, project-filters (non importés actuellement)
 - src/components/games/geodatle/ — jeu Geodatle (inline styles dark, pas Tailwind)
 - src/components/experience/ — une expérience par dossier, code nommé en français
 - src/lib/data.ts — requêtes Prisma projets/expériences ; src/lib/prisma.ts — client ; src/lib/i18n.ts — FR/EN
