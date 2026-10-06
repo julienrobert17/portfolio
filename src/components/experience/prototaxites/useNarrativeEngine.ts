@@ -30,7 +30,12 @@ export function useNarrativeEngine(): NarrativeState & NarrativeControls {
   const [progress, setProgress]                 = useState(0)
   const [isPaused, setIsPaused]                 = useState(false)
   const [isFastForward, setIsFastForward]       = useState(false)
-  const [lang, setLangState]                    = useState<Lang>('en')
+  // Lecture directe de localStorage : le composant est monté en ssr: false,
+  // il n'est jamais rendu côté serveur
+  const [lang, setLangState]                    = useState<Lang>(() => {
+    const stored = localStorage.getItem(LANG_KEY)
+    return stored === 'en' || stored === 'fr' ? stored : 'en'
+  })
 
   // Refs pour la boucle RAF — évitent de re-enregistrer les effets à chaque render
   const rafRef              = useRef<number>(0)
@@ -39,12 +44,6 @@ export function useNarrativeEngine(): NarrativeState & NarrativeControls {
   const currentBeatIndexRef = useRef<number>(0)
   const isPausedRef         = useRef<boolean>(false)
   const isFastForwardRef    = useRef<boolean>(false)
-
-  // Lecture de la langue depuis localStorage (client uniquement)
-  useEffect(() => {
-    const stored = localStorage.getItem(LANG_KEY)
-    if (stored === 'en' || stored === 'fr') setLangState(stored)
-  }, [])
 
   // Boucle RAF — unique effet, jamais re-enregistré
   useEffect(() => {
