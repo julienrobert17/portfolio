@@ -1,0 +1,234 @@
+.composeur {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  margin: 0;
+}
+
+/* La phrase est le message : corps display, mesure large, rien d'autre autour. */
+.phrase {
+  margin: 0;
+  font-size: clamp(1.8rem, 4.4vw, 3.2rem);
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+/*
+ * Une seule case de grille : le miroir invisible la dimensionne, l'input s'y étire. La largeur
+ * suit donc le texte au pixel, capitales comprises, sans rien mesurer en JavaScript. Les 2 px
+ * de droite laissent la place au curseur de saisie.
+ */
+.champ {
+  display: inline-grid;
+  padding-right: 2px;
+  vertical-align: baseline;
+}
+
+.miroir,
+.saisie {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* `size={1}` sur le champ, sinon sa largeur intrinsèque (vingt caractères) l'emporterait. */
+.saisie {
+  width: 100%;
+}
+
+.miroir {
+  visibility: hidden;
+  white-space: pre;
+}
+
+/* Champ en ligne : pas de cadre, un soulignement, la largeur suit la saisie (ch). */
+.saisie {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  transition: border-color var(--t-micro) var(--ease-ui);
+}
+
+.saisie::placeholder {
+  color: var(--ink-2);
+  opacity: 1;
+}
+
+.saisie:hover,
+.saisie:focus {
+  border-bottom-color: var(--ink);
+}
+
+.saisie:focus {
+  outline: none;
+}
+
+.saisie:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Sujet : italique serif souligné, le mot défile dans une fenêtre d'une ligne. */
+.sujet {
+  display: inline-block;
+  padding: 0;
+  font: inherit;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.sujet:hover,
+.sujet:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.fenetre {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Assez haut pour les jambages de l'italique, sans décaler la ligne de base. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.valeur {
+  display: inline-block;
+  animation: lc-sujet-entree 300ms var(--ease-ui) both;
+}
+
+.valeur[data-sens='-1'] {
+  animation-name: lc-sujet-entree-haut;
+}
+
+.sortante {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  animation: lc-sujet-sortie 300ms var(--ease-ui) both;
+}
+
+.sortante[data-sens='-1'] {
+  animation-name: lc-sujet-sortie-bas;
+}
+
+@keyframes lc-sujet-entree {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-entree-haut {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-sortie {
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes lc-sujet-sortie-bas {
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Le texte de repli n'existe que sans JavaScript (voir le <noscript> de la section). */
+.sujetStatique {
+  display: none;
+  cursor: auto;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-5);
+}
+
+:global(.lc) .ouvrir {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding-inline: var(--s-4);
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: 999px;
+  transition: background-color var(--t-micro) var(--ease-ui);
+}
+
+:global(.lc) .ouvrir:hover {
+  background: var(--accent);
+}
+
+.copier {
+  min-height: 48px;
+  padding: 0;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--line);
+  transition:
+    color var(--t-micro) var(--ease-ui),
+    text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.copier:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
+/* Hauteur réservée : le retour de copie ne pousse rien. */
+.retour {
+  min-height: 1.45em;
+  margin: 0;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--ease-ui);
+}
+
+.retour[data-etat='copie'],
+.retour[data-etat='echec'] {
+  opacity: 1;
+}
+
+.intro {
+  max-width: 46ch;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .valeur,
+  .sortante {
+    animation: none;
+  }
+
+  .sortante {
+    display: none;
+  }
+}

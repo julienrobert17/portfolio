@@ -1,0 +1,208 @@
+/* Deux couches clipées ensemble : le fond encre sous le canvas (z 61), les liens au-dessus. */
+.fond,
+.menu {
+  --bas: 100%;
+  position: fixed;
+  inset: 0;
+  clip-path: inset(0 0 var(--bas) 0);
+}
+
+.fond {
+  z-index: 59;
+  background: var(--ink);
+}
+
+.menu {
+  z-index: 62;
+  color: var(--paper);
+  overflow: hidden;
+}
+
+.fond[hidden],
+.menu[hidden] {
+  display: none;
+}
+
+.menu ::selection {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Maquette SVG en fil de fer, repli tant que le canvas n'a pas rendu (ou sans WebGL). */
+.maquette {
+  position: absolute;
+  right: var(--margin);
+  top: 50%;
+  width: min(44vw, 560px);
+  transform: translateY(-50%);
+  opacity: 1;
+  transition: opacity 600ms var(--ease-ui);
+  pointer-events: none;
+}
+
+.menu[data-canvas='pret'] .maquette {
+  opacity: 0;
+}
+
+.filDeFer polygon {
+  fill: none;
+  stroke: var(--paper);
+  stroke-opacity: 0.4;
+}
+
+.filDeFer [data-plan-coupe] {
+  display: none;
+}
+
+.contenu {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-rows: 1fr auto;
+  column-gap: var(--gutter);
+  row-gap: var(--s-5);
+  padding-block: calc(var(--nav-h) + var(--s-4)) var(--s-4);
+}
+
+.pages,
+.projets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Les huit projets, en display, à gauche ; la maquette occupe la colonne de droite. En desktop
+ * la grille les remonte au-dessus des pages, que le DOM place en premier (ordre de l'écran
+ * mobile) : le placement est ici, l'ordre de tabulation reste celui du document.
+ */
+.projets {
+  grid-area: 1 / 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.projet {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  min-height: 44px;
+  font-size: clamp(1.75rem, min(4.2vw, 6.4vh), 4.25rem);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  /* Un titre sur deux lignes (mobile) ne touche pas le suivant. */
+  padding-block: 0.14em;
+  transition: color var(--t-micro) var(--ease-ui);
+}
+
+.numero {
+  flex: none;
+  width: 2.5em;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  color: var(--ink-2-inverse);
+  transition: color var(--t-micro) var(--ease-ui);
+}
+
+.projet:hover,
+.projet:focus-visible,
+.projet:hover .numero,
+.projet:focus-visible .numero {
+  color: var(--accent);
+}
+
+/* Les pages, en mono petit, sur une ligne en bas. */
+.pages {
+  grid-area: 2 / 1 / auto / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-5);
+  border-top: 1px solid var(--line-inverse);
+  padding-top: var(--s-2);
+}
+
+.page {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--t-micro) var(--ease-ui);
+}
+
+.page:hover,
+.page:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.menu :focus-visible {
+  outline-color: var(--paper);
+}
+
+@media (max-width: 900px) {
+  .contenu {
+    grid-template-columns: 1fr;
+  }
+
+  .projets {
+    align-self: start;
+  }
+
+  .maquette {
+    width: min(60vw, 300px);
+    top: auto;
+    bottom: calc(var(--s-7) + 44px);
+    transform: none;
+    opacity: 0.5;
+  }
+}
+
+.heure {
+  display: none;
+}
+
+/*
+ * Sous 720 px la barre masque les pages et l'heure : l'overlay les porte. Les pages passent en
+ * haut, avant les projets, en taille lisible (l'accueil reste le nom dans la barre) ; l'heure et
+ * le lieu ferment l'écran.
+ */
+@media (max-width: 720px) {
+  .contenu {
+    grid-template-rows: auto 1fr auto;
+    row-gap: var(--s-4);
+  }
+
+  .pages {
+    grid-area: 1 / 1;
+    column-gap: var(--s-4);
+    border-top: 0;
+    border-bottom: 1px solid var(--line-inverse);
+    padding-top: 0;
+    padding-bottom: var(--s-2);
+  }
+
+  .pages [data-accueil] {
+    display: none;
+  }
+
+  .page {
+    font-size: 1.125rem;
+  }
+
+  .projets {
+    grid-area: 2 / 1;
+  }
+
+  .heure {
+    grid-area: 3 / 1;
+    display: block;
+    font-size: 0.75rem;
+    color: var(--ink-2-inverse);
+  }
+}

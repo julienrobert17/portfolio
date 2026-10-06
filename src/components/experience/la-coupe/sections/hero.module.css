@@ -1,0 +1,111 @@
+/* Un écran, qui défile avec la page : la coupe joue seule, le scroll ne la pilote pas. */
+.hero {
+  position: relative;
+}
+
+.scene {
+  position: relative;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding-top: calc(var(--nav-h) + var(--s-4));
+  padding-bottom: var(--s-5);
+}
+
+.ligne {
+  justify-self: end;
+  color: var(--ink-2);
+}
+
+.maquette {
+  position: absolute;
+  right: var(--margin);
+  top: 50%;
+  width: min(46vw, 620px);
+  transform: translateY(-54%);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity 600ms var(--ease-ui);
+}
+
+/*
+ * Deux rendus superposés. La maison entière est le placeholder du canvas avant l'intro, qui part
+ * du faîtage. La maison tranchée à la hauteur de repos est le repli statique, et le placeholder
+ * quand l'intro a déjà joué dans la session (`data-repos`) : le fondu croisé reste exact.
+ */
+.svg[data-rendu='tranche'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.hero[data-mode='statique'] .svg[data-rendu='entier'],
+.hero[data-repos] .svg[data-rendu='entier'] {
+  opacity: 0;
+}
+
+.hero[data-mode='statique'] .svg[data-rendu='tranche'],
+.hero[data-repos] .svg[data-rendu='tranche'] {
+  opacity: 1;
+}
+
+/* Fondu croisé : le SVG s'efface quand le canvas a rendu sa première frame. */
+.hero[data-canvas='pret'] .svg[data-rendu] {
+  opacity: 0;
+}
+
+.hero[data-mode='statique'] .coteValeur {
+  color: var(--accent);
+}
+
+.titre {
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  padding-bottom: var(--s-4);
+}
+
+.titreLigne {
+  display: block;
+}
+
+.cote {
+  position: absolute;
+  right: var(--margin);
+  bottom: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.coteValeur {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .maquette {
+    /* Dans le flux, mais toujours repère du rendu tranché superposé. */
+    position: relative;
+    inset: auto;
+    transform: none;
+    /* Mobile : la maquette prend 85 % de la largeur. */
+    width: min(85vw, 460px);
+    justify-self: center;
+    align-self: center;
+    margin-block: var(--s-5);
+  }
+
+  .titre {
+    padding-bottom: var(--s-6);
+  }
+
+  .cote {
+    bottom: var(--s-4);
+  }
+}

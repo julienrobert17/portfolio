@@ -1,0 +1,4 @@
+/* Point de montage invisible : le composant ne dessine rien, il écoute le document. */
+.ancre {
+  display: none;
+}

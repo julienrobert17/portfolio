@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/projects/[slug]': ['./content/case-studies/**/*'],
   },
+  experimental: {
+    // Transitions de page de l'expérience « la Coupe » (React <ViewTransition>).
+    // Sans effet ailleurs tant qu'aucun composant ViewTransition n'est rendu.
+    viewTransition: true,
+  },
   env: {
     /*
      * Horodatage de la construction, figé dans le bundle.

@@ -1,0 +1,45 @@
+'use client'
+
+import { Canvas } from '@react-three/fiber'
+import { setCanvasPret, setModeHero } from '../lib/hero-store'
+import Scene from './scene'
+
+/** Ré-exporté pour l'hôte, qui ne doit pas importer fiber statiquement. */
+export { advance } from '@react-three/fiber'
+
+/**
+ * Le seul <Canvas> de l'expérience. frameloop="never" : c'est le ticker GSAP
+ * qui appelle advance(). Fond transparent, le papier de la page fait le fond.
+ * Chargé en import dynamique par CanvasHost, jamais dans le chemin critique.
+ *
+ * Contexte WebGL perdu (GPU réinitialisé, onglet endormi trop longtemps) : pas
+ * de tentative de restauration, on repasse au repli statique. L'hôte démonte
+ * alors le canvas, le SVG revient avec sa coupe à mi-hauteur et sa cote fixe.
+ */
+export default function SceneCanvas() {
+  const tactile = window.matchMedia('(pointer: coarse)').matches
+  return (
+    <Canvas
+      orthographic
+      frameloop="never"
+      flat
+      dpr={[1, tactile ? 1.5 : 2]}
+      gl={{ alpha: true, antialias: true, stencil: true, powerPreference: 'high-performance' }}
+      onCreated={({ gl }) => {
+        gl.localClippingEnabled = true
+        gl.setClearColor(0x000000, 0)
+        gl.domElement.addEventListener(
+          'webglcontextlost',
+          () => {
+            setCanvasPret(false)
+            setModeHero('statique')
+          },
+          { once: true },
+        )
+      }}
+      style={{ pointerEvents: 'none' }}
+    >
+      <Scene mode="hero" />
+    </Canvas>
+  )
+}

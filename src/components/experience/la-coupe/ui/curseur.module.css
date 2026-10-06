@@ -1,0 +1,146 @@
+/*
+ * Curseur personnalisé. Le natif est masqué par la classe `actif` posée sur
+ * <html> seulement quand le composant est monté et actif.
+ *
+ * Mélange : `mix-blend-mode: difference` est posé sur l'élément fixe
+ * lui-même, enfant direct de la racine `.lc`. Un élément fixe avec z-index
+ * crée un contexte d'empilement : un mélange posé sur un de ses enfants ne
+ * verrait que l'intérieur vide de ce groupe, jamais la page. Tout ce que le
+ * curseur contient est en #fff pur : noir sur papier, blanc sur encre,
+ * pixel par pixel quand il chevauche les deux.
+ */
+.actif,
+.actif * {
+  cursor: none;
+}
+
+/*
+ * La racine ne peint rien (display: contents) : elle porte l'état et la position (--x, --y) que
+ * lisent deux calques fixes frères. Le premier est en difference. Le second, hors mélange, sert
+ * au-dessus des images : sur une photo la différence donne des tons moyens illisibles. Le mode de
+ * fusion ne s'anime pas ; on passe de l'un à l'autre par un fondu croisé de 300 ms.
+ */
+.curseur {
+  display: contents;
+}
+
+.calque {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+  transition: opacity var(--t-micro) var(--ease-ui);
+}
+
+.curseur[data-visible='true'] .calque {
+  opacity: 1;
+}
+
+.melange {
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+.vue {
+  color: var(--paper);
+}
+
+/* Calques centrés sur le pointeur, animés par scale et opacité seulement : jamais de saut. */
+.point,
+.anneau {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+  transition:
+    scale 300ms var(--ease-ui),
+    opacity 300ms var(--ease-ui);
+}
+
+.point {
+  width: var(--c-point);
+  height: var(--c-point);
+  background: #fff;
+}
+
+.anneau {
+  display: grid;
+  place-items: center;
+  width: var(--c-voir);
+  height: var(--c-voir);
+  border: 1px solid currentColor;
+  scale: 0.3;
+  opacity: 0;
+}
+
+/* Second anneau encre à 30 %, 1 px, décalé de 1 px : le papier reste lisible sur photo claire. */
+.anneauVue {
+  box-shadow:
+    0 0 0 1px rgba(21, 20, 18, 0.3),
+    inset 0 0 0 1px rgba(21, 20, 18, 0.3);
+}
+
+/* Liens et boutons : le même anneau, ramené à la taille « lien ». */
+.curseur[data-etat='link'] .point,
+.curseur[data-etat='view'] .point {
+  scale: 0;
+  opacity: 0;
+}
+
+.curseur[data-etat='link'] .melange .anneau {
+  scale: var(--c-echelle-lien);
+  opacity: 1;
+}
+
+/* Image : l'anneau en difference grandit en s'effaçant, celui du calque clair le remplace. */
+.curseur[data-etat='view'] .melange .anneau {
+  scale: 1;
+  opacity: 0;
+}
+
+.curseur[data-etat='view'] .anneauVue {
+  scale: 1;
+  opacity: 1;
+}
+
+.libelle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  /* Le tracking ajoute un blanc après la dernière lettre : on recentre. */
+  margin-right: -0.08em;
+  text-shadow: 0 0 2px rgba(21, 20, 18, 0.3);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-ui);
+}
+
+.curseur[data-etat='view'] .libelle {
+  opacity: 1;
+  transition-delay: 100ms;
+}
+
+/* Jamais au tactile : le JavaScript ne s'active pas non plus. */
+@media (pointer: coarse) {
+  .calque {
+    display: none;
+  }
+}
+
+/* Reduced motion : le curseur reste, sans lerp (JS) ni transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .calque,
+  .point,
+  .anneau,
+  .libelle {
+    transition: none;
+  }
+}

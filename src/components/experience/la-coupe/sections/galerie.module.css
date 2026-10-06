@@ -1,0 +1,107 @@
+.section {
+  padding-bottom: var(--s-8);
+}
+
+.grille {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  row-gap: var(--s-7);
+}
+
+.item {
+  min-width: 0;
+}
+
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/*
+ * Motif « verticale » : la case couvre dix colonnes, l'image en occupe six et sa légende les
+ * quatre dernières, posée sur la ligne de base de l'image. Même gouttière que la grille mère,
+ * donc les colonnes coïncident.
+ */
+.aCote {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+.aCote .cadre {
+  grid-column: 1 / span 6;
+}
+
+.aCote .legende {
+  grid-column: 7 / span 4;
+  align-self: end;
+  padding-bottom: 0.2em;
+}
+
+/* Numéro puis alternative de l'image, sur une seule ligne. */
+.legende {
+  display: flex;
+  gap: var(--s-2);
+  min-width: 0;
+  color: var(--ink-2);
+}
+
+.numero {
+  flex: none;
+}
+
+/* Desktop : une ligne, la place ne manque pas. */
+.texte {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Cadre de l'image : masque le débordement du zoom d'entrée (scale 1,08) sans changer sa taille. */
+.cadre {
+  overflow: hidden;
+}
+
+/*
+ * Sous 900 px le motif « verticale » se déplie comme les autres : la case prend toute la largeur
+ * et la légende repasse sous l'image, alignée sur la même marge.
+ */
+@media (max-width: 900px) {
+  .item[data-acote] {
+    grid-column: 1 / -1 !important;
+  }
+
+  .aCote {
+    display: flex;
+  }
+
+  /* En colonne, `align-self` joue sur l'horizontale : sans cela la légende partait à droite. */
+  .aCote .legende {
+    align-self: stretch;
+    padding-bottom: 0;
+  }
+
+  /* Deux lignes au plus, sans ellipse sur une seule : la légende se déploie puis s'arrête. */
+  .texte {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    text-overflow: clip;
+  }
+}
+
+@media (max-width: 720px) {
+  .item {
+    grid-column: 1 / -1 !important;
+  }
+
+  .grille {
+    row-gap: var(--s-5);
+  }
+}

@@ -10,6 +10,7 @@ const ACCENTS: Record<string, string> = {
   geodatle: '#38BDF8',
   'portfolio-ia': '#F472B6',
   'task-manager-app': '#FACC15',
+  'la-coupe': '#F87171',
 }
 
 export function getAccent(slug: string): string {
