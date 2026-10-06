@@ -7,6 +7,8 @@ import HeroSection from '@/components/home/hero-section'
 import FeaturedProjects from '@/components/home/featured-projects'
 import AboutSection from '@/components/home/about-section'
 import PanelCounter from '@/components/ui/panel-counter'
+import { initialEdgeGuard, noteEdges, registerDelta } from '@/lib/panel-edge-guard'
+import type { EdgeGuardState, EdgeSnapshot } from '@/lib/panel-edge-guard'
 
 type View = 'hero' | 'projects' | 'about'
 
@@ -23,25 +25,26 @@ interface Props {
   caseStudies: string[]
 }
 
-/** Après l'arrivée en haut de la grille, les gestes vers le haut sont ignorés pendant ce délai (inertie trackpad). */
-const GARDE_HAUT_MS = 400
-/** Puis il faut ce cumul, sur un geste neuf, pour revenir au hero. */
-const CUMUL_RETOUR_PX = 80
-/** Deux événements molette séparés de plus que ça appartiennent à deux gestes. */
-const PAUSE_GESTE_MS = 150
-
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const DURATION = '600ms'
 
 // Butées d'un conteneur à défilement interne (2px de tolérance pour les sous-pixels)
 const atTop = (el: HTMLElement) => el.scrollTop <= 2
 const atBottom = (el: HTMLElement) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2
+const snapshot = (el: HTMLElement): EdgeSnapshot => ({
+  atTop: atTop(el),
+  atBottom: atBottom(el),
+  overflows: el.scrollHeight - el.clientHeight > 1,
+})
+
+type ScrollView = Exclude<View, 'hero'>
 
 export default function ScrollController({ projects, caseStudies }: Props) {
   const [view, setView] = useState<View>('hero')
   const [isLeaving, setIsLeaving] = useState(false)
   const transitioning = useRef(false)
   const touchStartY = useRef(0)
+  const lastTouchY = useRef(0)
   const viewRef = useRef<View>('hero')
   // Les panneaux réalisations et À propos défilent en interne : on ne change
   // de panneau que lorsque leur conteneur est en butée dans le sens demandé.
@@ -52,13 +55,9 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     if (panel === 'about') return aboutScrollRef.current
     return null
   }, [])
-  /*
-   * Retour au hero depuis une grille qui déborde : en plus de la butée haute,
-   * il faut un geste intentionnel (voir `retourVersHero`), pas l'élan du geste
-   * qui a ramené la grille en haut. Quand la grille tient sur un écran, la
-   * butée seule suffit.
-   */
-  const intention = useRef({ arriveeEnHaut: 0, gesteArrivee: -1, geste: 0, dernierWheel: 0, cumul: 0, toucherDepuisHaut: false })
+  // Garde d'intention symétrique par panneau défilant (src/lib/panel-edge-guard.ts) :
+  // molette et swipe ne basculent qu'après un geste franc depuis la butée, pas sur l'inertie.
+  const guards = useRef<Record<ScrollView, EdgeGuardState>>({ projects: initialEdgeGuard, about: initialEdgeGuard })
 
   useEffect(() => { viewRef.current = view }, [view])
 
@@ -70,7 +69,11 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     const forward = ORDER.indexOf(next) > ORDER.indexOf(viewRef.current)
     const show = () => {
       const el = scrollContainer(next)
-      if (el) el.scrollTop = forward ? 0 : el.scrollHeight
+      if (el && next !== 'hero') {
+        el.scrollTop = forward ? 0 : el.scrollHeight
+        // Déjà en butée à l'affichage : l'instant d'arrivée est celui de l'affichage
+        guards.current[next] = noteEdges(initialEdgeGuard, snapshot(el), performance.now())
+      }
       setView(next)
     }
 
@@ -112,73 +115,43 @@ export default function ScrollController({ projects, caseStudies }: Props) {
   }, [goTo])
 
   useEffect(() => {
-    const panneau = projectsScrollRef.current
-    const etat = intention.current
-    const deborde = () => (panneau ? panneau.scrollHeight - panneau.clientHeight > 1 : false)
-    const enHaut = () => (panneau ? atTop(panneau) : true)
-
-    // Arrivée en haut de la grille : on note l'instant et le geste qui nous y a amenés. Appelé au
-    // scroll du panneau mais aussi à chaque molette ou toucher : l'événement `scroll` n'est émis
-    // qu'à la frame suivante, après les événements molette qui trouvent déjà scrollTop à 0.
-    let etaitEnHaut = true
-    const onPanelScroll = () => {
-      const haut = enHaut()
-      if (haut && !etaitEnHaut) {
-        etat.arriveeEnHaut = performance.now()
-        etat.gesteArrivee = etat.geste
-        etat.cumul = 0
-      }
-      etaitEnHaut = haut
+    const panels: ScrollView[] = ['projects', 'about']
+    // Arrivées et départs de butée, au scroll de chaque conteneur
+    const noteEdgesOf = (panel: ScrollView) => {
+      const el = scrollContainer(panel)
+      if (el) guards.current[panel] = noteEdges(guards.current[panel], snapshot(el), performance.now())
     }
+    const scrollHandlers = panels.map((panel) => [panel, () => noteEdgesOf(panel)] as const)
 
-    // Molette vers le haut depuis la grille : la butée haute prime (dans `step`), puis la garde
-    // d'intention s'ajoute quand la grille déborde : pas sur l'élan du geste d'arrivée, et sur un cumul franc.
-    const retourVersHero = (t: number, deltaY: number) => {
-      if (!enHaut()) return
-      if (!deborde()) {
-        step(-1)
+    // Un delta de molette ou de swipe (positif vers le bas) sur le panneau courant
+    const handleDelta = (delta: number, now: number) => {
+      const current = viewRef.current
+      if (current === 'hero') {
+        if (delta > 0) goTo('projects')
         return
       }
-      if (etat.geste === etat.gesteArrivee || t - etat.arriveeEnHaut < GARDE_HAUT_MS) return
-      etat.cumul += -deltaY
-      if (etat.cumul >= CUMUL_RETOUR_PX) {
-        etat.cumul = 0
-        step(-1)
-      }
+      const el = scrollContainer(current)
+      if (!el) return
+      const result = registerDelta(guards.current[current], snapshot(el), delta, now)
+      guards.current[current] = result.state
+      if (result.flip) step(delta > 0 ? 1 : -1)
     }
 
-    const onWheel = (e: WheelEvent) => {
-      const t = performance.now()
-      if (t - etat.dernierWheel > PAUSE_GESTE_MS) {
-        etat.geste++
-        etat.cumul = 0
-      }
-      etat.dernierWheel = t
-      onPanelScroll()
-      if (e.deltaY > 0) step(1)
-      else if (e.deltaY < 0) {
-        if (viewRef.current === 'projects') retourVersHero(t, e.deltaY)
-        else step(-1)
-      }
-    }
+    const onWheel = (e: WheelEvent) => handleDelta(e.deltaY, performance.now())
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY
-      onPanelScroll()
-      // Un toucher est un geste neuf ; il ne compte que s'il part du haut, garde écoulée.
-      etat.toucherDepuisHaut = enHaut() && performance.now() - etat.arriveeEnHaut >= GARDE_HAUT_MS
+      lastTouchY.current = e.touches[0].clientY
     }
 
     const onTouchMove = (e: TouchEvent) => {
-      const delta = touchStartY.current - e.touches[0].clientY
-      if (delta > 30) step(1)
-      else if (delta < -30) {
-        if (viewRef.current === 'projects' && deborde()) {
-          if (etat.toucherDepuisHaut && delta < -CUMUL_RETOUR_PX) step(-1)
-        } else {
-          step(-1)
-        }
+      const y = e.touches[0].clientY
+      if (viewRef.current === 'hero') {
+        if (touchStartY.current - y > 30) goTo('projects')
+        return
       }
+      handleDelta(lastTouchY.current - y, performance.now())
+      lastTouchY.current = y
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -192,16 +165,16 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: true })
     window.addEventListener('keydown', onKeyDown)
-    panneau?.addEventListener('scroll', onPanelScroll, { passive: true })
+    scrollHandlers.forEach(([panel, handler]) => scrollContainer(panel)?.addEventListener('scroll', handler, { passive: true }))
 
     return () => {
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('keydown', onKeyDown)
-      panneau?.removeEventListener('scroll', onPanelScroll)
+      scrollHandlers.forEach(([panel, handler]) => scrollContainer(panel)?.removeEventListener('scroll', handler))
     }
-  }, [step])
+  }, [step, goTo, scrollContainer])
 
   // Accessibilité : la grille n'est focalisable au clavier que si elle défile.
   useEffect(() => {
