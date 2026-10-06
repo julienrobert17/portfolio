@@ -52,7 +52,7 @@ export default function EasterEggs() {
 
     const hide = () => setToastVisible(false)
     const onSelectionChange = () => {
-      const text = document.getSelection()?.toString().trim().toLowerCase()
+      const text = document.getSelection()?.toString().replace(/\s+/g, ' ').trim().toLowerCase()
       if (text !== TARGET) return
       if (!onceInSession(SELECTION_KEY)) return
       setToastVisible(true)
