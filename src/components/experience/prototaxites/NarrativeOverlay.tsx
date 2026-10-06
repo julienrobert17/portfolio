@@ -14,22 +14,30 @@ export default function NarrativeOverlay(props: NarrativeOverlayProps) {
   // des transitions null ↔ non-null, jamais à chaque frame du beat 'zoomout'
   const isGeoActive = geologicalDate !== null
 
-  const [geoRendered, setGeoRendered] = useState(false)
+  const [geoRendered, setGeoRendered] = useState(isGeoActive)
   const [geoVisible,  setGeoVisible]  = useState(false)
-  // Ref pour conserver la dernière valeur pendant le fadeOut
-  const displayedGeoRef = useRef<number>(420)
+  // Dernière valeur affichée, conservée pendant le fadeOut (ajustée pendant le rendu)
+  const [displayedGeo, setDisplayedGeo] = useState(420)
   if (geologicalDate !== null) {
-    displayedGeoRef.current = Math.abs(Math.round(geologicalDate))
+    const value = Math.abs(Math.round(geologicalDate))
+    if (value !== displayedGeo) setDisplayedGeo(value)
+  }
+
+  // Transitions synchrones sur changement de isGeoActive, pendant le rendu :
+  // montage immédiat (opacité 0) à l'activation, début du fadeOut à la désactivation
+  const [prevGeoActive, setPrevGeoActive] = useState(isGeoActive)
+  if (prevGeoActive !== isGeoActive) {
+    setPrevGeoActive(isGeoActive)
+    if (isGeoActive) setGeoRendered(true)
+    else setGeoVisible(false)
   }
 
   useEffect(() => {
     if (isGeoActive) {
-      setGeoRendered(true)
       // Un frame garantit que l'élément est dans le DOM avant la transition
       const frame = requestAnimationFrame(() => setGeoVisible(true))
       return () => cancelAnimationFrame(frame)
     } else {
-      setGeoVisible(false)
       const t = setTimeout(() => setGeoRendered(false), 900)
       return () => clearTimeout(t)
     }
@@ -39,11 +47,16 @@ export default function NarrativeOverlay(props: NarrativeOverlayProps) {
   const [textVisible,        setTextVisible]        = useState(false)
   const [resonanceLineCount, setResonanceLineCount] = useState(0)
 
-  useEffect(() => {
-    // Reset immédiat à chaque changement de beat ou de langue
+  // Reset immédiat à chaque changement de beat ou de langue, pendant le rendu
+  const textKey = `${currentBeatIndex}|${lang}`
+  const [prevTextKey, setPrevTextKey] = useState(textKey)
+  if (prevTextKey !== textKey) {
+    setPrevTextKey(textKey)
     setTextVisible(false)
     setResonanceLineCount(0)
+  }
 
+  useEffect(() => {
     const text = currentBeat.text[lang]
     if (text === null) return
 
@@ -124,7 +137,7 @@ export default function NarrativeOverlay(props: NarrativeOverlayProps) {
             color: 'white',
           }}
         >
-          — {displayedGeoRef.current} Ma —
+          — {displayedGeo} Ma —
         </div>
       )}
 
