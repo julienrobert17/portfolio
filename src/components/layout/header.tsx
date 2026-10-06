@@ -8,6 +8,10 @@ export default function Header() {
   const pathname = usePathname()
   const isDark = pathname === '/' || pathname === '/contact' || pathname.startsWith('/games') || pathname.startsWith('/projects')
   const color = isDark ? '#d0f0d2' : '#171717'
+  // Fond de la page à 85 % : vert forêt sur les routes sombres, sinon le --background du thème
+  const background = isDark
+    ? 'rgba(13,39,30,0.85)'
+    : 'color-mix(in srgb, var(--background) 85%, transparent)'
 
   const linkStyle = {
     color,
@@ -30,8 +34,12 @@ export default function Header() {
       top: 0,
       left: 0,
       right: 0,
-      zIndex: 50,
+      zIndex: 50, // au-dessus du sommaire sticky (sans z-index), sous la barre de progression (60)
       height: '56px',
+      backgroundColor: background,
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
