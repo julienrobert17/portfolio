@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 import type { Lang, Translations } from '@/lib/i18n'
 import { translations } from '@/lib/i18n'
 
@@ -16,22 +16,33 @@ const LangContext = createContext<LangContextValue>({
   t: translations.fr,
 })
 
+// Source externe : localStorage, sinon la langue du navigateur.
+// Rendu serveur en 'fr', puis bascule après hydratation (comme l'ancien effet).
+const STORAGE_KEY = 'geodatle-lang'
+const listeners = new Set<() => void>()
+
+function subscribe(callback: () => void) {
+  listeners.add(callback)
+  return () => { listeners.delete(callback) }
+}
+
+function getSnapshot(): Lang {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === 'fr' || stored === 'en') return stored
+  return navigator.language.startsWith('fr') ? 'fr' : 'en'
+}
+
+function getServerSnapshot(): Lang {
+  return 'fr'
+}
+
+function setLang(l: Lang) {
+  localStorage.setItem(STORAGE_KEY, l)
+  listeners.forEach((callback) => callback())
+}
+
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('fr')
-
-  useEffect(() => {
-    const stored = localStorage.getItem('geodatle-lang') as Lang | null
-    if (stored === 'fr' || stored === 'en') {
-      setLangState(stored)
-    } else {
-      setLangState(navigator.language.startsWith('fr') ? 'fr' : 'en')
-    }
-  }, [])
-
-  function setLang(l: Lang) {
-    setLangState(l)
-    localStorage.setItem('geodatle-lang', l)
-  }
+  const lang = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   return (
     <LangContext.Provider value={{ lang, setLang, t: translations[lang] }}>
