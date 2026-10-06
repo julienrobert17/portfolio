@@ -20,12 +20,13 @@ const HASH_TO_VIEW: Record<string, View> = {
 
 interface Props {
   projects: Project[]
+  caseStudies: string[]
 }
 
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const DURATION = '600ms'
 
-export default function ScrollController({ projects }: Props) {
+export default function ScrollController({ projects, caseStudies }: Props) {
   const [view, setView] = useState<View>('hero')
   const [isLeaving, setIsLeaving] = useState(false)
   const transitioning = useRef(false)
@@ -139,7 +140,7 @@ export default function ScrollController({ projects }: Props) {
         <HeroSection onStart={() => goTo('projects')} isLeaving={isLeaving} />
       </div>
       <div style={panelStyle('projects')}>
-        <FeaturedProjects projects={projects} isActive={view === 'projects'} />
+        <FeaturedProjects projects={projects} isActive={view === 'projects'} caseStudies={caseStudies} />
       </div>
       <div style={{ ...panelStyle('about'), overflow: 'hidden' }}>
         <div ref={aboutScrollRef} style={{ height: '100%', overflowY: 'auto' }}>

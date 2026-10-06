@@ -1,30 +1,77 @@
+import type { CSSProperties } from 'react'
+import { cache } from 'react'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { getFeaturedProjects } from '@/lib/data'
 import { accentStyle } from '@/lib/accents'
+import { getCaseStudy } from '@/lib/case-studies'
 import ScrollProgress from '@/components/ui/scroll-progress'
+import CaseStudy from '@/components/projects/case-study'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
+const getProject = cache(async (slug: string) => prisma.project.findUnique({ where: { slug } }))
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const study = getCaseStudy(slug)
+  if (!study) return {}
+  const project = await getProject(slug)
+  if (!project) return {}
+  return { title: `${project.title} — Étude de cas`, description: study.quote }
+}
+
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params
-  const project = await prisma.project.findUnique({ where: { slug } })
+  const project = await getProject(slug)
 
   if (!project) notFound()
 
+  const study = getCaseStudy(slug)
+
+  // Palette de la home : le header passe en clair sur /projects/*
+  const mainStyle = {
+    ...accentStyle(slug),
+    '--background': '#0d271e',
+    '--foreground': '#d0f0d2',
+    backgroundColor: '#0d271e',
+    color: '#d0f0d2',
+  } as CSSProperties
+
+  const backLink = (
+    <Link
+      href="/#realisations"
+      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+    >
+      ← Projets
+    </Link>
+  )
+
+  if (study) {
+    const featured = await getFeaturedProjects()
+    const index = featured.findIndex((p) => p.slug === slug)
+    const prev = index > 0 ? featured[index - 1] : null
+    const next = index >= 0 && index < featured.length - 1 ? featured[index + 1] : null
+
+    return (
+      <main className="flex-1 w-full max-w-[80rem] mx-auto px-6 py-16" data-project={slug} style={mainStyle}>
+        <ScrollProgress />
+        {backLink}
+        <CaseStudy project={project} study={study} prev={prev} next={next} />
+      </main>
+    )
+  }
+
   return (
-    <main className="max-w-2xl mx-auto px-6 py-16" data-project={slug} style={accentStyle(slug)}>
+    <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-16" data-project={slug} style={mainStyle}>
       <ScrollProgress />
 
       {/* Back */}
-      <Link
-        href="/projects"
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        ← Projets
-      </Link>
+      {backLink}
 
       {/* Title */}
       <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground">

@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Les études de cas sont lues avec fs à la demande : il faut les embarquer
+  // dans la fonction serverless de la page projet.
+  outputFileTracingIncludes: {
+    '/projects/[slug]': ['./content/case-studies/**/*'],
+  },
   env: {
     /*
      * Horodatage de la construction, figé dans le bundle.

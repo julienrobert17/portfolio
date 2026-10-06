@@ -6,7 +6,7 @@ import { GITHUB_URL, LINKEDIN_URL } from '@/lib/links'
 
 export default function Header() {
   const pathname = usePathname()
-  const isDark = pathname === '/' || pathname === '/contact' || pathname.startsWith('/games')
+  const isDark = pathname === '/' || pathname === '/contact' || pathname.startsWith('/games') || pathname.startsWith('/projects')
   const color = isDark ? '#d0f0d2' : '#171717'
 
   const linkStyle = {

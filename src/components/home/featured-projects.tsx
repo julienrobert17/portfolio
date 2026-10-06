@@ -10,9 +10,11 @@ import ProjectCardVideo from '@/components/home/project-card-video'
 interface Props {
   projects: Project[]
   isActive: boolean
+  /** Slugs ayant une étude de cas (content/case-studies). */
+  caseStudies?: string[]
 }
 
-export default function FeaturedProjects({ projects, isActive }: Props) {
+export default function FeaturedProjects({ projects, isActive, caseStudies = [] }: Props) {
   const titleRef  = useRef<HTMLHeadingElement>(null)
   const cardsRef  = useRef<HTMLDivElement>(null)
 
@@ -272,6 +274,20 @@ export default function FeaturedProjects({ projects, isActive }: Props) {
                   >
                     Voir le projet →
                   </Link>
+                  {caseStudies.includes(project.slug) && (
+                    <Link
+                      href={`/projects/${project.slug}`}
+                      style={{
+                        marginLeft: 16,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: 'var(--accent-dim)',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Lire l&apos;étude de cas →
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
