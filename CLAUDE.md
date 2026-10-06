@@ -15,24 +15,25 @@
 - Next 16.2.6 App Router (src/app, pas de pages/), React 19.2, TypeScript strict, alias `@/*` → src/*.
 - Tailwind v4 via `@theme inline` dans globals.css (pas de tailwind.config). CSS modules seulement dans src/components/experience/*.
 - Prisma + PostgreSQL Neon (adapter pg). Modèles : Project, Experience, Salle, Participant, Reponse, Evenement.
-- Animations maison (keyframes CSS, reveal, scroll-controller). 3D : three + @react-three/fiber/drei/postprocessing.
+- Animations maison (keyframes CSS, reveal, scroll-controller). 3D : three + @react-three/fiber/drei/postprocessing. gsap et lenis : utilisés uniquement par La Coupe, ne pas les supprimer.
 - Pas de lib UI, pas de framer-motion, pas de Prettier. ESLint 9 flat config.
 
 ## Arborescence utile
-- src/app/layout.tsx — layout racine unique, metadata globale, polices Geist/Geist_Mono/Plus_Jakarta_Sans, monte CustomCursor, ConditionalHeader, ConditionalFooter, EasterEggs ; src/app/not-found.tsx — 404 (corps client dans src/components/not-found/)
-- src/app/globals.css — variables couleur, @theme, keyframes fadeFlip/slideUp/slideInRight
-- src/app/page.tsx — home ; routes : /contact, /lab, /projects/[slug] (pas d'index /projects), /games/geodatle, /experience/{entre-nous,entre-nous-a-distance,prototaxites,un-moment-hors-du-temps}
-- src/app/api/ — contact, owid, countries, entre-nous/{reponses,flux,action,salle}
-- src/components/layout/ — header, footer, conditional-header/footer (routes immersives via src/lib/routes.ts ; footer aussi masqué sur la home, rendue en compact dans about-section)
-- src/components/home/ — hero-section, scroll-controller (3 panneaux hero/projects/about, hash → panneau), featured-projects, project-card-video, about-section
+- src/app/layout.tsx — layout racine, metadata, polices (preload: false), monte CustomCursor, ConditionalHeader, ConditionalFooter, EasterEggs
+- src/app/page.tsx — home (ScrollController) ; src/app/not-found.tsx — 404
+- src/app/globals.css — @theme Tailwind v4, @property --accent, keyframes, styles cartes / étude de cas / 404
+- src/app/projects/[slug]/page.tsx — fiche projet ; étude de cas si content/case-studies/<slug>.md existe
+- src/app/experience/ — entre-nous, entre-nous-a-distance, prototaxites, un-moment-hors-du-temps, la-coupe (layout propre, sous-routes atelier/contact/projets/[slug], images OG)
+- src/app/games/geodatle/, src/app/contact/, src/app/lab/, src/app/api/ (contact, owid, countries, entre-nous/*)
+- src/components/layout/ — header (fond 85 %), footer (compact sur la home), conditional-header/footer via src/lib/routes.ts
+- src/components/home/ — hero-section, scroll-controller (3 panneaux, hash, clavier, butées + garde d'intention au retour hero), featured-projects, project-card-video, about-section
 - src/components/ui/ — custom-cursor, reveal, typewriter, panel-counter, scroll-progress, easter-eggs
-- src/components/projects/ — case-study, case-study-toc ; contenu dans content/case-studies/<slug>.md lu par src/lib/case-studies.ts (fs, tracé dans next.config.ts)
-- src/components/games/geodatle/ — jeu Geodatle (inline styles dark, pas Tailwind)
-- src/components/experience/ — une expérience par dossier, code nommé en français
-- src/lib/data.ts — requêtes Prisma projets/expériences ; src/lib/prisma.ts — client ; src/lib/i18n.ts — FR/EN
-- src/lib/accents.ts — `--accent` par slug (getAccent/accentStyle, posé sur le <main> des pages projet) ; src/lib/links.ts — URLs GitHub/LinkedIn/repo (placeholders A_REMPLACER)
-- prisma/schema.prisma, prisma/seed.ts — schéma et seed ; scripts/generate-countries.mjs — données pays
-- RAPPORT_GRAPHISME.md — direction artistique
+- src/components/projects/ — case-study, case-study-toc ; src/components/not-found/ — corps du 404
+- src/components/experience/<slug>/ — une expérience par dossier, code en français ; la-coupe/ utilise GSAP, Lenis, R3F, ViewTransition
+- src/components/games/geodatle/ — jeu (inline styles dark, pas Tailwind)
+- src/lib/ — data.ts (Prisma), prisma.ts, i18n.ts, accents.ts (--accent par slug), links.ts (URLs), routes.ts (routes immersives), case-studies.ts (fs)
+- prisma/schema.prisma, prisma/seed.ts — 7 projets dont 6 featured ; scripts/ — generate-countries.mjs, fetch/generate la-coupe (photos, placeholders, tuile)
+- content/case-studies/<slug>.md — études de cas ; public/videos/ — vidéos de cartes ; RAPPORT_GRAPHISME.md — direction artistique
 
 ## Conventions et couleurs
 - Fichiers kebab-case, composants PascalCase, dossiers par feature. Server Components par défaut, 'use client' si nécessaire. Prisma uniquement côté serveur.
