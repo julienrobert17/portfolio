@@ -236,6 +236,13 @@ body {
   animation: panel-counter-in 250ms ease both;
 }
 
+.panel-arrow {
+  transition: color 150ms ease, transform 150ms ease;
+}
+.panel-arrow:hover { color: var(--accent); }
+.panel-arrow-up:hover { transform: translateY(-2px); }
+.panel-arrow-down:hover { transform: translateY(2px); }
+
 @keyframes proto-pulse {
   0%, 100% { opacity: 0.6; }
   50%       { opacity: 1;   }

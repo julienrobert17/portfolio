@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 interface Props {
   /** Index du panneau courant, source de vérité : scroll-controller. */
   index: number
   count: number
+  /** Bascule vers un panneau, par la même transition que la molette. */
   onSelect: (index: number) => void
 }
 
@@ -14,14 +15,26 @@ function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
+const arrowStyle: CSSProperties = {
+  display: 'inline-flex',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  color: 'var(--accent-dim)',
+  lineHeight: 0,
+}
+
 /**
- * Compteur de panneau de la home. Le chiffre est remonté (key) à chaque
- * changement d'index : la classe CSS `panel-counter-num` joue le slide
- * et le fondu, sans state ni effet. Caché sous 1024px.
+ * Compteur de panneau de la home, avec une flèche vers le panneau voisin de
+ * chaque côté. Le chiffre est remonté (key) à chaque changement d'index : la
+ * classe CSS `panel-counter-num` joue le slide et le fondu, sans state ni
+ * effet. Caché sous 1024px.
  */
 export default function PanelCounter({ index, count, onSelect }: Props) {
-  const [open, setOpen] = useState(false)
   const reducedMotion = useReducedMotion()
+  const isFirst = index <= 0
+  const isLast = index >= count - 1
 
   return (
     <div
@@ -33,20 +46,25 @@ export default function PanelCounter({ index, count, onSelect }: Props) {
         transform: 'translateY(-50%)',
         zIndex: 40,
         flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 12,
+        alignItems: 'center',
+        gap: 14,
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-label={`Panneau ${index + 1} sur ${count}, changer de panneau`}
+        className="panel-arrow panel-arrow-up"
+        aria-label="Panneau précédent"
+        onClick={() => onSelect(index - 1)}
+        style={{ ...arrowStyle, visibility: isFirst ? 'hidden' : 'visible' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 10.5L8 5.5L13 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      <span
+        aria-label={`Panneau ${index + 1} sur ${count}`}
         style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
           fontFamily: 'var(--font-geist-mono), monospace',
           fontSize: 11,
           fontWeight: 700,
@@ -65,30 +83,19 @@ export default function PanelCounter({ index, count, onSelect }: Props) {
         </span>
         {' / '}
         {pad(count)}
-      </button>
+      </span>
 
-      {open && (
-        <div role="group" aria-label="Aller au panneau" style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 2 }}>
-          {Array.from({ length: count }, (_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Aller au panneau ${i + 1}`}
-              aria-current={i === index ? 'true' : undefined}
-              onClick={() => { onSelect(i); setOpen(false) }}
-              style={{
-                width: 8,
-                height: 8,
-                padding: 0,
-                borderRadius: '50%',
-                border: '1px solid var(--accent-dim)',
-                backgroundColor: i === index ? 'var(--accent)' : 'transparent',
-                cursor: 'pointer',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <button
+        type="button"
+        className="panel-arrow panel-arrow-down"
+        aria-label="Panneau suivant"
+        onClick={() => onSelect(index + 1)}
+        style={{ ...arrowStyle, visibility: isLast ? 'hidden' : 'visible' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 5.5L8 10.5L13 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
     </div>
   )
 }
