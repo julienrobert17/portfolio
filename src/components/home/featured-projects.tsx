@@ -25,17 +25,9 @@ const FILTERS: { value: ProjectFilter; label: string }[] = [
 
 const subscribeNoop = () => () => {}
 
-// Largeur fixe (CSS --pill-w) : l'indicateur se place par l'index actif, sans mesure
-const PILL_GAP = 8
-
 const pillBase: CSSProperties = {
-  position: 'relative',
-  zIndex: 1,
-  padding: '4px 0',
-  textAlign: 'center',
+  padding: '4px 12px',
   borderRadius: 9999,
-  border: '1px solid color-mix(in oklch, var(--accent) 25%, transparent)',
-  backgroundColor: 'transparent',
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: '0.05em',
@@ -64,7 +56,6 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
   }
 
   const visible = projects.filter((p) => (p.category === 'entreprise') === (filter === 'entreprise'))
-  const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.value === filter))
 
   useEffect(() => {
     const title     = titleRef.current
@@ -119,6 +110,8 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
     // puis le filtre bascule et la cascade reprend
     const wrap = gridWrapRef.current
     if (wrap) wrap.style.minHeight = `${wrap.offsetHeight}px`
+    // Le délai inline de la cascade d'entrée battrait la règle de sortie : on le retire d'abord
+    gridRef.current?.querySelectorAll<HTMLElement>('.project-card').forEach((card) => { card.style.transitionDelay = '' })
     gridRef.current?.classList.add('is-leaving')
     setTimeout(() => {
       quickCascade.current = true
@@ -176,25 +169,10 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
         <div
           role="group"
           aria-label="Filtrer les réalisations"
-          className="scroll-reveal panel-reveal filter-group"
+          className="scroll-reveal panel-reveal"
           onKeyDown={onFilterKeyDown}
-          style={{ position: 'relative', display: 'inline-flex', gap: PILL_GAP, marginBottom: 36 }}
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 36 }}
         >
-          {/* Fond unique sous la pill active, toujours rendu : position dérivée de l'index, largeur en CSS */}
-          <span
-            aria-hidden="true"
-            className="filter-indicator"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              height: '100%',
-              borderRadius: 9999,
-              backgroundColor: 'var(--accent)',
-              pointerEvents: 'none',
-              transform: `translateX(calc(${activeIndex} * (var(--pill-w) + ${PILL_GAP}px)))`,
-            }}
-          />
           {FILTERS.map((f, index) => {
             const active = f.value === filter
             return (
@@ -205,7 +183,13 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
                 className="filter-pill"
                 aria-pressed={active}
                 onClick={() => changeFilter(f.value)}
-                style={{ ...pillBase, color: active ? '#0d271e' : 'var(--accent-dim)' }}
+                style={{
+                  ...pillBase,
+                  // Actif : fond accent et texte sombre ; inactif : fond transparent et texte clair
+                  backgroundColor: active ? 'var(--accent)' : 'transparent',
+                  color: active ? '#0d271e' : 'var(--accent-dim)',
+                  border: `1px solid ${active ? 'var(--accent)' : 'color-mix(in oklch, var(--accent) 25%, transparent)'}`,
+                }}
               >
                 {f.label}
               </button>

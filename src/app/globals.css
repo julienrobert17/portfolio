@@ -94,22 +94,12 @@ body {
   transform: scale(0.98) translateY(6px);
   transition: opacity 180ms ease, transform 180ms ease;
 }
-.filter-group { --pill-w: 120px; }
-@media (max-width: 480px) {
-  .filter-group { --pill-w: 100px; }
-}
-.filter-indicator {
-  width: var(--pill-w);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
 .filter-pill {
-  width: var(--pill-w);
-  transition: color 220ms ease;
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
 }
 @media (prefers-reduced-motion: reduce) {
   .projects-grid-wrap,
   .projects-grid.is-leaving .project-card,
-  .filter-indicator,
   .filter-pill {
     transition: none;
   }
