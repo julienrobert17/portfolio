@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>G2G prototype lecteur</title>
+<!-- Référence de mécaniques uniquement (voir brief.md, annexe). Ce n'est pas du code à reprendre tel quel. -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{--font-mono:ui-monospace,Menlo,Consolas,monospace}
+body{margin:0;background:#d8d3c4;font-family:system-ui,sans-serif;color:#111}
+.page{max-width:760px;margin:0 auto;padding:16px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.an{font-family:Anton,Impact,sans-serif;font-weight:400;letter-spacing:.5px}
+.mk{font-family:'Permanent Marker',cursive}
+.lcdf{font-family:VT323,var(--font-mono)}
+.skin{background:#cfcac0;border:2px solid #111;border-radius:10px;padding:6px 10px 10px;color:#111;position:relative}
+.bv{border:2px solid;border-color:#f6f3ec #85806f #85806f #f6f3ec}
+.mn{background:none;border:0;border-radius:0;color:#111;font-size:13px;font-weight:500;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.mn i{font-size:17px}
+.mn[aria-current="page"]{background:#111;color:#e9ff2e}
+.lcd{background:#0b0c0a;border-radius:8px;padding:8px;color:#e9ff2e}
+.mq{overflow:hidden;white-space:nowrap;background:#000;border:1px solid #2a2b25;padding:2px 0}
+.mq span{display:inline-block;padding-left:100%;animation:mq 16s linear infinite;font-size:20px;line-height:1}
+.mq:hover span,.mq:focus-within span{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-100%)}}
+.pre{background:none;border:0;border-radius:0;color:#6f7330;font-family:VT323,monospace;font-size:18px;padding:0 5px;cursor:pointer}
+.pre[aria-pressed="true"]{background:#e9ff2e;color:#0b0c0a}
+.rb{width:42px;height:42px;border-radius:50%;background:#e8e4da;border:2px solid #111;box-shadow:inset 0 -3px 0 #a19c8e;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#111;padding:0}
+.rb i{font-size:19px}
+.rb.big{width:56px;height:56px;background:#ff4f1a}
+.rb.big i{font-size:24px}
+button:focus-visible{outline:3px solid #ff4f1a;outline-offset:2px}
+.cs{border:0;background:none;padding:0;cursor:pointer;display:block;width:100%}
+.reel{transform-box:fill-box;transform-origin:center}
+.spin .reel{animation:sp var(--rs,1.4s) linear infinite}
+@keyframes sp{to{transform:rotate(-360deg)}}
+.wall{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 16px;padding:18px 6px 8px;min-height:240px}
+.sk{position:absolute;font-family:var(--font-mono);font-size:11px;padding:2px 6px;pointer-events:none}
+.rx{animation:rx .45s steps(5) both}
+@keyframes rx{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0)}}
+.mini .full{display:none!important}
+@media (prefers-reduced-motion:reduce){.mq span{animation:none;padding-left:0}.spin .reel{animation:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="skin" id="skin">
+<span class="sk" style="background:#e9ff2e;right:70px;top:-10px;transform:rotate(6deg);z-index:2">no repress</span>
+<span class="mk" style="position:absolute;left:46%;top:-14px;font-size:15px;color:#ff4f1a;transform:rotate(-7deg);pointer-events:none;z-index:2">g2g</span>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0 6px">
+<span class="an" style="font-size:19px">GROOVE TO GRAVE <span style="color:#ff4f1a">PLAYER</span> <span style="font-family:var(--font-mono);font-size:11px;color:#5e5a4f">logo placeholder</span></span>
+<button class="bv" id="mini" aria-pressed="false" aria-label="Passer en mode mini" style="background:#e8e4da;border-radius:3px;width:26px;height:22px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-arrows-diagonal-minimize-2" aria-hidden="true" style="font-size:14px;color:#111"></i></button>
+</div>
+<nav aria-label="Navigation principale" id="nav" class="bv" style="display:flex;flex-wrap:wrap;gap:2px;background:#e8e4da;border-radius:6px;padding:3px">
+<button class="mn" data-p="sorties" aria-current="page"><i class="ti ti-disc" aria-hidden="true"></i>sorties</button>
+<button class="mn" data-p="artistes"><i class="ti ti-users" aria-hidden="true"></i>artistes</button>
+<button class="mn" data-p="soirees"><i class="ti ti-speakerphone" aria-hidden="true"></i>soirées</button>
+<button class="mn" data-p="label"><i class="ti ti-skull" aria-hidden="true"></i>le label</button>
+<button class="mn" data-p="contact"><i class="ti ti-mail" aria-hidden="true"></i>contact</button>
+</nav>
+<div class="lcd" style="margin-top:8px">
+<div class="mq lcdf" aria-hidden="true"><span id="mqt">GROOVE TO GRAVE RECORDS · PARIS · INSÈRE UNE CASSETTE · DU SILLON À LA TOMBE ···</span></div>
+<div class="full" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;align-items:stretch">
+<div style="flex:1 1 220px;min-width:0">
+<div class="lcdf" style="font-size:16px;color:#9ea33a">12″ VINYLE · FACE A <span id="eqn" style="color:#ff4f1a"></span></div>
+<canvas id="sp" height="58" style="display:block;width:100%;height:58px" aria-hidden="true"></canvas>
+</div>
+<div class="lcdf" style="display:flex;gap:14px;align-items:flex-end">
+<div><div style="font-size:15px;color:#9ea33a">SORTIES</div><div style="font-size:34px;line-height:.9" id="ct">04</div></div>
+<div><div style="font-size:15px;color:#9ea33a">PISTE</div><div style="font-size:34px;line-height:.9" id="cc">--</div></div>
+<div><div style="font-size:15px;color:#9ea33a">TEMPS</div><div style="font-size:34px;line-height:.9;color:#ff4f1a" id="tm">00:00</div></div>
+</div>
+</div>
+<div class="full" id="pres" role="group" aria-label="Presets d'égaliseur et filtre du catalogue" style="display:flex;flex-wrap:wrap;gap:2px;margin-top:6px;border-top:1px solid #2a2b25;padding-top:5px">
+<button class="pre" data-q="tout" aria-pressed="true">TOUT</button><button class="pre" data-q="house" aria-pressed="false">HOUSE</button><button class="pre" data-q="break" aria-pressed="false">BREAK</button><button class="pre" data-q="minimal" aria-pressed="false">MINIMAL</button><button class="pre" data-q="electro" aria-pressed="false">ELECTRO</button>
+</div>
+</div>
+<div class="full" style="margin-top:9px;height:8px;background:#e8e4da;border:1.5px solid #111;border-radius:4px;overflow:hidden" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pg"><div id="pgb" style="height:100%;width:0;background:#ff4f1a"></div></div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap">
+<button class="rb" id="prev" aria-label="Sortie précédente"><i class="ti ti-player-skip-back" aria-hidden="true"></i></button>
+<button class="rb" id="stop" aria-label="Stop"><i class="ti ti-player-stop" aria-hidden="true"></i></button>
+<button class="rb big" id="play" aria-label="Lecture"><i class="ti ti-player-play" aria-hidden="true" id="pi"></i></button>
+<button class="rb" id="next" aria-label="Sortie suivante"><i class="ti ti-player-skip-forward" aria-hidden="true"></i></button>
+<label style="display:flex;align-items:center;gap:6px;margin-left:auto;font-size:12px"><i class="ti ti-volume" aria-hidden="true" style="font-size:18px"></i><span class="sr-only">Volume</span><input type="range" id="vol" min="0" max="100" step="1" value="70" style="width:110px"></label>
+</div>
+</div>
+<div id="panel" class="wall"></div>
+<div style="padding:4px 6px 2px;font-family:var(--font-mono);font-size:11px;color:#55524a">— fin de bande —</div>
+<div class="sr-only" aria-live="polite" id="live"></div>
+</div>
+<script>
+// Données de la maquette. Genres déduits (non vérifiés). Boucles synthétiques provisoires, sans lien avec les vrais morceaux.
+const R=[
+{id:'g05',a:"Merov'",t:'Interdimensional Groove',c:'GTGR05',p:'A1 UFO CATCHER',g:['house','electro'],bpm:124,k:[0,4,8,12],b:{2:55,3:55,6:65.41,7:55,10:49,11:55,14:82.41},sh:'#ff4f1a',lb:'#f4efe2',bd:'#111',r:-3,tag:'no repress'},
+{id:'g04',a:'Emi Ömar',t:'Homo Musicus',c:'GTGR04',p:'A1 CHUT HELLO',g:['electro','house'],bpm:128,k:[0,4,8,12],b:{0:41.2,3:41.2,6:82.4,8:41.2,11:61.74,14:55},sh:'#e9ff2e',lb:'#f4efe2',bd:'#ff4f1a',r:2},
+{id:'g03',a:'Kitchen Plug',t:'Cerberus',c:'GTGR03',p:'CERBERUS EP',g:['break'],bpm:132,k:[0,6,10,13],b:{0:36.71,2:36.71,5:73.42,7:36.71,10:55,12:36.71,13:43.65},sh:'#1c1c1a',lb:'#e9ff2e',bd:'#111',r:-1},
+{id:'g02',a:'Azbine',t:'Spacy Taste',c:'GTGR02',p:'A1 IF THIS WALL COULD TALK',g:['minimal','house'],bpm:122,k:[0,4,8,12],b:{3:49,7:49,11:58.27,15:49},sh:'#b9c2c4',lb:'#f4efe2',bd:'#e9ff2e',r:4,tag:'sold out'}];
+// Presets : [graves dB, médiums dB, aigus dB, passe-haut Hz]
+const EQ={tout:[0,0,0,20],house:[7,-1,-1,20],break:[2,6,2,20],minimal:[-6,-2,4,180],electro:[3,-4,7,20]};
+function tape(o,btn){const lt=o.bd==='#111'?'#f4efe2':'#111';const s=`<svg viewBox="0 0 200 128" width="100%" aria-hidden="true"><rect x="2" y="2" width="196" height="124" rx="8" fill="${o.sh}" stroke="#111" stroke-width="2"/><circle cx="11" cy="11" r="2.5" fill="#111"/><circle cx="189" cy="11" r="2.5" fill="#111"/><circle cx="11" cy="117" r="2.5" fill="#111"/><circle cx="189" cy="117" r="2.5" fill="#111"/><rect x="16" y="10" width="168" height="68" rx="3" fill="${o.lb}"/><rect x="16" y="10" width="168" height="13" fill="${o.bd}"/><text x="22" y="20.5" font-family="Anton,Impact,sans-serif" font-size="10" fill="${lt}">${o.c}</text><text x="178" y="20.5" text-anchor="end" font-family="Anton,Impact,sans-serif" font-size="10" fill="${lt}">A</text><text x="22" y="38" font-family="'Permanent Marker',cursive" font-size="14" fill="#111">${o.l1}</text><text x="22" y="51" font-family="'Permanent Marker',cursive" font-size="10.5" fill="#111">${o.l2}</text><rect x="52" y="56" width="96" height="18" rx="9" fill="#2b2b28"/><g class="reel"><circle cx="72" cy="65" r="7" fill="#e8e4d6"/><path d="M72 58.5v13M66.4 61.8l11.2 6.4M66.4 68.2l11.2-6.4" stroke="#2b2b28" stroke-width="1.6"/></g><g class="reel"><circle cx="128" cy="65" r="7" fill="#e8e4d6"/><path d="M128 58.5v13M122.4 61.8l11.2 6.4M122.4 68.2l11.2-6.4" stroke="#2b2b28" stroke-width="1.6"/></g><polygon points="42,126 54,96 146,96 158,126" fill="${o.sh}" stroke="#111" stroke-width="1.5"/><circle cx="72" cy="112" r="4" fill="#111"/><circle cx="128" cy="112" r="4" fill="#111"/></svg>`;
+return `<div style="position:relative;transform:rotate(${o.r}deg)" ${o.g?`data-g="${o.g.join(' ')}"`:''}>${btn?`<button class="cs" data-r="${o.id}" aria-pressed="false" aria-label="Écouter ${o.c}, ${o.a}, ${o.t}">${s}</button>`:s}${o.tag?`<span class="sk" style="background:${o.tag==='sold out'?'#ff4f1a':'#e9ff2e'};right:-6px;top:-8px;transform:rotate(8deg)">${o.tag}</span>`:''}</div>`}
+const txt=h=>`<div style="grid-column:1/-1;padding:4px 0">${h}</div>`;
+const P={
+sorties:()=>R.map(r=>tape({...r,l1:r.a,l2:r.t},true)).join(''),
+artistes:()=>txt(R.map((r,i)=>`<div class="an" style="display:inline-block;font-size:${[40,34,44,36][i]}px;line-height:1;padding:6px 10px;margin:6px;background:${['#111','#ff4f1a','#e9ff2e','#f4efe2'][i]};color:${i?'#111':'#d8d3c4'};transform:rotate(${[-3,2,-1,4][i]}deg)">${r.a.toUpperCase()}</div>`).join('')),
+soirees:()=>tape({sh:'#f4efe2',lb:'#e9ff2e',bd:'#111',r:-2,c:'9 JANV 2026',l1:'Extended',l2:'42 Marches · 23h-6h',tag:'passé'})+tape({sh:'#1c1c1a',lb:'#f4efe2',bd:'#ff4f1a',r:3,c:'19 DÉC 2025',l1:'Midnight Express',l2:'Le Wagon Bleu',tag:'passé'})+txt(`<div class="mk" style="font-size:18px;color:#ff4f1a;transform:rotate(-2deg);display:inline-block">aucune date annoncée · reste branché</div>`),
+label:()=>txt(`<div class="an" style="font-size:40px;line-height:1.05">TROIS DIGGERS.<br><span style="color:#ff4f1a">ZÉRO COMPROMIS.</span></div><div class="mk" style="font-size:20px;transform:rotate(-2deg);display:inline-block;margin:10px 0">du sillon à la tombe</div><div style="font-size:13px">Julius, LukasDarian, Gregs. Paris, depuis 2022.</div><div style="font-family:var(--font-mono);font-size:11px;color:#55524a;margin-top:8px">textes placeholder dans le ton du label</div>`),
+contact:()=>txt(`<div class="an" style="font-size:40px;line-height:1">ENVOIE TA TAPE.</div><div style="font-size:13px;margin-top:8px">Contact, démos, newsletter.</div>`)};
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=id=>document.getElementById(id),panel=$('panel');
+let ctx,an,data,master,mus,nb,eq=[],playing=false,cur=null,t0=0,el=0,filt='tout',page='sorties',step=0,nt=0,ffT=0;
+function render(a){panel.innerHTML=P[page]();applyFilter();panel.classList.remove('rx');if(a&&!RM){void panel.offsetWidth;panel.classList.add('rx')}mark()}
+function applyFilter(){panel.querySelectorAll('[data-g]').forEach(d=>d.style.display=(filt==='tout'||d.dataset.g.includes(filt))?'':'none')}
+function mark(){panel.querySelectorAll('.cs').forEach(b=>{const on=playing&&cur&&b.dataset.r===cur.id;b.setAttribute('aria-pressed',on);b.classList.toggle('spin',on);if(cur)b.style.setProperty('--rs',(60/cur.bpm*3).toFixed(2)+'s')})}
+function init(){ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=0.42;an=ctx.createAnalyser();an.fftSize=256;data=new Uint8Array(an.frequencyBinCount);master.connect(an);an.connect(ctx.destination);
+const mk=(type,f)=>{const x=ctx.createBiquadFilter();x.type=type;x.frequency.value=f;return x};eq=[mk('lowshelf',110),mk('peaking',1200),mk('highshelf',6000),mk('highpass',20)];for(let i=0;i<3;i++)eq[i].connect(eq[i+1]);
+mus=ctx.createGain();mus.gain.value=0;eq[3].connect(mus);mus.connect(master);
+const b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;nb=b;
+const hs=ctx.createBufferSource();hs.buffer=nb;hs.loop=true;const hp=mk('highpass',5000);const hg=ctx.createGain();hg.gain.value=0.025;hs.connect(hp);hp.connect(hg);hg.connect(mus);hs.start();
+setEQ();setInterval(sched,25)}
+function setEQ(){if(!ctx)return;const v=EQ[filt],t=ctx.currentTime;for(let i=0;i<3;i++)eq[i].gain.setTargetAtTime(v[i],t,0.08);eq[3].frequency.setTargetAtTime(v[3],t,0.08)}
+function env(t,a,d){const g=ctx.createGain();g.gain.setValueAtTime(a,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);return g}
+// Son d'interface : « clac » (insertion, lecture, pause, stop)
+function clunk(t){const o=ctx.createOscillator(),a=env(t,0.5,0.07);o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(50,t+0.06);o.connect(a);a.connect(master);o.start(t);o.stop(t+0.08);const s=ctx.createBufferSource();s.buffer=nb;const h=ctx.createBiquadFilter();h.type='bandpass';h.frequency.value=1800;const c=env(t,0.4,0.025);s.connect(h);h.connect(c);c.connect(master);s.start(t);s.stop(t+0.03)}
+// Son d'interface : avance rapide (changement de page), musique abaissée puis remontée
+function ff(t){const o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(2600,t+0.38);const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=1500;f.Q.value=2;const a=ctx.createGain();a.gain.setValueAtTime(0,t);a.gain.linearRampToValueAtTime(0.06,t+0.05);a.gain.linearRampToValueAtTime(0,t+0.4);o.connect(f);f.connect(a);a.connect(master);o.start(t);o.stop(t+0.42);const s=ctx.createBufferSource();s.buffer=nb;const n=env(t,0.12,0.4);s.connect(n);n.connect(master);s.start(t);s.stop(t+0.42);clunk(t+0.42);mus.gain.setValueAtTime(playing?1:0,t);if(playing){mus.gain.linearRampToValueAtTime(0.25,t+0.05);mus.gain.linearRampToValueAtTime(1,t+0.45)}}
+// Pleurage au démarrage de bande
+function wob(t){const r=Math.min(1,(t-t0)/0.5);return -500*(1-r)*(1-r)}
+function kick(t){const o=ctx.createOscillator(),a=env(t,0.9,0.32);o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+0.12);o.detune.value=wob(t);o.connect(a);a.connect(eq[0]);o.start(t);o.stop(t+0.33)}
+function hat(t,v){const s=ctx.createBufferSource();s.buffer=nb;const h=ctx.createBiquadFilter();h.type='highpass';h.frequency.value=7000;const a=env(t,v,0.05);s.connect(h);h.connect(a);a.connect(eq[0]);s.start(t,Math.random());s.stop(t+0.06)}
+function bas(t,f){const o=ctx.createOscillator(),l=ctx.createBiquadFilter(),a=env(t,0.32,0.2);o.type='sawtooth';o.frequency.value=f;o.detune.value=wob(t)+Math.sin(t*5)*6;l.type='lowpass';l.Q.value=9;l.frequency.setValueAtTime(320,t);l.frequency.exponentialRampToValueAtTime(1100,t+0.04);l.frequency.exponentialRampToValueAtTime(260,t+0.18);o.connect(l);l.connect(a);a.connect(eq[0]);o.start(t);o.stop(t+0.21)}
+function sched(){if(!cur)return;const sx=60/cur.bpm/4;while(nt<ctx.currentTime+0.12){const s=step%16;if(playing){if(cur.k.includes(s))kick(nt);if(s%4===2)hat(nt,0.22);else if(s%2===1)hat(nt,0.06);if(cur.b[s])bas(nt,cur.b[s])}nt+=sx;step++}}
+function ui(){$('pi').className='ti '+(playing?'ti-player-pause':'ti-player-play');$('play').setAttribute('aria-label',playing?'Pause':'Lecture');$('cc').textContent=cur?cur.c.slice(-2):'--';
+const m=cur?`${playing?'▶':'Ⅱ'} ${cur.c} · ${cur.a.toUpperCase()} · ${cur.p} · 12″ VINYLE ÉDITION LIMITÉE · DISPO SUR BANDCAMP · GROOVE TO GRAVE RECORDS · PARIS ···`:'GROOVE TO GRAVE RECORDS · PARIS · INSÈRE UNE CASSETTE · DU SILLON À LA TOMBE ···';
+const s=$('mqt');if(s.textContent!==m){s.textContent=m}s.style.animationDuration=(cur?(60/cur.bpm*40):16).toFixed(1)+'s';
+$('live').textContent=cur?(playing?`Lecture : ${cur.c}, ${cur.a}`:`Pause : ${cur.c}`):'';mark()}
+function load(r,go){if(!ctx){init()}ctx.resume();const t=ctx.currentTime;clunk(t);cur=r;el=0;t0=t+0.12;step=0;nt=t+0.12;playing=go;mus.gain.cancelScheduledValues(t);mus.gain.setValueAtTime(0,t);if(go)mus.gain.linearRampToValueAtTime(1,t+0.5);ui()}
+function toggle(){if(!cur){load(vis()[0]||R[0],true);return}const t=ctx.currentTime;clunk(t);playing=!playing;if(playing){t0=t+0.05;nt=t+0.05}mus.gain.setTargetAtTime(playing?1:0,t,0.04);ui()}
+function vis(){return R.filter(r=>filt==='tout'||r.g.includes(filt))}
+function skip(d){const v=vis();if(!v.length)return;let i=cur?v.findIndex(r=>r.id===cur.id):-1;i=(i+d+v.length)%v.length;load(v[i],true)}
+panel.addEventListener('click',e=>{const b=e.target.closest('.cs');if(!b)return;const r=R.find(x=>x.id===b.dataset.r);if(cur&&cur.id===r.id&&ctx)toggle();else load(r,true)});
+$('play').addEventListener('click',toggle);
+$('stop').addEventListener('click',()=>{if(!ctx||!cur)return;clunk(ctx.currentTime);playing=false;el=0;mus.gain.setTargetAtTime(0,ctx.currentTime,0.03);ui()});
+$('prev').addEventListener('click',()=>skip(-1));$('next').addEventListener('click',()=>skip(1));
+$('vol').addEventListener('input',e=>{if(master)master.gain.setTargetAtTime(e.target.value/100*0.6,ctx.currentTime,0.03)});
+$('pres').addEventListener('click',e=>{const b=e.target.closest('.pre');if(!b)return;filt=b.dataset.q;document.querySelectorAll('.pre').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));$('eqn').textContent=filt==='tout'?'':'· EQ '+filt.toUpperCase();$('ct').textContent=String(vis().length).padStart(2,'0');setEQ();applyFilter()});
+$('nav').addEventListener('click',e=>{const b=e.target.closest('.mn');if(!b||b.dataset.p===page)return;document.querySelectorAll('.mn').forEach(x=>{if(x===b)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});page=b.dataset.p;ffT=performance.now();if(ctx)ff(ctx.currentTime);render(true)});
+$('mini').addEventListener('click',e=>{const m=$('skin').classList.toggle('mini');e.currentTarget.setAttribute('aria-pressed',m);e.currentTarget.setAttribute('aria-label',m?'Agrandir le lecteur':'Passer en mode mini');e.currentTarget.firstElementChild.className='ti '+(m?'ti-arrows-diagonal':'ti-arrows-diagonal-minimize-2')});
+const cv=$('sp'),g=cv.getContext('2d');let last=performance.now();
+function draw(now){const dt=(now-last)/1000;last=now;if(playing)el+=dt;$('tm').textContent=String(Math.floor(el/60)).padStart(2,'0')+':'+String(Math.floor(el%60)).padStart(2,'0');const pc=Math.min(100,el/469*100);$('pgb').style.width=pc+'%';$('pg').setAttribute('aria-valuenow',Math.round(pc));
+if(cv.clientWidth&&cv.width!==cv.clientWidth)cv.width=cv.clientWidth;const w=cv.width,h=cv.height;g.fillStyle='#0b0c0a';g.fillRect(0,0,w,h);const n=32,bw=w/n,ffing=now-ffT<420;if(an)an.getByteFrequencyData(data);
+for(let i=0;i<n;i++){let v=an?(data[Math.floor(i*2.2)]||0)/255:0;if(ffing)v=Math.max(v,Math.random());const segs=Math.round(v*9);for(let s=0;s<9;s++){g.fillStyle=s<segs?(s>6?'#ff4f1a':'#e9ff2e'):'#1d1f14';g.fillRect(Math.floor(i*bw)+1,h-(s+1)*6.3,Math.ceil(bw)-3,4.5)}}requestAnimationFrame(draw)}
+render(false);requestAnimationFrame(draw);
+</script>
+</body>
+</html>

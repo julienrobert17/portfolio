@@ -1,0 +1,404 @@
+# Groove To Grave Records — brief de conception
+
+> Expérience portfolio `groove-to-grave` · brief v1 · 8 octobre 2026
+> Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
+
+Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+---
+
+## 1. Concept
+
+**Un lecteur des années 2000, couvert de stickers, dans lequel on insère les sorties du label comme des cassettes.**
+
+Le site est un mur d'affichage sauvage parisien : affiches collées, scotch, marqueur, stickers, désordre volontaire. Par-dessus, collé en haut de l'écran, un lecteur audio au skin chromé imprimé à plat, à la manière des lecteurs PC du début des années 2000. Chaque sortie, chaque compilation et chaque soirée est une cassette étiquetée à la main. On la glisse dans le lecteur, elle claque, la bande démarre, et tout le site se met à bouger au rythme du morceau : la bande défilante du header, les bobines, l'afficheur, le mur.
+
+Le lecteur n'est pas un widget ajouté au site, **il est le site** :
+
+- son menu à icônes est la navigation ;
+- sa bande défilante est le header ;
+- ses presets d'égaliseur filtrent le catalogue **et** colorent le son ;
+- ses compteurs donnent l'état du catalogue et de l'écoute ;
+- changer de page, c'est une avance rapide de la bande, et la musique ne s'arrête jamais.
+
+Le nom du label est raconté par la structure de chaque page : le *groove* en haut, là où la bande commence, et le *grave* en bas, avec la « fin de bande ».
+
+Pourquoi cette direction :
+
+- le son devient le moteur visuel du site, pas un lecteur posé dans un coin ;
+- le ton du label (jeune, autodérisoire, diggers, culture club) passe dans l'objet plutôt que dans un décor ;
+- aucun site de label primé ne ressemble à ça ;
+- c'est l'opposé exact de « La Coupe », donc méconnaissable à côté.
+
+Pistes écartées pendant la conception, à ne pas réintroduire : univers nautique et pirate, radio FM et fréquences, sillon de vinyle comme structure de navigation, plongée abyssale.
+
+---
+
+## 2. Identité
+
+### 2.1 Ce qui est réel et utilisé tel quel
+
+**Le label.** Groove To Grave Records, label et collectif basé à Paris, actif depuis 2022. Il est tenu par Julius (Jules Fritsch, A&R, qui jouait aussi sous le nom J. Fuego), LukasDarian (visuels, flyers, artwork des compilations) et Gregs (mastering des compilations, résident). Il signe des artistes émergents et presse des vinyles 12″ en édition limitée. Le son : house en fer de lance, breakbeat, minimal et électro, synthés « stellaires » et basslines grasses.
+
+**L'écriture du nom.** On écrit « Groove To Grave » en titrage, « G2G » dans le registre familier, et « GTGR » uniquement pour les références de catalogue.
+
+**Le ton verbal**, relevé sur leurs textes publics :
+
+- autodérision : Kitchen Plug y est présenté comme « 3 silly boys » qui visent un résultat « brainless », et Azbine revendique une touche « retro has-been » ;
+- argot de club et jeux de mots (« une pluie de skeuds affûtés, alors sortez couvert ») ;
+- imaginaire spatial dans les textes de sortie (« vaisseau », « galaxie », « planètes funk, groove et électro ») ;
+- textes de sortie en anglais pour les disquaires internationaux, textes de soirée en français avec beaucoup d'emojis.
+
+Le site écrit en français, dans ce ton. Tout texte inventé par nous est marqué `draft: true` dans `content/` et doit être validé par le label.
+
+**Les crédits visuels.** Les pochettes des vinyles sont de **JeunePenard** (GTGR02, 03 et 05 ; GTGR04 reste à vérifier). Les flyers et les compilations Summer Hits sont de **LukasDarian**. Ces œuvres sont affichées **intactes**, toujours créditées, jamais recadrées au point d'être dénaturées, jamais filtrées ni déformées. Le désordre du site s'applique autour d'elles, jamais sur elles.
+
+**Formats récurrents :**
+
+- vinyle 12″ de quatre titres (A1, A2, B1, B2), pressage limité, souvent sans repress ;
+- compilation numérique chaque été (Summer Hits) ;
+- soirées en péniche, en club (42 Marches) et en open air ;
+- distribution par Subwax, présence chez des disquaires spécialisés DJ (Redeye, deejay.de, Yoyaku).
+
+### 2.2 Ce qui n'a pas encore été vu
+
+Le logo, la palette réelle, les typographies réelles, le style exact de JeunePenard et de LukasDarian, l'Instagram (environ 1 070 abonnés et 30 publications lors de l'indexation).
+
+Le site est donc construit sur des **tokens marqués `PLACEHOLDER`**, regroupés dans un seul fichier. La phase 1 produit une **planche « relevé DA »** qui réunit toutes les pochettes et tous les flyers récupérés. Le directeur artistique fait alors la passe d'identité : logo, palette, typographies. Les tokens sont remplacés à ce moment-là, et nulle part ailleurs.
+
+Une règle s'applique dès maintenant et survivra au remplacement des tokens : **les couleurs de chaque cassette sont extraites de la pochette réelle de sa sortie** (couleur dominante pour la coque, couleur d'accent pour la bande de l'étiquette). Le site prolonge leur DA mécaniquement, sortie par sortie.
+
+---
+
+## 3. Système de design
+
+### 3.1 Couleurs — PLACEHOLDER
+
+Fichier unique : `src/components/experience/groove-to-grave/tokens.ts`, exposé en variables CSS.
+
+| Token | Valeur | Usage |
+|---|---|---|
+| `wall` | `#d8d3c4` | fond du mur (papier d'affichage) |
+| `ink` | `#111111` | texte, traits, contours |
+| `poster` | `#f4efe2` | affiches, étiquettes de cassette |
+| `safety` | `#ff4f1a` | accent principal (orange de sécurité) |
+| `fluo` | `#e9ff2e` | accent secondaire, segments allumés de l'afficheur |
+| `chrome` | `#cfcac0` | corps du lecteur |
+| `chromeLight` | `#e8e4da` | boutons, barres |
+| `bevelHi` / `bevelLo` | `#f6f3ec` / `#85806f` | relief à plat (bordures claires et sombres) |
+| `lcd` | `#0b0c0a` | fond de l'afficheur |
+| `lcdOff` / `lcdDim` | `#1d1f14` / `#9ea33a` | segments éteints, libellés de l'afficheur |
+
+Règles de contraste, vérifiées au token près :
+
+- Le texte posé sur `wall` ou `poster` est toujours en `ink`.
+- `safety` n'est jamais une couleur de texte sur fond clair : son contraste avec `wall` est d'environ 2,1:1, ce qui échoue. En revanche, `ink` sur fond `safety` passe (environ 6:1), tout comme `safety` et `fluo` sur `ink` ou `lcd`.
+- Chaque paire texte/fond utilisée est listée dans `tokens.ts`, et un test vérifie qu'elle atteint 4,5:1 (3:1 pour le texte de 24 px et plus et pour les éléments d'interface).
+
+### 3.2 Typographies — PLACEHOLDER
+
+Trois familles, auto-hébergées via `next/font`, sous-ensemble latin, `font-display: swap`. Seule la première est préchargée.
+
+1. **Archivo**, variable en largeur et en graisse. En largeur condensée et graisse 800 à 900, elle sert au titrage affiche (noms d'artistes, références, gros titres). En largeur normale et graisse 400 à 500, elle sert au texte courant. Chiffres tabulaires pour toutes les métadonnées.
+2. **Permanent Marker**, réservée à l'écriture « à la main » : étiquettes de cassette, annotations, stickers. Jamais plus de 6 mots, jamais pour une information qui n'existe pas aussi en texte normal (nom accessible, attribut `aria-label` ou texte voisin).
+3. **VT323**, réservée à l'afficheur du lecteur et à rien d'autre.
+
+### 3.3 Le désordre volontaire, et ses règles
+
+Le désordre est un calque visuel posé sur une structure parfaitement ordonnée :
+
+- **Rotations** entre −4° et +4°, calculées par un aléa déterministe à partir de l'identifiant de l'élément, jamais `Math.random()` au rendu (pour ne pas casser l'hydratation). Les blocs de texte de plus de deux lignes ne sont jamais tournés.
+- **Stickers** : au maximum un par carte. Ils ne recouvrent jamais un texte et ne sont jamais le seul porteur d'une information (« sold out » et « no repress » sont aussi des statuts dans les données et dans le texte accessible).
+- **Chevauchements** de 12 px au maximum entre cartes, jamais sur une zone cliquable voisine.
+- **Ordre du DOM = ordre de lecture visuel**, de haut en bas et de gauche à droite.
+- **Scotch, traces de colle, papier déchiré** : uniquement en décor (CSS ou WebGL), `aria-hidden`.
+- Sur mobile, le mur devient une pile : rotations divisées par deux, pas de chevauchement.
+
+### 3.4 La cassette (composant central)
+
+- SVG en ligne (`aria-hidden`), proportions de la maquette.
+- Coque, étiquette et bande de l'étiquette colorées depuis la pochette.
+- Référence en titrage dans la bande, artiste et titre au marqueur sur l'étiquette.
+- **Deux cibles distinctes** : la cassette elle-même est un lien vers la page de la sortie (fonctionne sans JavaScript), et un bouton rond « écouter » posé dessus lance la lecture (rendu seulement si JavaScript est actif).
+- Les bobines tournent uniquement quand cette cassette joue, à une vitesse liée au BPM de l'extrait, et s'arrêtent en mouvement réduit.
+- Variantes :
+  - **sortie vinyle**, avec mention « 12″ vinyle » visible à côté de la cassette : on vend des disques, la cassette est l'objet d'écoute ;
+  - **compilation**, en mixtape avec liste des titres écrite à la main au dos ;
+  - **soirée**, avec date dans la bande, lieu et horaires sur l'étiquette, sans bouton écouter ;
+  - **vierge**, pour la page contact (« envoie ta tape »).
+
+### 3.5 Le lecteur (skin)
+
+- Chrome **à plat** : relief obtenu par bordures claires et sombres, sans dégradé ni ombre portée, sans rendu photoréaliste. Deux ou trois stickers et une signature au marqueur collés dessus.
+- **Barre de titre** : logo (placeholder) et un bouton fonctionnel de passage en mode mini.
+- **Barre de menu** : la navigation principale (voir §4).
+- **Afficheur** :
+  - la bande défilante en VT323 ;
+  - le spectre en segments, 32 colonnes de 9 segments, en DOM (colonnes `scaleY` avec masque à segments), pas de second canvas ;
+  - les compteurs SORTIES (nombre de sorties dans le filtre courant), PISTE et TEMPS (temps écoulé, durée réelle de l'extrait) ;
+  - la ligne des presets HOUSE, BREAK, MINIMAL, ELECTRO et TOUT.
+- **Fenêtre cassette** : un emplacement dans le skin où la cassette chargée apparaît, bobines visibles.
+- **Barre de progression** (cliquable pour se déplacer dans l'extrait) et **transport** : précédent, stop, lecture et pause, suivant, volume.
+
+### 3.6 Mouvement
+
+- Une seule horloge : le ticker GSAP partagé du repo. Lenis sur le document, comme dans la-coupe.
+- Arrivée des éléments du mur au défilement : un « collage » court (échelle 1,06 vers 1, rotation qui se pose, 220 ms), une seule fois par élément, sans effet de parallaxe.
+- **Tout ce qui bouge en continu bouge parce que la bande tourne.** La bande défilante, les bobines, le spectre et la respiration du mur sont arrêtés quand rien ne joue. C'est un choix de concept (la bande ne défile que quand elle tourne) et la réponse au critère WCAG 2.2.2 : l'utilisateur contrôle le mouvement par la lecture.
+- En mouvement réduit : bande défilante statique (texte tronqué avec points de suspension, texte complet dans l'attribut `title` et dans la région annoncée aux lecteurs d'écran), pas de rotation des bobines, transitions en fondu simple de 150 ms, mur figé.
+
+### 3.7 Design sonore
+
+Aucun son avant un geste de l'utilisateur, jamais d'autoplay. L'`AudioContext` est créé au premier clic sur un contrôle audio.
+
+| Événement | Son | Niveau |
+|---|---|---|
+| Insertion ou lecture | « clac » mécanique, puis démarrage de bande légèrement pleurard (environ 0,5 s) | −14 dB |
+| Pause ou stop | « clac » | −14 dB |
+| Changement de page | avance rapide (sifflement de bande qui monte, souffle) puis « clac », musique abaissée puis remontée, jamais coupée | −16 dB |
+| Retour au début (fin de bande) | rembobinage | −16 dB |
+| Lecture | souffle de bande très léger mêlé à l'extrait | −34 dB |
+
+- Pas de son au survol, pas de son sur les boutons de preset.
+- Les sons d'interface sont synthétisés en Web Audio (poids nul) à partir de la maquette, puis réglés à l'oreille.
+- Réglages persistés en `localStorage` (encadré par try/catch) : volume général, coupure générale, coupure des sons d'interface seuls.
+- **Media Session API** : titre, artiste, pochette et actions précédent, lecture, pause, suivant, pour l'écran verrouillé du téléphone et les touches média.
+
+---
+
+## 4. Architecture des pages
+
+Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` de ce segment, ce qui le garde persistant entre toutes les pages de l'expérience.
+
+| Page | Chemin | Contenu |
+|---|---|---|
+| Accueil | `/` | Bande défilante d'accueil. Grande cassette de la dernière sortie (GTGR05) avec texte de sortie et liens. Mur de toutes les cassettes. Bloc soirées (prochaine date ou état vide). Phrase du label. Newsletter. Fin de bande. |
+| Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. Vinyles d'abord, compilations ensuite. |
+| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format. Faces A et B avec durées. Bouton écouter. Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
+| Artistes | `/artistes` | Les noms en typographie d'affiche collée, un par affiche. |
+| Artiste | `/artistes/[slug]` | Nom, ville, présentation factuelle tirée des textes publics, sorties sur le label, liens publics. Aucune biographie inventée. |
+| Soirées | `/soirees` | **À venir** : billetterie en lien externe (Shotgun ou RA). En l'absence de date, un état vide soigné (« aucune date annoncée, reste branché » avec newsletter et Instagram) : c'est l'état actuel, il doit être beau. **Passées** : archive en cassettes-flyers, avec le vrai flyer quand il a été récupéré, le lieu, le line-up et les mentions (reportée, annulée). |
+| Le label | `/label` | Qui (les trois, leurs rôles réels d'après les crédits), pourquoi (texte `draft` dans leur ton, à faire valider), chronologie des sorties et des soirées, **comment proposer une démo** (procédure en `draft` : lien d'écoute privé, pas de fichier joint, délai de réponse à faire valider). |
+| Contact | `/contact` | Contacts (adresse à obtenir du label, en attendant le lien Instagram), newsletter, cassette vierge « envoie ta tape ». |
+
+**Navigation.** Barre de menu du lecteur, avec icône et libellé texte pour chaque entrée : sorties, artistes, soirées, le label, contact. Ce sont de vrais `<Link>` dans un `<nav aria-label="Navigation principale">`, page courante en `aria-current="page"`. Le logo ramène à l'accueil.
+
+**Pied de page, « fin de bande ».** Crédits du site, mention « concept non officiel », lien vers les sources, liens Bandcamp, SoundCloud, Instagram, Discogs et Linktree. Un bouton « rembobiner » ramène en haut de page avec le son de rembobinage.
+
+**Newsletter.** Le formulaire est conçu et passe par une server action qui valide l'adresse, mais **n'enregistre rien** tant qu'aucun fournisseur n'est choisi avec le label. Le message de confirmation le dit honnêtement. Un lien « suivre sur Bandcamp » fonctionne réellement à côté.
+
+### 4.1 Contenu
+
+Tout le contenu est dans `content/groove-to-grave/`, typé en TypeScript (`releases.ts`, `artists.ts`, `events.ts`, `label.ts`). Chaque entrée porte :
+
+- `sources: string[]`, les URL publiques ;
+- `verified: boolean` ;
+- `draft: true` pour tout texte de notre main.
+
+`content/groove-to-grave/sources.md` liste les sources et ce qui reste à vérifier.
+
+État relevé au 8 octobre 2026, à reprendre et compléter depuis les pages sources en phase 1 :
+
+**Sorties**
+
+- **GTGR02** — Azbine, *Spacy Taste EP*, 12″, 7 juillet 2023. A1 If This Wall Could Talk, A2 Boarding Pass, B1 Spacy Taste, B2 She Gave Me Flavour. Artwork JeunePenard, distribution Subwax. Vinyle épuisé. Premier vinyle du label ; duo lyonnais d'amis d'enfance, créé en 2018.
+- **GTGR03** — Kitchen Plug, *Cerberus EP*, 12″, 24 mai 2024. Quatre titres dont *Melee (Karaba Remix)* ; tracklist complète à relever. Artwork JeunePenard, mastering Benoit D. (Perception Mastering), distribution Subwax. Trio parisien.
+- **GTGR04** — Emi Ömar, *Homo Musicus EP*, 12″. A1 Chut Hello, A2 Primate Groove, B1 Grrrr, B2 Are You Homo Musicus?. Date, artwork et crédits à relever.
+- **GTGR05** — Merov', *Interdimensional Groove EP*, 12″, 13 mai 2026 sur Bandcamp. A1 UFO Catcher (7:49), A2 Swing Interstellaire (6:03), B1 Spirit Spaceship (5:50), B2 Big Band Bang (6:01). Artwork JeunePenard, mastering Benoit D. (Perception Mastering), distribution Subwax. Pressage limité, sans repress.
+- **Summer Hits Vol.1** — compilation numérique, 4 juillet 2025, sélectionnée en New & Notable par Bandcamp le 23 octobre 2025. Tracklist à relever.
+- **Summer Hits Vol.2** (GTGRVA02) — compilation numérique, 17 juillet 2026. Lungo, I Met A Girl ; Yotam Nadav, If You Funk To ; Kitchen Plug ft. l'Abominable, Texas Megachurch ; Crâne De Poule, Fierté Mal Placée ; Phyto, Cereja ; LukasDarian, 7$ Left ; Gregs, Time ; Atay, Source Of Trouble. Artwork LukasDarian, mastering Gregs, A&R Jules Fritsch.
+
+Les genres utilisés par les presets sont **déduits** des descriptions publiques et marqués `verified: false` :
+
+| Sortie | Genres déduits |
+|---|---|
+| GTGR02 | minimal, house |
+| GTGR03 | break |
+| GTGR04 | electro, house |
+| GTGR05 | house, electro |
+
+**Soirées passées**
+
+| Date | Lieu | Détail |
+|---|---|---|
+| 7 janvier 2023 | Liebe, Paris 9e | Première soirée, gratuite, thème PLAISIR |
+| 22 février 2023 | 45 Tours / L'Exode, Paris 10e | Crew au complet, expo de la graphiste Hannah Uzan |
+| 4 novembre 2023 | Péniche Cinéma – Le Baruda, Paris 19e | Burnin' Ship, avec Kitchen Plug |
+| 13 juillet 2024 | Péniche Marcounet | Soirée invitée par la péniche |
+| 31 août 2024 | La Rotonde Stalingrad | Attrape Rave, avec Itinérairebis et Kpich |
+| 1er novembre 2024 | 42 Marches | Annulée |
+| 7 février 2025 | Lieu à vérifier | Emi Ömar b2b Gregs, Alyhas, Pink Mermaids |
+| 19 avril 2025 | — | Vinyle Village, The Diggers Temple |
+| 25 juillet 2025 | Jardin21 | Open air, entrée libre, avec Foxin et Local DJ |
+| Date à vérifier | Péniche Marcounet | Danza To The Grave |
+| 19 décembre 2025 | Le Wagon Bleu | Midnight Express |
+| 9 janvier 2026 | 42 Marches | Extended, line-up à vérifier |
+
+Aucune soirée à venir n'est annoncée publiquement à ce jour.
+
+---
+
+## 5. Interactions signature
+
+1. **L'insertion.** Le bouton écouter d'une cassette fait voler la cassette du mur jusqu'à la fenêtre du lecteur (animation FLIP via GSAP, 450 ms). Puis le « clac », le démarrage pleurard de la bande, et l'afficheur qui s'allume. En mouvement réduit, la cassette apparaît directement dans la fenêtre.
+2. **La bande au tempo.** La bande défilante annonce ce qui joue (référence, artiste, piste, format, lien Bandcamp, puis la prochaine soirée ou l'état « aucune date »), à une vitesse proportionnelle au BPM. Elle s'arrête quand la lecture s'arrête et se met en pause au survol et au focus.
+3. **Les presets.** HOUSE, BREAK, MINIMAL, ELECTRO et TOUT forment un seul état partagé par le lecteur et la page sorties :
+   - ils filtrent le mur (nombre de résultats annoncé aux lecteurs d'écran, URL mise à jour) ;
+   - ils appliquent une courbe d'égalisation audible (réglages de départ ci-dessous, à affiner à l'oreille).
+
+   | Preset | Graves (110 Hz) | Médiums (1,2 kHz) | Aigus (6 kHz) | Passe-haut |
+   |---|---|---|---|---|
+   | TOUT | 0 dB | 0 dB | 0 dB | 20 Hz |
+   | HOUSE | +7 dB | −1 dB | −1 dB | 20 Hz |
+   | BREAK | +2 dB | +6 dB | +2 dB | 20 Hz |
+   | MINIMAL | −6 dB | −2 dB | +4 dB | 180 Hz |
+   | ELECTRO | +3 dB | −4 dB | +7 dB | 20 Hz |
+
+   La normalisation de gain évite qu'un preset paraisse « mieux » parce que plus fort.
+4. **L'avance rapide.** Une navigation interne déclenche l'avance rapide sonore, une distorsion de bande (bandes horizontales de suivi, décalage chromatique léger) dans le canvas WebGL pendant 400 ms, et la révélation du nouveau contenu par un balayage horizontal. Elle reprend le mécanisme de transition de la-coupe, avec un rendu entièrement nouveau. La lecture continue sans coupure.
+5. **Le mur qui respire.** Un canvas WebGL plein écran derrière le contenu dessine le mur : papier, grain, couches d'affiches déchirées, traces de colle. Quand la musique joue, l'énergie des graves fait « respirer » le papier (déplacement de quelques pixels au maximum) et les attaques de grosse caisse le font légèrement trembler. Aucun mouvement quand rien ne joue.
+6. **Mini, barre mobile et écran verrouillé.** Le bouton de la barre de titre passe le lecteur en mode mini (bande défilante, fenêtre cassette, lecture). Sur mobile, le lecteur est toujours en barre basse, et la Media Session prend le relais sur l'écran verrouillé.
+7. **Fin de bande.** Quand le pied de page entre dans l'écran, l'afficheur affiche « FIN DE BANDE » à la place des compteurs, et le bouton rembobiner ramène en haut de page.
+
+---
+
+## 6. Stack
+
+- Next.js 16 App Router, React 19, TypeScript strict, npm, Vercel : l'existant du repo.
+- Conventions de la-coupe reprises : ticker GSAP partagé, Lenis, **un seul canvas WebGL** (avec la bibliothèque déjà utilisée par la-coupe), transitions de page, repli sans WebGL et en mouvement réduit, images AVIF et WebP générées par le script existant, contenu 100 % dans `content/`. Le curseur personnalisé de la-coupe n'est **pas** repris : ici, le curseur système va mieux avec le chrome imprimé.
+- **Audio** : Web Audio API native, sans bibliothèque.
+  - Un seul `HTMLAudioElement` persistant (dans le layout), branché sur un `MediaElementAudioSourceNode`, puis la chaîne d'égalisation (graves, médiums, aigus, passe-haut), un gain de normalisation, l'analyseur, le gain général, la sortie.
+  - Les sons d'interface passent par un gain séparé.
+  - Les extraits sont **hébergés localement**, en même origine, ce qui est la seule façon de les analyser ; les lecteurs Bandcamp et SoundCloud intégrés ne sont pas analysables. Format MP3 192 kbps, `preload="none"`.
+- **État du lecteur** : un store léger dans le layout (contexte React et `useSyncExternalStore`), sans nouvelle dépendance. La Phase 0 dit si le repo a déjà une solution.
+- **Couleurs des cassettes** : extraites par script avec `sharp` (`stats().dominant`, plus une couleur d'accent calculée), écrites dans `content/` et vérifiées pour le contraste avec `ink`.
+- **Extraits provisoires** : générés par script en rejouant la synthèse de la maquette dans un `OfflineAudioContext` sous Playwright et Chromium, une boucle distincte par sortie (BPM, motif de grosse caisse, ligne de basse), de 45 s, avec fondus. Encodage par `ffmpeg` si présent ; la Phase 0 vérifie et propose sinon. **Aucune question de droits.** Les vrais extraits n'entrent qu'avec l'accord du label.
+- **Médias réels** : un script récupère les pochettes publiques (Bandcamp) et les visuels d'événements publics (Shotgun, RA) vers `content/groove-to-grave/media/source/`, avec un `sources.json` qui donne l'URL d'origine et la date. Ce qui échoue est listé pour capture manuelle. Instagram n'est **jamais** aspiré par script.
+- Aucune nouvelle dépendance sans proposition et accord en Phase 0. Aucune n'est prévue à ce stade.
+
+---
+
+## 7. Performance, accessibilité et mobile — non négociables
+
+**Performance**
+
+- Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**.
+- LCP < 2,0 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
+- Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur. DPR plafonné à 1,5 (1 sur mobile), grain rendu à demi-résolution, pause quand l'onglet est caché.
+- Aucun extrait audio chargé avant un geste. Trois fichiers de police au maximum, seul Archivo est préchargé.
+- Le spectre en DOM ne met à jour que des `transform`, jamais de mise en page.
+
+**Accessibilité**
+
+- Tous les contrôles du lecteur sont de vrais `<button>` avec un nom accessible. Les presets sont un groupe de bascules en `aria-pressed`. La barre de progression est un `input type="range"` étiqueté.
+- Une région `aria-live="polite"` annonce le changement de piste et le nombre de résultats après filtrage. La bande défilante est `aria-hidden`, son contenu est annoncé par cette région.
+- Aucun raccourci clavier à une seule touche. Les touches média passent par la Media Session.
+- Focus toujours visible, en double anneau (`ink` et `safety`) pour rester visible sur tous les fonds.
+- Le texte au marqueur a toujours un équivalent en texte normal.
+- Mouvement réduit respecté partout (voir §3.6).
+- `lang="fr"` ; les textes de sortie en anglais portent `lang="en"`.
+
+**Sans JavaScript**
+
+- Toutes les pages sont rendues côté serveur avec leur contenu complet.
+- Les cassettes sont des liens, les presets sont des liens de filtre.
+- Le lecteur est remplacé par une barre statique avec des liens Bandcamp « écouter sur Bandcamp ».
+
+**Sans WebGL**
+
+- Le mur est une texture statique AVIF générée, et la transition devient un balayage simple.
+
+**Mobile, conçu à 390 px d'abord**
+
+- Barre du haut : logo et bouton « menu », qui ouvre la barre de menu du skin en plein écran avec de grandes cibles.
+- Lecteur en barre basse de 64 px, au-dessus de la zone de sécurité. Le déplier ouvre le skin complet en feuille (presets, transport, volume, progression).
+- Le mur en deux colonnes de cassettes, cibles de 44 px au minimum.
+
+---
+
+## 8. Phases de travail
+
+Chaque phase suit la même méthode :
+
+- worktree et branche `experience/groove-to-grave`, preview Vercel, jamais de fusion sans accord ;
+- un commit par bloc ;
+- `tsc`, lint, build et revue visuelle avant chaque push ;
+- comptes rendus courts (fait / arbitrages / résultats / reste) ;
+- **planches** de captures légendées à 1440 et 390 px, pleines hauteurs après animations, une image par format, envoyées au directeur artistique pour la passe de direction.
+
+**Phase 0 — Audit.** Lire la-coupe (conventions, ticker, transitions, canvas, script d'images, tuile du carrousel et modèle Prisma, en lecture seule). Vérifier `ffmpeg`, Playwright et `sharp`. Proposer les dépendances (aucune attendue) et le plan de fichiers. Rien n'est installé ni écrit avant accord.
+
+**Phase 1 — Contenu et médias.** Écrire `content/groove-to-grave/` depuis les sources publiques, script de récupération des médias, extraction des couleurs, extraits provisoires, puis **planche « relevé DA »** : toutes les pochettes et tous les flyers récupérés, légendés, avec la liste de ce qui manque. Stop : le directeur artistique fait la passe d'identité et les tokens sont mis à jour.
+
+**Phase 2 — Fondations.** Route, layout, tokens, polices, toutes les pages en rendu serveur avec le vrai contenu, parcours complet sans JavaScript, état vide des soirées. Planche.
+
+**Phase 3 — Lecteur et son.** Moteur audio, skin complet, mode mini, barre mobile, bande défilante, spectre, compteurs, presets synchronisés à l'URL, sons d'interface, Media Session, réglages persistés. Planche, plus un enregistrement d'écran de 30 s par format pour le son.
+
+**Phase 4 — Cassettes et mur.** Composant cassette et ses variantes, système de désordre déterministe, insertion FLIP, canvas WebGL du mur, repli statique. Planche.
+
+**Phase 5 — Transitions et pages détail.** Avance rapide, pages sortie, artiste et label, contact et newsletter (sans enregistrement), fin de bande. Planche.
+
+**Phase 6 — Finition et audits.** Passe d'accessibilité (clavier complet, VoiceOver avec le directeur artistique, mouvement réduit), audits de performance séquentiels, corrections, checklist Safari remise au directeur artistique. Tuile dans le carrousel de la home : la ligne Prisma est **préparée mais pas écrite** ; on demande l'accord explicite avant toute écriture en base, puisqu'elle est partagée avec la prod.
+
+---
+
+## 9. Definition of done
+
+- [ ] Toutes les pages du §4, rendues côté serveur, contenu réel avec sources, textes de notre main marqués `draft`.
+- [ ] Aucune œuvre du label altérée ; chaque pochette et chaque flyer est crédité.
+- [ ] Lecteur persistant : aucune coupure de lecture sur toutes les navigations internes, y compris retour et avance du navigateur.
+- [ ] Zéro son et zéro `AudioContext` avant un geste ; aucun mouvement continu quand rien ne joue.
+- [ ] Presets : filtre, son et URL synchronisés ; fonctionnent sans JavaScript (filtre seul).
+- [ ] Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur les quatre pages de référence.
+- [ ] Parcours complet au clavier, VoiceOver correct sur le lecteur, mouvement réduit propre, repli sans WebGL et sans JavaScript vérifiés.
+- [ ] Planches finales 1440 et 390 validées par le directeur artistique ; checklist Safari macOS et iPhone passée par lui.
+- [ ] `tsc`, lint et build propres ; aucune nouvelle dépendance non validée ; aucune écriture en base.
+- [ ] Mention « concept non officiel » dans le pied de page ; vrais extraits et mise en ligne publique bloqués tant que l'accord du label n'est pas obtenu.
+
+---
+
+## 10. À ne pas faire
+
+- Pas d'autoplay sonore, pas de scroll-jacking, pas de défilement horizontal de page.
+- Pas de bouton décoratif : tout ce qui a l'air cliquable l'est.
+- Pas de filtre, de distorsion ni de grain **sur** les pochettes et les flyers.
+- Pas de walkman ou de lecteur en 3D photoréaliste, pas de chrome en dégradé : l'objet est imprimé à plat.
+- Pas de la bande défilante comme seul moyen de navigation ou seule source d'une information.
+- Pas de Permanent Marker pour le texte courant, pas d'orange `safety` en texte sur fond clair.
+- Pas d'aléa au rendu (rotations), pas de second canvas.
+- Pas d'analyse audio des lecteurs intégrés Bandcamp ou SoundCloud, pas d'aspiration d'Instagram.
+- Pas de fait inventé (genre, biographie, date, prix) présenté comme vérifié. Pas de prix stockés : le prix est sur Bandcamp.
+- Pas de retour au vocabulaire nautique ou radio FM.
+- Pas de reprise de la DA de la-coupe.
+- Pas d'audits en parallèle, pas d'écriture Prisma, pas de fusion sans accord.
+
+---
+
+## 11. Questions ouvertes
+
+1. **Accord du label** : pour la mise en ligne publique, les visuels et les vrais extraits. Qui les contacte, et quand ?
+2. **Fichiers de logo** et typographies réelles : à obtenir du label ou à relever à la phase 1.
+3. **GTGR01** existe-t-il ? GTGR02 est présenté comme le premier vinyle.
+4. **Crédits de GTGR04** : qui a fait l'artwork, et à quelle date est sorti le disque ?
+5. **Genres par sortie** pour les presets : validation par le label.
+6. **Composition du crew** : Fritzy et Pink Mermaids font-ils encore partie du collectif ?
+7. **Date de Danza To The Grave**, et lieu de la soirée du 7 février 2025.
+8. **Adresses** de contact et de démos, procédure de démo, fournisseur de newsletter.
+9. La métaphore de la cassette plaît-elle au label, qui vend des vinyles ? La réponse proposée : la cassette est l'objet d'écoute, le 12″ reste en avant sur chaque page sortie.
+10. **Un indicatif vocal** enregistré par le crew (« Groove To Grave ! ») pour remplacer le « clac » à l'insertion de la première cassette ?
+
+---
+
+## Annexe — écarts connus entre la maquette et ce brief
+
+La maquette `prototype-lecteur.html` montre les mécaniques. Le brief fait foi partout où ils diffèrent :
+
+- La maquette fait défiler la bande et anime le spectre même à l'arrêt ; le brief les arrête quand rien ne joue.
+- Dans la maquette, cliquer la cassette lance la lecture ; dans le brief, la cassette est un lien, et un bouton séparé lance la lecture.
+- La maquette n'a pas de fenêtre cassette dans le skin, ni d'insertion animée.
+- La maquette utilise la durée d'UFO Catcher pour toutes les sorties ; le brief utilise la vraie durée de chaque extrait.
+- Dans la maquette, la barre de progression n'est pas cliquable ; dans le brief, c'est un `input type="range"`.
+- La maquette dessine le spectre dans un canvas 2D ; le brief le fait en DOM.
+- La maquette a un mur plat et des polices placeholder différentes (Anton) ; le brief prévoit le mur en WebGL et Archivo.
+- La maquette utilise le libellé « démos » ; le brief a une page contact et la démo dans la page label.
+- La maquette synthétise la musique en direct ; le brief lit des fichiers d'extrait via `HTMLAudioElement`.
