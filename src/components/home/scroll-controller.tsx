@@ -113,6 +113,14 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     }
   }, [scrollContainer])
 
+  // La hauteur de la grille change (filtre) : on remonte le conteneur et on repose la garde
+  const resetProjectsLayout = useCallback(() => {
+    const el = projectsScrollRef.current
+    if (!el) return
+    el.scrollTop = 0
+    guard.current = enterPanel(guard.current, snapshot(el))
+  }, [])
+
   const step = useCallback((direction: 1 | -1) => {
     const current = viewRef.current
     const el = scrollContainer(current)
@@ -268,7 +276,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       </div>
       <div style={{ ...panelStyle('projects'), overflow: 'hidden' }}>
         <div ref={projectsScrollRef} role="region" aria-label="Mes réalisations" style={scrollStyle}>
-          <FeaturedProjects projects={projects} isActive={view === 'projects'} caseStudies={caseStudies} />
+          <FeaturedProjects projects={projects} isActive={view === 'projects'} caseStudies={caseStudies} onLayoutChange={resetProjectsLayout} />
         </div>
       </div>
       <div style={{ ...panelStyle('about'), overflow: 'hidden' }}>

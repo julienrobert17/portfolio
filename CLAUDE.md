@@ -31,7 +31,7 @@
 - src/components/projects/ — case-study, case-study-toc ; src/components/not-found/ — corps du 404
 - src/components/experience/<slug>/ — une expérience par dossier, code en français ; la-coupe/ utilise GSAP, Lenis, R3F, ViewTransition
 - src/components/games/geodatle/ — jeu (inline styles dark, pas Tailwind)
-- src/lib/ — data.ts (Prisma), prisma.ts, i18n.ts, accents.ts (--accent par slug), links.ts (URLs), routes.ts (routes immersives), case-studies.ts (fs)
+- src/lib/ — data.ts (Prisma), prisma.ts, i18n.ts, accents.ts (--accent par slug), links.ts (URLs), routes.ts (routes immersives), case-studies.ts (fs), home-panel.ts (panneau et filtre mémorisés par onglet), panel-edge-guard.ts (garde de butée, `npm run test:guard`)
 - prisma/schema.prisma, prisma/seed.ts — projets featured groupés par `category` ('perso' | 'entreprise') sur la home ; 2 tuiles entreprise placeholder à remplacer ; scripts/ — generate-countries.mjs, fetch/generate la-coupe (photos, placeholders, tuile)
 - content/case-studies/<slug>.md — études de cas ; public/videos/ — vidéos de cartes ; RAPPORT_GRAPHISME.md — direction artistique
 

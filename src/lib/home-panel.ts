@@ -29,6 +29,28 @@ export function storeHomePanel(panel: HomePanel): void {
   }
 }
 
+/** Filtre du panneau réalisations, mémorisé par onglet sous sa propre clé. */
+export type ProjectFilter = 'perso' | 'entreprise'
+
+export const HOME_FILTER_KEY = 'home-filter'
+
+export function readHomeFilter(): ProjectFilter | null {
+  try {
+    const stored = sessionStorage.getItem(HOME_FILTER_KEY)
+    return stored === 'perso' || stored === 'entreprise' ? stored : null
+  } catch {
+    return null
+  }
+}
+
+export function storeHomeFilter(filter: ProjectFilter): void {
+  try {
+    sessionStorage.setItem(HOME_FILTER_KEY, filter)
+  } catch {
+    // stockage indisponible : le filtre repartira sur « Personnels »
+  }
+}
+
 /** Demande un panneau : mémorisé pour le montage de la home, et signalé si elle est déjà affichée. */
 export function requestHomePanel(panel: HomePanel): void {
   storeHomePanel(panel)
