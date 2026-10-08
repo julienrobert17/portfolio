@@ -71,7 +71,7 @@ Puis http://localhost:3000/experience/un-moment-hors-du-temps
 content.ts               tous les textes et réglages          ← le seul fichier à éditer
 use-invitation-machine   useReducer + sessionStorage + hash d'URL
 use-dodge.ts             moteur d'esquive (ressort 170/18, clamp viewport)
-use-reduced-motion.ts    useSyncExternalStore sur la media query
+(déplacé dans src/lib/use-reduced-motion.ts — partagé entre expériences)
 celebration-context.tsx  canvas + confettis + easter egg
 use-konami.ts            Konami au clavier · 5 tapes rapides au doigt
 confetti.ts              module pur, sans dépendance
