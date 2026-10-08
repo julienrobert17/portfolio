@@ -3,21 +3,18 @@
 import type { MouseEvent } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { requestHomePanel, type HomePanel } from '@/lib/home-panel'
 import { GITHUB_URL, LINKEDIN_URL } from '@/lib/links'
 
 export default function Header() {
   const pathname = usePathname()
 
-  // Sur la home, les ancres sont des panneaux : un Link Next vers « /#… » passe par
-  // pushState sans émettre hashchange, que scroll-controller écoute. On pose le hash
-  // par pushState (sans défilement natif vers l'ancre, qui décalerait les panneaux)
-  // et on émet l'événement nous-mêmes. Ailleurs, la navigation Next mène à la home,
-  // qui lit le hash au montage.
-  function goToPanel(e: MouseEvent<HTMLAnchorElement>, hash: string) {
-    if (pathname !== '/') return
-    e.preventDefault()
-    if (window.location.hash !== hash) window.history.pushState(null, '', hash)
-    window.dispatchEvent(new HashChangeEvent('hashchange'))
+  // « Projets » et « À propos » sont des panneaux de la home, sans rien dans l'URL :
+  // le panneau voulu est mémorisé pour le montage de la home et signalé par un
+  // événement si elle est déjà affichée (voir src/lib/home-panel.ts).
+  function goToPanel(e: MouseEvent<HTMLAnchorElement>, panel: HomePanel) {
+    requestHomePanel(panel)
+    if (pathname === '/') e.preventDefault()
   }
   // Toutes les routes qui affichent le header (home, contact, projets, 404) sont sur le vert forêt.
   const color = '#d0f0d2'
@@ -70,8 +67,8 @@ export default function Header() {
         alignItems: 'center',
         gap: 'clamp(18px, 2.2vw, 32px)',
       }}>
-        <Link href="/#realisations" style={linkStyle} onClick={(e) => goToPanel(e, '#realisations')}>Projets</Link>
-        <Link href="/#a-propos" style={linkStyle} onClick={(e) => goToPanel(e, '#a-propos')}>À propos</Link>
+        <Link href="/" style={linkStyle} onClick={(e) => goToPanel(e, 'projects')}>Projets</Link>
+        <Link href="/" style={linkStyle} onClick={(e) => goToPanel(e, 'about')}>À propos</Link>
 
         <a
           href={GITHUB_URL}

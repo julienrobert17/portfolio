@@ -9,18 +9,11 @@ import AboutSection from '@/components/home/about-section'
 import PanelCounter from '@/components/ui/panel-counter'
 import { beginGesture, enterPanel, initialEdgeGuard, noteEdges, registerDelta, trackDelta } from '@/lib/panel-edge-guard'
 import type { DeltaSource, EdgeGuardState, EdgeSnapshot } from '@/lib/panel-edge-guard'
+import { HOME_PANEL_EVENT, isHomePanel, readHomePanel, storeHomePanel } from '@/lib/home-panel'
 
 type View = 'hero' | 'projects' | 'about'
 
 const ORDER: View[] = ['hero', 'projects', 'about']
-
-// La home n'est pas scrollable : les ancres de la nav sont traduites en bascule de panneau.
-const HASH_TO_VIEW: Record<string, View> = {
-  '#realisations': 'projects',
-  '#a-propos': 'about',
-}
-// Et inversement : l'URL suit le panneau courant, un rechargement rouvre le même
-const VIEW_TO_HASH: Record<View, string> = { hero: '', projects: '#realisations', about: '#a-propos' }
 
 interface Props {
   projects: Project[]
@@ -30,10 +23,10 @@ interface Props {
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const DURATION = '600ms'
 
-// Hash de l'URL au premier rendu client (null côté serveur) : un lien profond
-// vers un panneau s'ouvre directement dessus, sans rejouer le hero.
+// Panneau mémorisé par l'onglet, lu au premier rendu client (undefined côté
+// serveur) : rechargement ou retour depuis une autre page rouvrent le même
+// panneau, sans rejouer le hero et sans rien dans l'URL.
 const subscribeNoop = () => () => {}
-const readHash = () => window.location.hash
 
 /**
  * Le défilement natif vers une ancre (chargement avec hash, navigation Next)
@@ -61,12 +54,11 @@ export default function ScrollController({ projects, caseStudies }: Props) {
   const [navigated, setNavigated] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  const initialHash = useSyncExternalStore(subscribeNoop, readHash, () => null)
-  const [hashApplied, setHashApplied] = useState(false)
-  if (initialHash !== null && !hashApplied) {
-    setHashApplied(true)
-    const target = HASH_TO_VIEW[initialHash]
-    if (target) setView(target)
+  const storedPanel = useSyncExternalStore(subscribeNoop, readHomePanel, () => undefined)
+  const [storedApplied, setStoredApplied] = useState(false)
+  if (storedPanel !== undefined && !storedApplied) {
+    setStoredApplied(true)
+    if (storedPanel) setView(storedPanel)
   }
   const transitioning = useRef(false)
   const touchStartY = useRef(0)
@@ -104,11 +96,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       }
       setView(next)
       resetStrayScroll(rootRef.current)
-      // replaceState : pas d'entrée d'historique, pas de défilement, pas d'événement hashchange
-      const hash = VIEW_TO_HASH[next]
-      if (window.location.hash !== hash) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search + hash)
-      }
+      storeHomePanel(next)
     }
 
     if (viewRef.current === 'hero') {
@@ -158,14 +146,14 @@ export default function ScrollController({ projects, caseStudies }: Props) {
     }
   }, [])
 
+  // Demande de panneau depuis le header, quand la home est déjà affichée
   useEffect(() => {
-    const onHash = () => {
-      const target = HASH_TO_VIEW[window.location.hash]
-      if (target && target !== viewRef.current) goTo(target)
+    const onRequest = (e: Event) => {
+      const panel = (e as CustomEvent<unknown>).detail
+      if (isHomePanel(panel) && panel !== viewRef.current) goTo(panel)
     }
-    // Pas d'appel initial : le hash du chargement est appliqué pendant le rendu (initialHash), sans transition
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    window.addEventListener(HOME_PANEL_EVENT, onRequest)
+    return () => window.removeEventListener(HOME_PANEL_EVENT, onRequest)
   }, [goTo])
 
   useEffect(() => {
