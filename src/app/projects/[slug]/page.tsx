@@ -97,7 +97,8 @@ export default async function ProjectPage({ params }: Props) {
         {project.description}
       </p>
 
-      {/* Links */}
+      {/* Links : rien du tout si le projet n'a ni démo ni dépôt */}
+      {(project.liveUrl || project.githubUrl) && (
       <div className="mt-8 flex gap-4">
         {project.liveUrl && (
           <a
@@ -119,6 +120,7 @@ export default async function ProjectPage({ params }: Props) {
           </a>
         )}
       </div>
+      )}
 
     </main>
   )

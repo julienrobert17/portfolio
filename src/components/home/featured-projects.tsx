@@ -290,7 +290,8 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [] 
                     {project.description}
                   </p>
                   <Link
-                    href={project.liveUrl ?? `/projects/${project.slug}`}
+                    // Sans démo en ligne, la tuile mène à la fiche projet
+                    href={project.liveUrl || `/projects/${project.slug}`}
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
