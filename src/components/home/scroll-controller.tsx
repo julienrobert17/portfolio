@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react'
 import type { Project } from '@prisma/client'
 import HeroSection from '@/components/home/hero-section'
 import FeaturedProjects from '@/components/home/featured-projects'
@@ -28,6 +28,23 @@ interface Props {
 const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const DURATION = '600ms'
 
+// Hash de l'URL au premier rendu client (null côté serveur) : un lien profond
+// vers un panneau s'ouvre directement dessus, sans rejouer le hero.
+const subscribeNoop = () => () => {}
+const readHash = () => window.location.hash
+
+/**
+ * Le défilement natif vers une ancre (chargement avec hash, navigation Next)
+ * décale les conteneurs en overflow: hidden de quelques pixels, et rien ne les
+ * ramène. On remet à zéro tout ce qui entoure les panneaux.
+ */
+function resetStrayScroll(root: HTMLElement | null) {
+  if (!root) return
+  for (const child of Array.from(root.children)) (child as HTMLElement).scrollTop = 0
+  for (let el: HTMLElement | null = root; el; el = el.parentElement) el.scrollTop = 0
+  if (document.scrollingElement) document.scrollingElement.scrollTop = 0
+}
+
 // Butées d'un conteneur à défilement interne (2px de tolérance pour les sous-pixels)
 const atTop = (el: HTMLElement) => el.scrollTop <= 2
 const atBottom = (el: HTMLElement) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2
@@ -38,6 +55,17 @@ type ScrollView = Exclude<View, 'hero'>
 export default function ScrollController({ projects, caseStudies }: Props) {
   const [view, setView] = useState<View>('hero')
   const [isLeaving, setIsLeaving] = useState(false)
+  // Transitions actives seulement après une première navigation : un lien profond s'affiche d'un coup
+  const [navigated, setNavigated] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  const initialHash = useSyncExternalStore(subscribeNoop, readHash, () => null)
+  const [hashApplied, setHashApplied] = useState(false)
+  if (initialHash !== null && !hashApplied) {
+    setHashApplied(true)
+    const target = HASH_TO_VIEW[initialHash]
+    if (target) setView(target)
+  }
   const transitioning = useRef(false)
   const touchStartY = useRef(0)
   const lastTouchY = useRef(0)
@@ -61,6 +89,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
   const goTo = useCallback((next: View) => {
     if (transitioning.current || next === viewRef.current) return
     transitioning.current = true
+    setNavigated(true)
 
     // Le panneau d'arrivée est en haut quand on avance, en bas quand on recule
     const forward = ORDER.indexOf(next) > ORDER.indexOf(viewRef.current)
@@ -72,6 +101,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
         guard.current = enterPanel(guard.current, snapshot(el))
       }
       setView(next)
+      resetStrayScroll(rootRef.current)
     }
 
     if (viewRef.current === 'hero') {
@@ -98,7 +128,27 @@ export default function ScrollController({ projects, caseStudies }: Props) {
 
   useEffect(() => {
     document.documentElement.style.overflow = 'hidden'
-    return () => { document.documentElement.style.overflow = '' }
+    // Après le défilement natif vers l'ancre du chargement ou de la navigation Next
+    resetStrayScroll(rootRef.current)
+    const frame = requestAnimationFrame(() => resetStrayScroll(rootRef.current))
+    // Et à tout défilement parasite ultérieur (hash tapé à la main, focus) : seuls les
+    // conteneurs internes des panneaux ont le droit de défiler.
+    const root = rootRef.current
+    const guarded = new Set<EventTarget>()
+    if (root) {
+      guarded.add(document)
+      for (let el: HTMLElement | null = root; el; el = el.parentElement) guarded.add(el)
+      for (const child of Array.from(root.children)) guarded.add(child)
+    }
+    const onStrayScroll = (e: Event) => {
+      if (e.target && guarded.has(e.target)) resetStrayScroll(root)
+    }
+    document.addEventListener('scroll', onStrayScroll, { capture: true, passive: true })
+    return () => {
+      document.documentElement.style.overflow = ''
+      cancelAnimationFrame(frame)
+      document.removeEventListener('scroll', onStrayScroll, { capture: true })
+    }
   }, [])
 
   useEffect(() => {
@@ -106,7 +156,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       const target = HASH_TO_VIEW[window.location.hash]
       if (target && target !== viewRef.current) goTo(target)
     }
-    onHash()
+    // Pas d'appel initial : le hash du chargement est appliqué pendant le rendu (initialHash), sans transition
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [goTo])
@@ -198,7 +248,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       position: 'absolute',
       inset: 0,
       overflow: 'hidden',
-      transition: `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}`,
+      transition: navigated ? `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}` : 'none',
       opacity: active ? 1 : 0,
       transform: active ? 'translateY(0)' : `translateY(${above ? -40 : 40}px)`,
       transitionDelay: active ? '300ms' : '0ms',
@@ -209,7 +259,7 @@ export default function ScrollController({ projects, caseStudies }: Props) {
   const scrollStyle: CSSProperties = { height: '100%', overflowY: 'auto', overscrollBehavior: 'contain' }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+    <div ref={rootRef} style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       <PanelCounter
         index={ORDER.indexOf(view)}
         count={ORDER.length}

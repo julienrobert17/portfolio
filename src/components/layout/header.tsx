@@ -9,14 +9,15 @@ export default function Header() {
   const pathname = usePathname()
 
   // Sur la home, les ancres sont des panneaux : un Link Next vers « /#… » passe par
-  // pushState sans émettre hashchange, que scroll-controller écoute. On pose donc le
-  // hash nativement, ou on rejoue l'événement s'il est déjà en place. Ailleurs, la
-  // navigation Next mène à la home, qui lit le hash au montage.
+  // pushState sans émettre hashchange, que scroll-controller écoute. On pose le hash
+  // par pushState (sans défilement natif vers l'ancre, qui décalerait les panneaux)
+  // et on émet l'événement nous-mêmes. Ailleurs, la navigation Next mène à la home,
+  // qui lit le hash au montage.
   function goToPanel(e: MouseEvent<HTMLAnchorElement>, hash: string) {
     if (pathname !== '/') return
     e.preventDefault()
-    if (window.location.hash === hash) window.dispatchEvent(new HashChangeEvent('hashchange'))
-    else window.location.hash = hash
+    if (window.location.hash !== hash) window.history.pushState(null, '', hash)
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
   }
   // Toutes les routes qui affichent le header (home, contact, projets, 404) sont sur le vert forêt.
   const color = '#d0f0d2'
