@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react'
 import type { Project } from '@prisma/client'
 import { getAccent } from '@/lib/accents'
 import Link from 'next/link'
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import ProjectCardVideo from '@/components/home/project-card-video'
 import { readHomeFilter, storeHomeFilter, type ProjectFilter } from '@/lib/home-panel'
@@ -25,10 +25,14 @@ const FILTERS: { value: ProjectFilter; label: string }[] = [
 
 const subscribeNoop = () => () => {}
 
+// Largeur fixe (CSS --pill-w) : l'indicateur se place par l'index actif, sans mesure
+const PILL_GAP = 8
+
 const pillBase: CSSProperties = {
   position: 'relative',
   zIndex: 1,
-  padding: '4px 12px',
+  padding: '4px 0',
+  textAlign: 'center',
   borderRadius: 9999,
   border: '1px solid color-mix(in oklch, var(--accent) 25%, transparent)',
   backgroundColor: 'transparent',
@@ -43,7 +47,6 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
   const titleRef  = useRef<HTMLHeadingElement>(null)
   const cardsRef  = useRef<HTMLDivElement>(null)
   const filterRefs = useRef<(HTMLButtonElement | null)[]>([])
-  const indicatorRef = useRef<HTMLSpanElement>(null)
   const gridWrapRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
   const switching = useRef(false)
@@ -61,6 +64,7 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
   }
 
   const visible = projects.filter((p) => (p.category === 'entreprise') === (filter === 'entreprise'))
+  const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.value === filter))
 
   useEffect(() => {
     const title     = titleRef.current
@@ -106,21 +110,6 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
     }
     onLayoutChange?.()
   }, [filter, onLayoutChange])
-
-  // Fond unique sous la pill active : position et largeur mesurées, glissement en CSS
-  useLayoutEffect(() => {
-    const indicator = indicatorRef.current
-    const place = () => {
-      const button = filterRefs.current[FILTERS.findIndex((f) => f.value === filter)]
-      if (!indicator || !button) return
-      indicator.style.width = `${button.offsetWidth}px`
-      indicator.style.transform = `translateX(${button.offsetLeft}px)`
-      indicator.style.opacity = '1'
-    }
-    place()
-    window.addEventListener('resize', place)
-    return () => window.removeEventListener('resize', place)
-  }, [filter])
 
   function changeFilter(next: ProjectFilter) {
     if (next === filter || switching.current) return
@@ -187,12 +176,12 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
         <div
           role="group"
           aria-label="Filtrer les réalisations"
-          className="scroll-reveal panel-reveal"
+          className="scroll-reveal panel-reveal filter-group"
           onKeyDown={onFilterKeyDown}
-          style={{ position: 'relative', display: 'inline-flex', gap: 8, marginBottom: 36 }}
+          style={{ position: 'relative', display: 'inline-flex', gap: PILL_GAP, marginBottom: 36 }}
         >
+          {/* Fond unique sous la pill active, toujours rendu : position dérivée de l'index, largeur en CSS */}
           <span
-            ref={indicatorRef}
             aria-hidden="true"
             className="filter-indicator"
             style={{
@@ -202,8 +191,8 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
               height: '100%',
               borderRadius: 9999,
               backgroundColor: 'var(--accent)',
-              opacity: 0,
               pointerEvents: 'none',
+              transform: `translateX(calc(${activeIndex} * (var(--pill-w) + ${PILL_GAP}px)))`,
             }}
           />
           {FILTERS.map((f, index) => {
