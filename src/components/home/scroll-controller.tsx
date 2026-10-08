@@ -243,10 +243,13 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       position: 'absolute',
       inset: 0,
       overflow: 'hidden',
-      transition: navigated ? `opacity ${DURATION} ${EASE}, transform ${DURATION} ${EASE}` : 'none',
+      // Propriétés longues uniquement : React refuse le mélange shorthand + transitionDelay
+      transitionProperty: navigated ? 'opacity, transform' : 'none',
+      transitionDuration: DURATION,
+      transitionTimingFunction: EASE,
+      transitionDelay: active ? '300ms' : '0ms',
       opacity: active ? 1 : 0,
       transform: active ? 'translateY(0)' : `translateY(${above ? -40 : 40}px)`,
-      transitionDelay: active ? '300ms' : '0ms',
       pointerEvents: active ? 'auto' : 'none',
     }
   }
