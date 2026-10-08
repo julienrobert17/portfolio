@@ -5,7 +5,6 @@ export async function getFeaturedProjects(): Promise<Project[]> {
   return prisma.project.findMany({
     where: { featured: true },
     orderBy: { publishedAt: 'desc' },
-    take: 6,
   })
 }
 

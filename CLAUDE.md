@@ -32,7 +32,7 @@
 - src/components/experience/<slug>/ — une expérience par dossier, code en français ; la-coupe/ utilise GSAP, Lenis, R3F, ViewTransition
 - src/components/games/geodatle/ — jeu (inline styles dark, pas Tailwind)
 - src/lib/ — data.ts (Prisma), prisma.ts, i18n.ts, accents.ts (--accent par slug), links.ts (URLs), routes.ts (routes immersives), case-studies.ts (fs)
-- prisma/schema.prisma, prisma/seed.ts — 7 projets dont 6 featured ; scripts/ — generate-countries.mjs, fetch/generate la-coupe (photos, placeholders, tuile)
+- prisma/schema.prisma, prisma/seed.ts — projets featured groupés par `category` ('perso' | 'entreprise') sur la home ; 2 tuiles entreprise placeholder à remplacer ; scripts/ — generate-countries.mjs, fetch/generate la-coupe (photos, placeholders, tuile)
 - content/case-studies/<slug>.md — études de cas ; public/videos/ — vidéos de cartes ; RAPPORT_GRAPHISME.md — direction artistique
 
 ## Conventions et couleurs

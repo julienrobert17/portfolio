@@ -22,30 +22,36 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [] 
     const title     = titleRef.current
     const container = cardsRef.current
 
+    const cards = container ? Array.from(container.querySelectorAll<HTMLElement>('.project-card')) : []
+    const titles = [title, ...(container ? Array.from(container.querySelectorAll<HTMLElement>('.group-title')) : [])]
+
     if (!isActive) {
-      title?.classList.remove('is-visible')
-      if (container) {
-        Array.from(container.children).forEach((card) => {
-          card.classList.remove('is-visible')
-          ;(card as HTMLElement).style.transitionDelay = ''
-        })
-      }
+      titles.forEach((t) => t?.classList.remove('is-visible'))
+      cards.forEach((card) => {
+        card.classList.remove('is-visible')
+        card.style.transitionDelay = ''
+      })
       return
     }
 
-    // Titre d'abord, puis cards en cascade avec 180ms de head start
+    // Titres d'abord, puis cards en cascade avec 180ms de head start
     const timer = setTimeout(() => {
-      title?.classList.add('is-visible')
-      if (container) {
-        Array.from(container.children).forEach((card, i) => {
-          ;(card as HTMLElement).style.transitionDelay = `${180 + i * 140}ms`
-          card.classList.add('is-visible')
-        })
-      }
+      titles.forEach((t) => t?.classList.add('is-visible'))
+      cards.forEach((card, i) => {
+        card.style.transitionDelay = `${180 + i * 140}ms`
+        card.classList.add('is-visible')
+      })
     }, 350)
 
     return () => clearTimeout(timer)
   }, [isActive])
+
+  // Deux groupes, même tuile : numérotation continue d'un groupe à l'autre
+  const groups = [
+    { key: 'perso', title: 'Projets personnels', items: projects.filter((p) => p.category !== 'entreprise') },
+    { key: 'entreprise', title: 'Réalisations en entreprise', items: projects.filter((p) => p.category === 'entreprise') },
+  ].filter((group) => group.items.length > 0)
+  let offset = 0
 
   return (
     <section
@@ -70,15 +76,35 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [] 
         Mes réalisations
       </h2>
 
-      <div
-        ref={cardsRef}
-        style={{
-          display: 'grid',
-          gap: 20,
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        }}
-      >
-        {projects.map((project, i) => {
+      <div ref={cardsRef}>
+        {groups.map((group) => {
+          const start = offset
+          offset += group.items.length
+          return (
+        <div key={group.key} style={{ marginBottom: 56 }}>
+          <h3
+            className="scroll-reveal group-title"
+            style={{
+              margin: '0 0 20px',
+              fontFamily: 'var(--font-geist-mono), monospace',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--accent-dim)',
+            }}
+          >
+            {group.title}
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gap: 20,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            }}
+          >
+        {group.items.map((project, j) => {
+          const i = start + j
           const hasVisual = Boolean(project.imageUrl || project.videoUrl)
           return (
           <article
@@ -292,6 +318,10 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [] 
               </div>
             </div>
           </article>
+          )
+        })}
+          </div>
+        </div>
           )
         })}
       </div>

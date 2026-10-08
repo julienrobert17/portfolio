@@ -123,6 +123,35 @@ async function main() {
     },
   })
 
+  // Réalisations en entreprise : tuiles placeholder, contenus à remplacer
+  await prisma.project.upsert({
+    where: { slug: 'entreprise-projet-1' },
+    update: { category: 'entreprise' },
+    create: {
+      slug: 'entreprise-projet-1',
+      title: '[Projet en entreprise 1]',
+      description: '[Description à remplacer : contexte, rôle, résultat.]',
+      tags: ['À remplacer'],
+      category: 'entreprise',
+      featured: true,
+      publishedAt: new Date('2026-01-15'),
+    },
+  })
+
+  await prisma.project.upsert({
+    where: { slug: 'entreprise-projet-2' },
+    update: { category: 'entreprise' },
+    create: {
+      slug: 'entreprise-projet-2',
+      title: '[Projet en entreprise 2]',
+      description: '[Description à remplacer : contexte, rôle, résultat.]',
+      tags: ['À remplacer'],
+      category: 'entreprise',
+      featured: true,
+      publishedAt: new Date('2025-11-10'),
+    },
+  })
+
   await prisma.experience.upsert({
     where: { id: 'exp-current' },
     update: {},

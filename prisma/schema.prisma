@@ -18,6 +18,8 @@ model Project {
   imageUrl    String?
   videoUrl    String?
   featured    Boolean   @default(false)
+  /// 'perso' ou 'entreprise' : regroupe les tuiles de la home
+  category    String    @default("perso")
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
