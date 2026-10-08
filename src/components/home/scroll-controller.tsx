@@ -19,6 +19,8 @@ const HASH_TO_VIEW: Record<string, View> = {
   '#realisations': 'projects',
   '#a-propos': 'about',
 }
+// Et inversement : l'URL suit le panneau courant, un rechargement rouvre le même
+const VIEW_TO_HASH: Record<View, string> = { hero: '', projects: '#realisations', about: '#a-propos' }
 
 interface Props {
   projects: Project[]
@@ -102,6 +104,11 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       }
       setView(next)
       resetStrayScroll(rootRef.current)
+      // replaceState : pas d'entrée d'historique, pas de défilement, pas d'événement hashchange
+      const hash = VIEW_TO_HASH[next]
+      if (window.location.hash !== hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + hash)
+      }
     }
 
     if (viewRef.current === 'hero') {
