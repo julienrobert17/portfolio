@@ -4,7 +4,8 @@ import type { CSSProperties } from 'react'
 import type { Project } from '@prisma/client'
 import { getAccent } from '@/lib/accents'
 import Link from 'next/link'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 import ProjectCardVideo from '@/components/home/project-card-video'
 import { readHomeFilter, storeHomeFilter, type ProjectFilter } from '@/lib/home-panel'
 
@@ -25,21 +26,28 @@ const FILTERS: { value: ProjectFilter; label: string }[] = [
 const subscribeNoop = () => () => {}
 
 const pillBase: CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
   padding: '4px 12px',
   borderRadius: 9999,
+  border: '1px solid color-mix(in oklch, var(--accent) 25%, transparent)',
+  backgroundColor: 'transparent',
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
   cursor: 'pointer',
-  transition: 'background-color 150ms ease, color 150ms ease, border-color 150ms ease',
 }
 
 export default function FeaturedProjects({ projects, isActive, caseStudies = [], onLayoutChange }: Props) {
   const titleRef  = useRef<HTMLHeadingElement>(null)
   const cardsRef  = useRef<HTMLDivElement>(null)
   const filterRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const indicatorRef = useRef<HTMLSpanElement>(null)
+  const gridWrapRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
   const switching = useRef(false)
+  const reducedMotion = useReducedMotion()
   // Au changement de filtre, la cascade repart presque tout de suite (pas le délai d'entrée du panneau)
   const quickCascade = useRef(false)
 
@@ -69,36 +77,65 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
       return
     }
 
-    // Titres d'abord, puis cards en cascade avec 180ms de head start
-    const delay = quickCascade.current ? 50 : 350
+    // Titres d'abord, puis cards en cascade : 180ms de tête et 140ms par carte à l'arrivée
+    // sur le panneau, 60ms et 70ms au changement de filtre, rien en mouvement réduit
+    const quick = quickCascade.current
     quickCascade.current = false
+    gridRef.current?.classList.remove('is-leaving')
+    const head = reducedMotion ? 0 : quick ? 60 : 180
+    const perCard = reducedMotion ? 0 : quick ? 70 : 140
     const timer = setTimeout(() => {
       titles.forEach((t) => t?.classList.add('is-visible'))
       cards.forEach((card, i) => {
-        card.style.transitionDelay = `${180 + i * 140}ms`
+        card.style.transitionDelay = `${head + i * perCard}ms`
         card.classList.add('is-visible')
       })
-    }, delay)
+    }, quick ? 0 : 350)
 
     return () => clearTimeout(timer)
-  }, [isActive, filter])
+  }, [isActive, filter, reducedMotion])
 
-  // Nouvelle hauteur de grille : le parent remonte le conteneur et repose sa garde de butée
+  // Nouvelles cartes montées : la hauteur tenue pendant la sortie est relâchée (transition CSS),
+  // et le parent remonte le conteneur et repose sa garde de butée
   useEffect(() => {
+    const wrap = gridWrapRef.current
+    if (wrap && wrap.style.minHeight) {
+      const frame = requestAnimationFrame(() => { wrap.style.minHeight = '0px' })
+      onLayoutChange?.()
+      return () => cancelAnimationFrame(frame)
+    }
     onLayoutChange?.()
   }, [filter, onLayoutChange])
+
+  // Fond unique sous la pill active : position et largeur mesurées, glissement en CSS
+  useLayoutEffect(() => {
+    const indicator = indicatorRef.current
+    const place = () => {
+      const button = filterRefs.current[FILTERS.findIndex((f) => f.value === filter)]
+      if (!indicator || !button) return
+      indicator.style.width = `${button.offsetWidth}px`
+      indicator.style.transform = `translateX(${button.offsetLeft}px)`
+      indicator.style.opacity = '1'
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [filter])
 
   function changeFilter(next: ProjectFilter) {
     if (next === filter || switching.current) return
     switching.current = true
     storeHomeFilter(next)
-    // Les cartes visibles sortent en fondu, puis le filtre bascule et la cascade reprend
-    cardsRef.current?.querySelectorAll('.project-card').forEach((card) => card.classList.add('is-leaving'))
+    // Hauteur tenue le temps de la sortie, cartes sortantes en fondu et recul (CSS sur la grille),
+    // puis le filtre bascule et la cascade reprend
+    const wrap = gridWrapRef.current
+    if (wrap) wrap.style.minHeight = `${wrap.offsetHeight}px`
+    gridRef.current?.classList.add('is-leaving')
     setTimeout(() => {
       quickCascade.current = true
       setFilter(next)
       switching.current = false
-    }, 150)
+    }, reducedMotion ? 0 : 180)
   }
 
   function onFilterKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -152,8 +189,23 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
           aria-label="Filtrer les réalisations"
           className="scroll-reveal panel-reveal"
           onKeyDown={onFilterKeyDown}
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 36 }}
+          style={{ position: 'relative', display: 'inline-flex', gap: 8, marginBottom: 36 }}
         >
+          <span
+            ref={indicatorRef}
+            aria-hidden="true"
+            className="filter-indicator"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: '100%',
+              borderRadius: 9999,
+              backgroundColor: 'var(--accent)',
+              opacity: 0,
+              pointerEvents: 'none',
+            }}
+          />
           {FILTERS.map((f, index) => {
             const active = f.value === filter
             return (
@@ -161,14 +213,10 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
                 key={f.value}
                 ref={(el) => { filterRefs.current[index] = el }}
                 type="button"
+                className="filter-pill"
                 aria-pressed={active}
                 onClick={() => changeFilter(f.value)}
-                style={{
-                  ...pillBase,
-                  backgroundColor: active ? 'var(--accent)' : 'transparent',
-                  color: active ? '#0d271e' : 'var(--accent)',
-                  border: active ? '1px solid transparent' : '1px solid color-mix(in oklch, var(--accent) 25%, transparent)',
-                }}
+                style={{ ...pillBase, color: active ? '#0d271e' : 'var(--accent-dim)' }}
               >
                 {f.label}
               </button>
@@ -176,6 +224,7 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
           })}
         </div>
 
+        <div ref={gridWrapRef} className="projects-grid-wrap">
         {visible.length === 0 ? (
           <p
             style={{
@@ -190,6 +239,8 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
           </p>
         ) : (
           <div
+            ref={gridRef}
+            className="projects-grid"
             style={{
               display: 'grid',
               gap: 20,
@@ -415,6 +466,7 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
         })}
           </div>
         )}
+        </div>
       </div>
     </section>
   )
