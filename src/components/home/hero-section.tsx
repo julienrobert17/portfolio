@@ -1,5 +1,8 @@
+'use client'
+
 import Image from 'next/image'
 import RotatingStrokes from '@/components/home/rotating-strokes'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 const EASE_IN  = 'cubic-bezier(0.4, 0, 1, 1)'
 const EASE_OUT = 'cubic-bezier(0.16,1,0.3,1)'
@@ -12,11 +15,13 @@ interface Props {
 }
 
 export default function HeroSection({ onStart, isLeaving }: Props) {
+  // Mouvement réduit : pas de slide des lignes ni d'iris, tout est à l'état final
+  const reducedMotion = useReducedMotion()
   function slideOut(delayMs: number): string {
-    return `slideOutLeft 800ms cubic-bezier(0.76, 0, 0.24, 1) ${delayMs}ms both`
+    return reducedMotion ? 'none' : `slideOutLeft 800ms cubic-bezier(0.76, 0, 0.24, 1) ${delayMs}ms both`
   }
   function slideIn(delayMs: number): string {
-    return `slideUp 700ms ${EASE_OUT} ${delayMs}ms both`
+    return reducedMotion ? 'none' : `slideUp 700ms ${EASE_OUT} ${delayMs}ms both`
   }
 
   return (
@@ -36,7 +41,7 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
         position: 'absolute',
         top: '50vh',
         left: '60%',
-        animation: `slideInRight 900ms ${EASE_OUT} 0ms both`,
+        animation: reducedMotion ? 'none' : `slideInRight 900ms ${EASE_OUT} 0ms both`,
       }}>
         <div style={{
           transform: 'translate(-50%, -50%)',
@@ -57,7 +62,7 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
               alt="Julien Robert"
               fill
               sizes="(max-width: 768px) 70vw, 48vw"
-              style={{ objectFit: 'cover', animation: 'slow-zoom 9s ease-in-out infinite' }}
+              style={{ objectFit: 'cover', animation: reducedMotion ? 'none' : 'slow-zoom 9s ease-in-out infinite' }}
               priority
             />
             <div style={{
@@ -73,7 +78,7 @@ export default function HeroSection({ onStart, isLeaving }: Props) {
               backgroundColor: '#0d271e',
               borderRadius: '50%',
               transform: isLeaving ? 'scale(2.2)' : 'scale(0)',
-              transition: 'transform 750ms cubic-bezier(0.4, 0, 1, 1)',
+              transition: reducedMotion ? 'none' : 'transform 750ms cubic-bezier(0.4, 0, 1, 1)',
               transformOrigin: 'center center',
               pointerEvents: 'none',
             }} />

@@ -45,6 +45,7 @@ export default function ScrollProgress() {
   return (
     <div
       ref={barRef}
+      className="scroll-progress"
       aria-hidden="true"
       style={{
         position: 'fixed',
@@ -56,7 +57,6 @@ export default function ScrollProgress() {
         transformOrigin: 'left',
         transform: 'scaleX(0)',
         opacity: 0,
-        transition: 'opacity 200ms ease',
         zIndex: 60,
         pointerEvents: 'none',
       }}

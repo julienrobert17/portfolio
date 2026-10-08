@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 interface TypewriterProps {
   text: string
@@ -11,8 +12,11 @@ interface TypewriterProps {
 export default function Typewriter({ text, delay = 40, className }: TypewriterProps) {
   const [displayed, setDisplayed] = useState('')
   const [showCursor, setShowCursor] = useState(true)
+  // Mouvement réduit : le texte est affiché complet, sans frappe ni curseur
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
+    if (reducedMotion) return
     let i = 0
     const interval = setInterval(() => {
       i++
@@ -25,12 +29,12 @@ export default function Typewriter({ text, delay = 40, className }: TypewriterPr
     }, delay)
 
     return () => clearInterval(interval)
-  }, [text, delay])
+  }, [text, delay, reducedMotion])
 
   return (
     <span className={className}>
-      {displayed}
-      {showCursor && (
+      {reducedMotion ? text : displayed}
+      {showCursor && !reducedMotion && (
         <span
           aria-hidden
           style={{ animation: 'typewriter-blink 0.7s step-end infinite' }}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, Children, ReactNode } from 'react'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 interface RevealProps {
   children: ReactNode
@@ -9,10 +10,12 @@ interface RevealProps {
 
 export default function Reveal({ children, className }: RevealProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  // Mouvement réduit : tout est visible d'emblée, sans observer
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!container || reducedMotion) return
 
     const items = Array.from(container.children) as HTMLElement[]
 
@@ -31,13 +34,13 @@ export default function Reveal({ children, className }: RevealProps) {
 
     observer.observe(container)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <div ref={containerRef} className={className}>
       {Children.map(children, (child) => (
         <div
-          style={{
+          style={reducedMotion ? undefined : {
             opacity: 0,
             transform: 'translateY(20px)',
             transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',

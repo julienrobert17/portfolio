@@ -10,6 +10,7 @@ import PanelCounter from '@/components/ui/panel-counter'
 import { beginGesture, enterPanel, initialEdgeGuard, noteEdges, registerDelta, trackDelta } from '@/lib/panel-edge-guard'
 import type { DeltaSource, EdgeGuardState, EdgeSnapshot } from '@/lib/panel-edge-guard'
 import { HOME_PANEL_EVENT, isHomePanel, readHomePanel, storeHomePanel } from '@/lib/home-panel'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 type View = 'hero' | 'projects' | 'about'
 
@@ -53,6 +54,8 @@ export default function ScrollController({ projects, caseStudies }: Props) {
   // Transitions actives seulement après une première navigation : un lien profond s'affiche d'un coup
   const [navigated, setNavigated] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  // Mouvement réduit : les panneaux basculent sans transition, le hero sort sans animation
+  const reducedMotion = useReducedMotion()
 
   const storedPanel = useSyncExternalStore(subscribeNoop, readHomePanel, () => undefined)
   const [storedApplied, setStoredApplied] = useState(false)
@@ -105,13 +108,13 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       setTimeout(() => {
         show()
         setIsLeaving(false)
-        setTimeout(() => { transitioning.current = false }, 600)
-      }, 1000)
+        setTimeout(() => { transitioning.current = false }, reducedMotion ? 0 : 600)
+      }, reducedMotion ? 0 : 1000)
     } else {
       show()
-      setTimeout(() => { transitioning.current = false }, 900)
+      setTimeout(() => { transitioning.current = false }, reducedMotion ? 0 : 900)
     }
-  }, [scrollContainer])
+  }, [scrollContainer, reducedMotion])
 
   // La hauteur de la grille change (filtre) : on remonte le conteneur et on repose la garde
   const resetProjectsLayout = useCallback(() => {
@@ -252,10 +255,10 @@ export default function ScrollController({ projects, caseStudies }: Props) {
       inset: 0,
       overflow: 'hidden',
       // Propriétés longues uniquement : React refuse le mélange shorthand + transitionDelay
-      transitionProperty: navigated ? 'opacity, transform' : 'none',
+      transitionProperty: navigated && !reducedMotion ? 'opacity, transform' : 'none',
       transitionDuration: DURATION,
       transitionTimingFunction: EASE,
-      transitionDelay: active ? '300ms' : '0ms',
+      transitionDelay: active && !reducedMotion ? '300ms' : '0ms',
       opacity: active ? 1 : 0,
       transform: active ? 'translateY(0)' : `translateY(${above ? -40 : 40}px)`,
       pointerEvents: active ? 'auto' : 'none',

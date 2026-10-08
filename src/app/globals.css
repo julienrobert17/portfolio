@@ -97,14 +97,6 @@ body {
 .filter-pill {
   transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
 }
-@media (prefers-reduced-motion: reduce) {
-  .projects-grid-wrap,
-  .projects-grid.is-leaving .project-card,
-  .filter-pill {
-    transition: none;
-  }
-}
-
 .scroll-reveal.is-visible,
 .card-reveal.is-visible {
   opacity: 1;
@@ -243,10 +235,6 @@ body {
 .nf-subtitle.is-late > .nf-main { opacity: 0; }
 .nf-subtitle.is-late > .nf-alt { opacity: 1; }
 
-@media (prefers-reduced-motion: reduce) {
-  .nf-subtitle > span { transition: none; }
-}
-
 @keyframes panel-counter-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
@@ -361,10 +349,55 @@ body {
   font-family: inherit;
 }
 
+/* Barre de lecture (src/components/ui/scroll-progress.tsx) */
+.scroll-progress {
+  transition: opacity 200ms ease;
+}
+
 .contact-input::placeholder {
   color: rgba(208, 240, 210, 0.3);
 }
 
 .contact-input:focus {
   border-color: rgba(208, 240, 210, 0.35);
+}
+
+/* ─── Mouvement réduit ─── */
+/* Les keyframes sont redéfinies sur leur état final : les éléments apparaissent
+   d'un coup, le point du footer reste visible mais fixe. Les transitions
+   décoratives sont ramenées à 0,01 ms pour que les événements transitionend
+   restent déclenchés. Les expériences immersives et Geodatle gèrent leur cas. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes slideUp { from, to { opacity: 1; transform: none; } }
+  @keyframes slideInRight { from, to { opacity: 1; transform: none; } }
+  @keyframes slideOutLeft { from, to { opacity: 1; transform: none; } }
+  @keyframes fadeFlip { from, to { opacity: 1; transform: none; } }
+  @keyframes panel-counter-in { from, to { opacity: 1; transform: none; } }
+  @keyframes pulse-dot { from, to { opacity: 1; transform: none; } }
+  @keyframes proto-pulse { from, to { opacity: 1; } }
+  @keyframes slow-zoom { from, to { transform: none; } }
+  @keyframes spin-ccw { from, to { transform: none; } }
+
+  :root,
+  [data-project],
+  .project-card,
+  .project-card-bg,
+  .project-card-video,
+  .project-card-reveal,
+  .project-card-reveal > div,
+  .scroll-reveal,
+  .card-reveal,
+  .projects-grid-wrap,
+  .projects-grid.is-leaving .project-card,
+  .filter-pill,
+  .hero-btn,
+  .hero-arrow,
+  .contact-input,
+  .case-study-toc a,
+  .panel-arrow,
+  .nf-subtitle > span,
+  .scroll-progress {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
 }

@@ -85,7 +85,7 @@ export default function FeaturedProjects({ projects, isActive, caseStudies = [],
         card.style.transitionDelay = `${head + i * perCard}ms`
         card.classList.add('is-visible')
       })
-    }, quick ? 0 : 350)
+    }, quick || reducedMotion ? 0 : 350)
 
     return () => clearTimeout(timer)
   }, [isActive, filter, reducedMotion])
