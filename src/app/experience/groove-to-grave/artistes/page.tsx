@@ -25,7 +25,7 @@ export default function ArtistesPage() {
       <ul className="g2g-affiches" style={{ marginTop: 'var(--s4)' }}>
         {artistes.map((a, i) => (
           <li key={a.slug}>
-            <Link href={routes.artiste(a.slug)} className={`g2g-affiche g2g-affiche-lien ${TEINTES[i % TEINTES.length]}`} data-collage="" style={{ '--rot': `${rotation(a.slug, 4)}deg` } as React.CSSProperties}>
+            <Link href={routes.artiste(a.slug)} className={`g2g-affiche g2g-affiche-lien ${TEINTES[i % TEINTES.length]}`} data-collage="" style={{ '--rot-base': `${rotation(a.slug, 4)}deg` } as React.CSSProperties}>
               {a.name}
               <small>{a.role ?? (a.city ? a.city : `${a.releases.length} ${a.releases.length > 1 ? 'sorties' : 'sortie'}`)}</small>
             </Link>

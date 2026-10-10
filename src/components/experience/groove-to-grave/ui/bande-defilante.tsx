@@ -10,10 +10,12 @@ export const TEXTE_REPOS = 'GROOVE TO GRAVE RECORDS · PARIS · INSÈRE UNE CASS
 /** Texte de la bande : ce qui joue, puis le label. Partagé avec la région annoncée. */
 export function texteBande(etat: ReturnType<typeof useLecteur>, prochaine?: string): string {
   const p = etat.piste
-  if (!p) return `${TEXTE_REPOS}${prochaine ? ` · ${prochaine}` : ''}`
+  // Fin de bande : la barre mobile n'a pas de compteurs, la bande le dit en tête.
+  const fin = etat.finDeBande ? 'FIN DE BANDE · REMBOBINER POUR REMONTER · ' : ''
+  if (!p) return `${fin}${TEXTE_REPOS}${prochaine ? ` · ${prochaine}` : ''}`
   const marque = etat.statut === 'lecture' ? '▶' : etat.statut === 'pause' ? 'Ⅱ' : '■'
   const origine = p.origine === 'provisoire' ? ' · EXTRAIT PROVISOIRE' : ''
-  return `${marque} ${p.catalog} · ${p.artiste.toUpperCase()} · ${p.position} ${p.titre.toUpperCase()}${origine} · ${p.format.toUpperCase()} · DISPO SUR BANDCAMP · ${label.nom.toUpperCase()} · PARIS${prochaine ? ` · ${prochaine}` : ''}`
+  return `${fin}${marque} ${p.catalog} · ${p.artiste.toUpperCase()} · ${p.position} ${p.titre.toUpperCase()}${origine} · ${p.format.toUpperCase()} · DISPO SUR BANDCAMP · ${label.nom.toUpperCase()} · PARIS${prochaine ? ` · ${prochaine}` : ''}`
 }
 
 /**

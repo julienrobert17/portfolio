@@ -19,7 +19,7 @@ export function rotation(cle: string, amplitude: number): number {
   return Math.round((hachage(cle) * 2 - 1) * amplitude * 10) / 10
 }
 
-/** Variable CSS `--rot` à poser sur l'élément tourné ; le CSS décide de l'appliquer ou non. */
+/** Variable CSS `--rot-base` à poser sur l'élément tourné ; le CSS en dérive `--rot`, divisée par deux sur mobile. */
 export function styleRotation(cle: string, amplitude: number): CSSProperties {
-  return { '--rot': `${rotation(cle, amplitude)}deg` } as CSSProperties
+  return { '--rot-base': `${rotation(cle, amplitude)}deg` } as CSSProperties
 }

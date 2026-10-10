@@ -5,32 +5,42 @@ const DUREE = 0.45
 
 /**
  * L'insertion : la cassette vole du mur jusqu'à la fenêtre cassette du skin (desktop) ou de la
- * barre du bas (mobile), en FLIP par GSAP, 450 ms. Positions mesurées après lenis.stop(). En
- * mouvement réduit, rien : la cassette apparaît directement dans la fenêtre. Décoratif : un
- * clone visuel, l'original reste en place.
+ * barre du bas (mobile), en FLIP par GSAP, 450 ms. Le clone en vol est la tuile elle-même
+ * (mêmes classes, même police au marqueur, mêmes couleurs, même sticker), sans son texte ni son
+ * bouton, monté dans la racine .g2g pour hériter des variables de police et de couleur ; il
+ * atterrit droit. Positions mesurées après lenis.stop(). La cassette d'origine reste visible
+ * pendant le vol. En mouvement réduit, rien : la cassette apparaît directement dans la fenêtre.
  */
-export function insererCassette(source: SVGSVGElement | null): void {
-  if (!source || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+export function insererCassette(tuile: HTMLElement | null): void {
+  if (!tuile || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const racine = document.getElementById('haut')
+  const source = tuile.querySelector<SVGSVGElement>('.g2g-cassette svg')
   const cibles = Array.from(document.querySelectorAll<HTMLElement>('.g2g-fenetre')).filter((el) => el.offsetParent !== null && el.getClientRects().length)
   const cible = cibles[0]
-  if (!cible) return
+  if (!racine || !source || !cible) return
   const lenis = getLenis()
   lenis?.stop()
-  const de = source.getBoundingClientRect()
+  const de = tuile.getBoundingClientRect()
   const a = cible.getBoundingClientRect()
-  const clone = source.cloneNode(true) as SVGSVGElement
+  const clone = tuile.cloneNode(true) as HTMLElement
   clone.setAttribute('aria-hidden', 'true')
   clone.classList.add('g2g-insertion')
-  Object.assign(clone.style, { position: 'fixed', left: `${de.left}px`, top: `${de.top}px`, width: `${de.width}px`, height: `${de.height}px`, margin: '0', zIndex: '80', pointerEvents: 'none', transformOrigin: 'top left' })
-  document.body.appendChild(clone)
-  const echelle = Math.min((a.width - 4) / de.width, (a.height - 4) / de.height)
-  const dx = a.left + (a.width - de.width * echelle) / 2 - de.left
-  const dy = a.top + (a.height - de.height * echelle) / 2 - de.top
+  for (const attr of ['data-collage', 'data-colle', 'data-joue']) clone.removeAttribute(attr)
+  for (const el of clone.querySelectorAll('.g2g-cassette__texte, .g2g-ecouter, [id]')) el.remove()
+  Object.assign(clone.style, { left: `${de.left}px`, top: `${de.top}px`, width: `${de.width}px` })
+  racine.appendChild(clone)
+  // La tuile du clone n'a plus que la cassette : sa boîte est celle du SVG non tourné.
+  const largeur = de.width
+  const hauteur = largeur * (128 / 200)
+  const rot = parseFloat(getComputedStyle(clone.querySelector('.g2g-cassette') ?? clone).getPropertyValue('--rot')) || 0
+  const echelle = Math.min((a.width - 4) / largeur, (a.height - 4) / hauteur)
+  const dx = a.left + (a.width - largeur * echelle) / 2 - de.left
+  const dy = a.top + (a.height - hauteur * echelle) / 2 - de.top
   gsap.fromTo(clone, { x: 0, y: 0, scale: 1, rotate: 0 }, {
     x: dx,
     y: dy,
     scale: echelle,
-    rotate: -6,
+    rotate: -rot,
     duration: DUREE,
     ease: 'power3.in',
     onComplete: () => {

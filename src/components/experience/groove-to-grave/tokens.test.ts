@@ -1,11 +1,24 @@
 /**
- * Vérifie chaque paire texte/fond de tokens.ts : 4,5:1 pour le texte courant, 3:1 pour le texte
- * de 24 px et plus et les éléments d'interface, 4,6:1 pour redInk sur wall.
+ * Vérifie chaque paire texte/fond de tokens.ts : 7:1 pour ink sur le mur WebGL (wall, lambeaux,
+ * grain le plus sombre du papier), 4,5:1 pour le texte courant, 3:1 pour le texte de 24 px et
+ * plus et les éléments d'interface, 4,6:1 pour redInk sur wall. Les lambeaux ne mêlent jamais
+ * plus de 35 % de red ou de green au wall.
  *   npm run test:g2g-tokens
  */
-import { MINIMUM_RED_INK_WALL, PAIRES, contraste, couleurs } from './tokens'
+import { MELANGE_LAMBEAU, MINIMUM_RED_INK_WALL, PAIRES, contraste, couleurs, melanger } from './tokens'
 
 let echecs = 0
+if (MELANGE_LAMBEAU > 0.35) {
+  echecs++
+  process.stdout.write(`KO  lambeaux mêlés à ${MELANGE_LAMBEAU * 100} % (maximum 35)\n`)
+}
+for (const [nom, base] of [['lambeauRouge', couleurs.red], ['lambeauVert', couleurs.green]] as const) {
+  const attendu = melanger(couleurs.wall, base, MELANGE_LAMBEAU)
+  if (couleurs[nom] !== attendu) {
+    echecs++
+    process.stdout.write(`KO  ${nom} vaut ${couleurs[nom]}, attendu ${attendu}\n`)
+  }
+}
 for (const p of PAIRES) {
   const minimum = p.texte === 'redInk' && p.fond === 'wall' ? MINIMUM_RED_INK_WALL : p.minimum
   const valeur = contraste(couleurs[p.texte], couleurs[p.fond])

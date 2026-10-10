@@ -33,7 +33,7 @@ export default function BoutonEcouter({ piste }: { piste: PisteJouable }) {
   return (
     <button type="button" className="g2g-ecouter g2g-js" data-g2g="ecouter" aria-pressed={joue} aria-label={`${joue ? 'Pause' : 'Écouter'} ${piste.catalog}, ${piste.artiste}, ${piste.titre}`} onClick={(e) => {
         // Insertion : la cassette vole du mur vers la fenêtre du skin, puis la lecture démarre.
-        if (!joue) insererCassette(e.currentTarget.parentElement?.querySelector('svg') ?? null)
+        if (!joue) insererCassette(e.currentTarget.closest<HTMLElement>('.g2g-tuile'))
         basculer(piste)
       }}>
       <IconePlay pause={joue} />

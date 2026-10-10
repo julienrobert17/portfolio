@@ -168,7 +168,8 @@ class Devtools {
     const hauteur = fenetre ? hauteurFenetre : Math.min(hauteurMax, Math.ceil(result.value))
     await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: hauteur, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
     await this.envoyer('Runtime.evaluate', { expression: 'new Promise(r => requestAnimationFrame(() => setTimeout(r, 200)))', awaitPromise: true }, s)
-    const { data } = await this.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: largeur, height: hauteur, scale: 1 } }, s)
+    // États du lecteur : capture de la fenêtre seule, sans dépassement (les éléments fixes restent à leur place).
+    const { data } = await this.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png', captureBeyondViewport: !fenetre, clip: { x: 0, y: 0, width: largeur, height: hauteur, scale: 1 } }, s)
     await this.envoyer('Target.closeTarget', { targetId })
     return Buffer.from(data, 'base64')
   }

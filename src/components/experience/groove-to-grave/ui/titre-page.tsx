@@ -24,7 +24,7 @@ export default function TitrePage({ children, texte, teinte = 'poster', id, as =
   const classe = `g2g-bande-titre${teinte === 'rouge' ? ' g2g-bande-titre--rouge' : teinte === 'vert' ? ' g2g-bande-titre--vert' : ''}`
   return (
     <Balise id={id} className="g2g-affiche g2g-titre-page">
-      <span className={classe} style={{ '--rot': `${rot}deg` } as CSSProperties}>
+      <span className={classe} style={{ '--rot-base': `${rot}deg` } as CSSProperties}>
         {children}
       </span>
     </Balise>

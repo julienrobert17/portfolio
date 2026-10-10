@@ -20,9 +20,19 @@
   --radius: 3px;
   --trait: 2px;
   --trait-fort: 3px;
-  --rot: 0deg;
+  /* désordre : --rot-base posé en ligne par l'élément, divisé par deux sur mobile */
+  --rot-base: 0deg;
+  --rot-facteur: 1;
+  --rot: calc(var(--rot-base) * var(--rot-facteur));
   --texte: 18px;
   --meta: 13px;
+  /* empilement, unique pour toute l'expérience (passe de direction 4.1) */
+  --z-mur: 0;
+  --z-contenu: 1;
+  --z-decor: 2;
+  --z-skin: 50;
+  --z-vol: 60;
+  --z-modal: 70;
   background: var(--g2g-wall);
   color: var(--g2g-ink);
   font-family: var(--g2g-font-archivo), Archivo, system-ui, sans-serif;
@@ -39,7 +49,16 @@
     --marge: 16px;
     --gouttiere: 16px;
     --texte: 16px;
+    --rot-facteur: 0.5;
   }
+}
+
+/* Chaque élément tourné recalcule --rot depuis sa propre --rot-base. */
+.g2g-cassette,
+.g2g-affiche-lien,
+.g2g-flyer__support,
+.g2g-bande-titre {
+  --rot: calc(var(--rot-base) * var(--rot-facteur));
 }
 
 .g2g *,
@@ -72,7 +91,7 @@
   position: absolute;
   left: var(--marge);
   top: -100px;
-  z-index: 100;
+  z-index: var(--z-modal);
   background: var(--g2g-ink);
   color: var(--g2g-poster);
   padding: var(--s1) var(--s2);
@@ -177,6 +196,7 @@
 .g2g-bande-titre::after {
   content: '';
   position: absolute;
+  z-index: var(--z-decor);
   top: -12px;
   width: 72px;
   height: 22px;
@@ -570,8 +590,10 @@
   position: relative;
 }
 
+/* Le sticker déborde de 6 px sur le mur, jamais sur une carte voisine (gouttière de 16 px au moins) ni sur une zone cliquable. */
 .g2g-tuile .g2g-sticker {
   position: absolute;
+  z-index: var(--z-decor);
   right: -6px;
   top: -10px;
   transform: rotate(8deg);
@@ -599,9 +621,6 @@
     gap: var(--s3) var(--gouttiere);
   }
 
-  .g2g-cassette {
-    --rot: 0deg;
-  }
 }
 
 .g2g-mur-compte {
@@ -627,7 +646,7 @@
 }
 
 .g2g-une .g2g-cassette {
-  --rot: -2deg;
+  --rot-base: -2deg;
 }
 
 /* ───────── Page sortie ───────── */
@@ -840,6 +859,7 @@
 .g2g-flyer__support::after {
   content: '';
   position: absolute;
+  z-index: var(--z-decor);
   top: -10px;
   width: 64px;
   height: 20px;
@@ -1087,27 +1107,28 @@
   display: none !important;
 }
 
+/* Skin desktop : 132 px à 1440 (bords 6, marges 9, rangée 1 de 32, écart 4, rangée 2 de 81), rien de coupé. */
 .g2g-lecteur {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--z-skin);
   width: min(100% - 2 * var(--marge), var(--largeur-max));
   margin: var(--s2) auto 0;
   border: var(--trait-fort) solid var(--g2g-ink);
   border-radius: 10px;
   background: var(--g2g-chrome);
-  padding: 6px 10px 8px;
+  padding: 4px 10px 5px;
   color: var(--g2g-ink);
   font-size: 15px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .g2g-lecteur__r1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 36px;
+  min-height: 32px;
 }
 
 .g2g-lecteur__nom {
@@ -1129,7 +1150,7 @@
 
 .g2g-lecteur__mono {
   display: block;
-  height: 32px;
+  height: 30px;
   width: auto;
 }
 
@@ -1138,8 +1159,8 @@
 }
 
 .g2g-lecteur__nav a {
-  min-height: 28px;
-  padding: 2px 10px;
+  min-height: 24px;
+  padding: 0 10px;
   font-size: 14px;
 }
 
@@ -1168,18 +1189,18 @@
   white-space: nowrap;
 }
 
-/* Rangée 2 : transport, fenêtre, afficheur, volume. */
+/* Rangée 2 : transport, fenêtre, afficheur, volume. 79 px : afficheur 63, puis la progression. */
 .g2g-lecteur__r2 {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  height: 84px;
 }
 
 .g2g-lecteur__centre {
   display: grid;
-  gap: 4px;
+  grid-template-rows: auto 14px;
+  gap: 2px;
   min-width: 0;
   align-self: stretch;
 }
@@ -1291,15 +1312,23 @@
   animation: g2g-bobine calc(60s / var(--bpm, 124) * 3) linear infinite;
 }
 
+/* Afficheur desktop : rangée du haut (bande, presets à droite) 24 px, rangée du spectre 30 px, rien n'y est coupé. */
 .g2g-lecteur__afficheur {
   margin-top: 0;
-  height: 72px;
-  padding: 2px 8px 3px;
+  padding: 2px 8px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 2px;
+  grid-template-rows: 24px 30px;
+  gap: 3px;
   min-width: 0;
   box-sizing: border-box;
+}
+
+.g2g-lecteur__haut {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
 }
 
 .g2g-bande {
@@ -1337,11 +1366,10 @@
   grid-template-columns: minmax(0, 60fr) minmax(0, 40fr);
   gap: 12px;
   align-items: end;
-  min-height: 0;
-  overflow: hidden;
+  height: 30px;
 }
 
-/* Spectre : 32 colonnes, 9 segments par un masque, seule scaleY change. */
+/* Spectre : 32 colonnes toujours visibles en segments lcdOff ; le niveau allumé par-dessus, seule sa scaleY change. */
 .g2g-spectre {
   display: grid;
   grid-template-columns: repeat(32, minmax(0, 1fr));
@@ -1352,13 +1380,21 @@
 
 .g2g-spectre__colonne {
   display: block;
+  position: relative;
   height: 100%;
-  transform: scaleY(0);
-  transform-origin: bottom;
-  /* 6 segments dans 30 px : 4 px allumés, 1 px d'interstice ; les deux du haut en lcdPeak. */
-  background: linear-gradient(to top, var(--g2g-lcdLit) 0 66.7%, var(--g2g-lcdPeak) 66.7% 100%);
+  background: var(--g2g-lcdOff);
+  /* 6 segments dans 30 px : 4 px de segment, 1 px d'interstice. */
   -webkit-mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
   mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
+}
+
+.g2g-spectre__niveau {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  /* Les deux segments du haut en lcdPeak. */
+  background: linear-gradient(to top, var(--g2g-lcdLit) 0 66.7%, var(--g2g-lcdPeak) 66.7% 100%);
   will-change: transform;
 }
 
@@ -1367,11 +1403,13 @@
   gap: 14px;
   margin: 0;
   justify-content: flex-end;
+  align-items: end;
+  height: 30px;
 }
 
 .g2g-compteurs div {
   display: grid;
-  gap: 0;
+  gap: 1px;
 }
 
 .g2g-compteurs dt {
@@ -1385,7 +1423,15 @@
   margin: 0;
   font-size: 18px;
   line-height: 1;
-  padding-bottom: 1px;
+}
+
+/* Fin de bande : remplace les compteurs quand le pied de page entre dans l'écran. */
+.g2g-compteurs--fin {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--g2g-lcdPeak);
+  letter-spacing: 0.06em;
+  padding-bottom: 2px;
 }
 
 .g2g-compteurs__temps dd {
@@ -1465,7 +1511,17 @@
 .g2g-progression {
   display: block;
   line-height: 0;
-  height: 16px;
+  height: 14px;
+}
+
+.g2g-progression .g2g-curseur {
+  height: 14px;
+}
+
+.g2g-progression .g2g-curseur::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
 }
 
 /* Presets dans l'afficheur (référence JetAudio) : VT323 15 px, 24 px de haut, actif en lcdLit et ink, inactifs en lcdDim. */
@@ -1477,7 +1533,7 @@
 .g2g-presets button {
   flex: 1;
   min-height: 24px;
-  padding: 0 6px;
+  padding: 0 10px;
   border: 1px solid var(--g2g-lcdOff);
   border-radius: 2px;
   background: transparent;
@@ -1561,6 +1617,21 @@
   padding-top: var(--s2);
 }
 
+/* Sous 1100 px, les presets n'ont plus la place à côté de la bande : troisième rangée, le skin monte à 155 px. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .g2g-lecteur__afficheur {
+    grid-template-rows: 16px 30px 24px;
+  }
+
+  .g2g-lecteur__haut {
+    display: contents;
+  }
+
+  .g2g-lecteur__haut .g2g-presets {
+    order: 3;
+  }
+}
+
 @media (max-width: 767px) {
   .g2g-lecteur {
     width: 100%;
@@ -1613,7 +1684,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 60;
+    z-index: var(--z-skin);
     height: calc(64px + env(safe-area-inset-bottom));
     padding: 0 var(--marge) env(safe-area-inset-bottom);
     display: grid;
@@ -1641,7 +1712,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 70;
+    z-index: var(--z-modal);
     display: grid;
     gap: var(--s2);
     padding: var(--s2) var(--marge) calc(var(--s3) + env(safe-area-inset-bottom));
@@ -1665,8 +1736,14 @@
     padding: 10px;
   }
 
+  .g2g-feuille .g2g-lecteur__bas,
+  .g2g-feuille .g2g-compteurs {
+    height: auto;
+    min-height: 40px;
+  }
+
   .g2g-feuille .g2g-spectre {
-    height: 36px;
+    height: 40px;
   }
 
   .g2g-feuille .g2g-compteurs dd {
@@ -1740,7 +1817,7 @@
   .g2g[data-js] .g2g-menu:not([hidden]) {
     position: fixed;
     inset: 56px 0 0;
-    z-index: 65;
+    z-index: var(--z-modal);
     display: grid;
     align-content: start;
     padding: var(--s3) var(--marge);
@@ -1800,7 +1877,7 @@ html.g2g-verrou {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: var(--z-decor);
   transition: transform 80ms ease, box-shadow 80ms ease;
 }
 
@@ -1900,31 +1977,35 @@ html.g2g-verrou {
   }
 }
 
+/* Le canvas reste invisible jusqu'à son premier rendu complet (data-pret), puis fond en 300 ms sur la texture de repli. */
 .g2g-mur-canvas {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--z-mur);
   width: 100%;
   height: 100%;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 600ms ease;
+  transition: opacity 300ms ease;
 }
 
 .g2g-mur-canvas[data-pret] {
   opacity: 1;
 }
 
-.g2g-lecteur,
 .g2g-page,
-.g2g-fin,
-.g2g-skip {
+.g2g-fin {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-contenu);
 }
 
-.g2g-lecteur {
-  position: sticky;
+/* Cassette en vol (insertion) : la tuile clonée, au-dessus du skin, sous le menu et la feuille. */
+.g2g .g2g-insertion {
+  position: fixed;
+  z-index: var(--z-vol);
+  margin: 0;
+  pointer-events: none;
+  transform-origin: top left;
 }
 
 /* Collage à l'arrivée : échelle 1,06 vers 1, la rotation se pose, 220 ms, une fois par élément. */

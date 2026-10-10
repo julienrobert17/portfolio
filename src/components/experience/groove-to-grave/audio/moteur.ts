@@ -349,8 +349,14 @@ let instance: Moteur | null = null
 
 declare global {
   interface Window {
-    /** Outils de capture et de mesure (scripts/g2g-video.ts, scripts/g2g-mesures-audio.ts). */
-    __g2g?: { flux: () => MediaStream | null; mesure: (quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif?: boolean) => void }
+    /** Outils de capture, de mesure et de vérification (scripts/g2g-video.ts, g2g-mesures-audio.ts, g2g-verif.ts, g2g-planche-captures.ts). */
+    __g2g?: {
+      flux: () => MediaStream | null
+      mesure: (quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif?: boolean) => void
+      position: () => number
+      /** Fige la transition de page (avance rapide du mur et balayage) à une progression de 0 à 1, null pour la libérer. */
+      figerTransition: (p: number | null) => void
+    }
   }
 }
 
@@ -358,7 +364,7 @@ declare global {
 export function moteur(): Moteur {
   if (!instance) {
     instance = new Moteur()
-    if (typeof window !== 'undefined') window.__g2g = { flux: () => instance?.flux() ?? null, mesure: (quoi, actif) => instance?.mesure(quoi, actif) }
+    if (typeof window !== 'undefined') window.__g2g = { ...window.__g2g, flux: () => instance?.flux() ?? null, mesure: (quoi, actif) => instance?.mesure(quoi, actif), position: () => instance?.position ?? -1, figerTransition: window.__g2g?.figerTransition ?? (() => undefined) }
   }
   return instance
 }

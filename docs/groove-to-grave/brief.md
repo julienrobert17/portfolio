@@ -1,9 +1,14 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1.2 · 10 octobre 2026 (v1 : 8 octobre, v1.1 : 10 octobre 2026)
+> Expérience portfolio `groove-to-grave` · brief v1.3 · 10 octobre 2026 (v1 : 8 octobre, v1.1 et v1.2 : 10 octobre 2026)
 > Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1.2** (passe de direction 4.1 sur la Phase 4, 10 octobre 2026) :
+
+1. §3.3 : plus aucun chevauchement entre cartes ; seuls le scotch et les stickers débordent, sur le mur seulement. Échelle de `z-index` unique.
+2. §3.1 : tokens `lambeauRouge` et `lambeauVert` (wall mêlé de red ou de green à 35 % au plus) et `papierSombre` (grain le plus sombre du shader), ink à 7:1 au moins sur chacun, sur wall et sur le papier sombre (tokens.test.ts).
 
 **Changements depuis la v1.1** (passe d'identité du directeur artistique sur la planche « relevé DA », 10 octobre 2026) :
 
@@ -125,6 +130,8 @@ Fichier unique : `src/components/experience/groove-to-grave/tokens.ts`, exposé 
 | `lcdLit` | `#f6efe0` | segments allumés, texte de l'afficheur |
 | `lcdPeak` | `#f14442` | segments de crête |
 | `lcdOff` / `lcdDim` | `#2a2722` / `#8a8270` | segments éteints, libellés de l'afficheur |
+| `lambeauRouge` / `lambeauVert` | wall mêlé de red / de green à 35 % | lambeaux d'affiches du mur WebGL, dérivés dans `tokens.ts` |
+| `papierSombre` | wall × 0,78 − 0,035 | grain le plus sombre du papier du shader, dérivé dans `tokens.ts` |
 
 Règles de contraste, vérifiées au token près par `tokens.test.ts` :
 
@@ -149,10 +156,11 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 
 - **Rotations** entre −4° et +4°, calculées par un aléa déterministe à partir de l'identifiant de l'élément, jamais `Math.random()` au rendu (pour ne pas casser l'hydratation). Les blocs de texte de plus de deux lignes ne sont jamais tournés.
 - **Stickers** : au maximum un par carte. Ils ne recouvrent jamais un texte et ne sont jamais le seul porteur d'une information (« sold out » et « no repress » sont aussi des statuts dans les données et dans le texte accessible).
-- **Chevauchements** de 12 px au maximum entre cartes, jamais sur une zone cliquable voisine.
+- **Chevauchements** : aucun entre cartes, ni sur desktop ni sur mobile. Seuls le scotch et les stickers débordent, sur le mur uniquement, jamais sur une autre carte ni sur une zone cliquable (passe de direction 4.1 ; gouttières de 16 px au moins, débord de 12 px au plus).
 - **Ordre du DOM = ordre de lecture visuel**, de haut en bas et de gauche à droite.
 - **Scotch, traces de colle, papier déchiré** : uniquement en décor (CSS ou WebGL), `aria-hidden`.
-- Sur mobile, le mur devient une pile : rotations divisées par deux, pas de chevauchement.
+- Sur mobile, le mur devient une pile : rotations divisées par deux (`--rot-facteur: 0.5` sur la racine), pas de chevauchement.
+- **Empilement** : une seule échelle de `z-index`, en variables sur la racine : mur WebGL 0, contenu 1, stickers et scotch 2, skin et barres mobiles 50, cassette en vol 60, menu et feuille mobiles 70.
 
 ### 3.4 La cassette (composant central)
 

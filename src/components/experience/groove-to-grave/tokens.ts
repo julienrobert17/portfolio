@@ -6,19 +6,54 @@ import type { CSSProperties } from 'react'
  * `variablesCss()`. Les paires texte/fond autorisées sont listées dans `PAIRES` et vérifiées
  * par tokens.test.ts (`npm run test:g2g-tokens`). Brief §3.1.
  */
+/** Mélange linéaire en sRGB de `a` vers `b`, `t` entre 0 et 1, en hexadécimal. */
+export function melanger(a: string, b: string, t: number): string {
+  const na = parseInt(a.slice(1), 16)
+  const nb = parseInt(b.slice(1), 16)
+  const canal = (d: number) => Math.round(((na >> d) & 255) * (1 - t) + ((nb >> d) & 255) * t)
+  return `#${[16, 8, 0].map((d) => canal(d).toString(16).padStart(2, '0')).join('')}`
+}
+
+/** Assombrit une couleur d'un facteur multiplicatif puis d'un retrait constant (0 à 1), en hexadécimal. */
+function assombrir(hex: string, facteur: number, retrait: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  const canal = (d: number) => Math.max(0, Math.round(((n >> d) & 255) * facteur - retrait * 255))
+  return `#${[16, 8, 0].map((d) => canal(d).toString(16).padStart(2, '0')).join('')}`
+}
+
+const WALL = '#efe6d2'
+const RED = '#f14442'
+const GREEN = '#268459'
+
+/** Part de red ou de green dans un lambeau d'affiche du mur : 35 % au plus (passe de direction 4.1). */
+export const MELANGE_LAMBEAU = 0.35
+
+/**
+ * Grain le plus sombre du papier du mur, tenu en phase avec canvas/mur-shader.ts : facteur
+ * minimal de la lumière, des plis fins, de la colle et du voile final (0,93 × 0,94 × 0,92 × 0,97)
+ * et retrait maximal du grain (0,035). Le shader ne descend jamais sous ce produit.
+ */
+export const PAPIER_SOMBRE = { facteur: 0.93 * 0.94 * 0.92 * 0.97, retrait: 0.035 }
+
 export const couleurs = {
   /** Fond du mur, papier d'affichage. */
-  wall: '#efe6d2',
+  wall: WALL,
+  /** Lambeau d'affiche rouge du mur : wall mêlé de red à 35 %. */
+  lambeauRouge: melanger(WALL, RED, MELANGE_LAMBEAU),
+  /** Lambeau d'affiche vert du mur : wall mêlé de green à 35 %. */
+  lambeauVert: melanger(WALL, GREEN, MELANGE_LAMBEAU),
+  /** Le papier du mur à son grain le plus sombre (dérivé du shader, voir PAPIER_SOMBRE). */
+  papierSombre: assombrir(WALL, PAPIER_SOMBRE.facteur, PAPIER_SOMBRE.retrait),
   /** Affiches, étiquettes de cassette, texte clair sur fonds sombres. */
   poster: '#faf4e6',
   /** Texte, traits, contours. */
   ink: '#111111',
   /** Aplats et éléments graphiques, relevé sur GTGRVA01. Jamais en texte sur fond clair. */
-  red: '#f14442',
+  red: RED,
   /** Texte rouge sur fond clair. */
   redInk: '#c21e19',
   /** Aplats et éléments graphiques, relevé sur GTGRVA02. Jamais en texte sur fond clair. */
-  green: '#268459',
+  green: GREEN,
   /** Fond vert sous texte clair. */
   greenDeep: '#1d6b47',
   /** Corps du lecteur. */
@@ -42,14 +77,17 @@ export type Token = keyof typeof couleurs
 export interface Paire {
   texte: Token
   fond: Token
-  /** 4,5 pour le texte courant ; 3 pour le texte de 24 px et plus et les éléments d'interface. */
-  minimum: 4.5 | 3
+  /** 7 pour le texte posé sur le mur WebGL ; 4,5 pour le texte courant ; 3 pour le texte de 24 px et plus et les éléments d'interface. */
+  minimum: 7 | 4.5 | 3
   usage: string
 }
 
 /** Chaque paire texte/fond utilisée par le site. Toute nouvelle paire s'ajoute ici avant d'être utilisée. */
 export const PAIRES: Paire[] = [
-  { texte: 'ink', fond: 'wall', minimum: 4.5, usage: 'texte courant sur le mur' },
+  { texte: 'ink', fond: 'wall', minimum: 7, usage: 'texte courant sur le mur' },
+  { texte: 'ink', fond: 'lambeauRouge', minimum: 7, usage: 'texte sur un lambeau rouge du mur' },
+  { texte: 'ink', fond: 'lambeauVert', minimum: 7, usage: 'texte sur un lambeau vert du mur' },
+  { texte: 'ink', fond: 'papierSombre', minimum: 7, usage: 'texte sur le grain le plus sombre du papier' },
   { texte: 'ink', fond: 'poster', minimum: 4.5, usage: 'texte sur affiches et étiquettes' },
   { texte: 'ink', fond: 'chrome', minimum: 4.5, usage: 'libellés du lecteur' },
   { texte: 'ink', fond: 'chromeLight', minimum: 4.5, usage: 'boutons du lecteur' },

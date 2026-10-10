@@ -103,7 +103,12 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
     </div>
   )
 
-  const compteurs = (
+  // Fin de bande : quand le pied de page est à l'écran, l'afficheur le dit à la place des compteurs.
+  const compteurs = etat.finDeBande ? (
+    <p className="g2g-compteurs g2g-compteurs--fin g2g-lcd-texte" aria-hidden="true">
+      FIN DE BANDE
+    </p>
+  ) : (
     <dl className="g2g-compteurs g2g-lcd-texte">
       <div>
         <dt>SORTIES</dt>
@@ -179,18 +184,20 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
         </button>
       </div>
 
-      {/* Rangée 2 (desktop) : transport, fenêtre cassette, afficheur (bande, spectre et compteurs, presets) puis progression, volume. */}
+      {/* Rangée 2 (desktop) : transport, fenêtre cassette, afficheur (bande et presets, puis spectre et compteurs), progression, volume. */}
       <div className="g2g-lecteur__r2 g2g-js">
         {transport}
         <FenetreCassette className="g2g-lecteur__fenetre" />
         <div className="g2g-lecteur__centre">
           <div className="g2g-lecteur__afficheur g2g-lcd">
-            <BandeDefilante prochaine={prochaine} />
+            <div className="g2g-lecteur__haut">
+              <BandeDefilante prochaine={prochaine} />
+              {presets}
+            </div>
             <div className="g2g-lecteur__bas">
               <Spectre />
               {compteurs}
             </div>
-            {presets}
           </div>
           {progression}
         </div>

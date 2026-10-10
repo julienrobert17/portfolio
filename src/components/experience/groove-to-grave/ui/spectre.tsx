@@ -14,7 +14,8 @@ const DESCENTE_PAR_MS = 1 / 300
 /**
  * Le spectre en segments : 32 bandes logarithmiques de 40 Hz à 16 kHz, 6 segments dans 30 px,
  * en DOM, seules des `transform` changent, à 30 images par seconde au plus, montée franche et
- * descente lissée d'environ 300 ms, arrêté quand rien ne joue (brief §3.5, §8). Décoratif.
+ * descente lissée d'environ 300 ms, arrêté quand rien ne joue (brief §3.5, §8). Les 32 colonnes
+ * restent visibles en segments lcdOff, éteintes comprises. Décoratif.
  */
 export default function Spectre() {
   const { statut } = useLecteur()
@@ -22,11 +23,13 @@ export default function Spectre() {
   const joue = statut === 'lecture'
 
   useEffect(() => {
-    const colonnes = hote.current?.children
-    if (!colonnes) return
+    const hoteEl = hote.current
+    if (!hoteEl) return
+    // Chaque colonne garde ses segments éteints en lcdOff ; seul le niveau, enfant, change d'échelle.
+    const colonnes = Array.from(hoteEl.children, (c) => c.firstElementChild as HTMLElement)
     const niveaux = new Float32Array(COLONNES)
     if (!joue) {
-      for (let i = 0; i < COLONNES; i++) (colonnes[i] as HTMLElement).style.transform = 'scaleY(0)'
+      for (let i = 0; i < COLONNES; i++) colonnes[i].style.transform = 'scaleY(0)'
       return
     }
     const affiches = new Float32Array(COLONNES)
@@ -41,7 +44,7 @@ export default function Spectre() {
         affiches[i] = Math.max(niveaux[i], affiches[i] - dt * DESCENTE_PAR_MS)
         // Quantifié au segment près.
         const v = Math.round(affiches[i] * SEGMENTS) / SEGMENTS
-        ;(colonnes[i] as HTMLElement).style.transform = `scaleY(${v})`
+        colonnes[i].style.transform = `scaleY(${v})`
       }
     })
   }, [joue])
@@ -49,7 +52,9 @@ export default function Spectre() {
   return (
     <div ref={hote} className="g2g-spectre" aria-hidden="true">
       {Array.from({ length: COLONNES }, (_, i) => (
-        <span key={i} className="g2g-spectre__colonne" />
+        <span key={i} className="g2g-spectre__colonne">
+          <span className="g2g-spectre__niveau" />
+        </span>
       ))}
     </div>
   )

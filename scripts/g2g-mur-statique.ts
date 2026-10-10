@@ -33,8 +33,8 @@ async function main(): Promise<void> {
       const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
       const a = gl.getAttribLocation(p, 'a_pos'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
       const u = (n) => gl.getUniformLocation(p, n);
-      gl.uniform3fv(u('u_wall'), ${JSON.stringify(rgb01(couleurs.wall))}); gl.uniform3fv(u('u_poster'), ${JSON.stringify(rgb01(couleurs.poster))}); gl.uniform3fv(u('u_red'), ${JSON.stringify(rgb01(couleurs.red))}); gl.uniform3fv(u('u_green'), ${JSON.stringify(rgb01(couleurs.green))});
-      gl.viewport(0, 0, c.width, c.height); gl.uniform2f(u('u_resolution'), c.width, c.height); gl.uniform1f(u('u_temps'), 0); gl.uniform1f(u('u_graves'), 0); gl.uniform1f(u('u_coup'), 0); gl.uniform1f(u('u_echelle'), 1);
+      gl.uniform3fv(u('u_wall'), ${JSON.stringify(rgb01(couleurs.wall))}); gl.uniform3fv(u('u_poster'), ${JSON.stringify(rgb01(couleurs.poster))}); gl.uniform3fv(u('u_lambeauRouge'), ${JSON.stringify(rgb01(couleurs.lambeauRouge))}); gl.uniform3fv(u('u_lambeauVert'), ${JSON.stringify(rgb01(couleurs.lambeauVert))});
+      gl.viewport(0, 0, c.width, c.height); gl.uniform2f(u('u_resolution'), c.width, c.height); gl.uniform1f(u('u_temps'), 0); gl.uniform1f(u('u_graves'), 0); gl.uniform1f(u('u_coup'), 0); gl.uniform1f(u('u_avance'), 0); gl.uniform1f(u('u_echelle'), 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       return c.toDataURL('image/png').split(',')[1];
     })()`

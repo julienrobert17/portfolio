@@ -40,6 +40,8 @@ export interface EtatLecteur {
   mini: boolean
   feuille: boolean
   menu: boolean
+  /** Le pied de page « fin de bande » est à l'écran : l'afficheur le dit à la place des compteurs. */
+  finDeBande: boolean
   /** Message pour la région aria-live. */
   annonce: string
 }
@@ -58,6 +60,7 @@ let etat: EtatLecteur = {
   mini: false,
   feuille: false,
   menu: false,
+  finDeBande: false,
   annonce: '',
 }
 
@@ -235,6 +238,10 @@ export function definirFeuille(feuille: boolean): void {
 
 export function definirMenu(menu: boolean): void {
   poser({ menu, feuille: menu ? false : etat.feuille })
+}
+
+export function definirFinDeBande(finDeBande: boolean): void {
+  if (etat.finDeBande !== finDeBande) poser({ finDeBande })
 }
 
 /** Changement de page : avance rapide sonore si le moteur existe. */
