@@ -16,7 +16,7 @@ export const artistes: Artiste[] = [
     role: 'A&R',
     presentation: {
       lang: 'fr',
-      body: 'Crédité « A&R by Jules Fritsch » sur les deux compilations Summer Hits. Membre du collectif avec LukasDarian et Gregs.',
+      body: 'Crédité à l\'A&R des deux compilations Summer Hits. Membre du collectif avec LukasDarian et Gregs.',
       draft: true,
     },
     releases: ['gtgrva01', 'gtgrva02'],

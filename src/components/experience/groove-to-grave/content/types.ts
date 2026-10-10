@@ -12,6 +12,8 @@ export interface Provenance {
   sources: string[]
   /** Vrai seulement si chaque fait de l'entrée est lu sur une page source. */
   verified: boolean
+  /** Champs lus sur un support non lisible avec certitude (étiquette du disque), à faire valider. */
+  aVerifier?: string[]
 }
 
 /** Texte publié : langue d'origine conservée, `draft` si écrit par nous et à faire valider par le label. */

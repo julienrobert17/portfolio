@@ -50,7 +50,8 @@ export const sorties: Sortie[] = [
     genres: ['minimal', 'house'],
     genresVerified: false,
     text: { lang: 'en', body: 'This is the first vinyl release of the parisian label: Groove To Grave.\n\nFor this EP they are welcoming the group Azbine from Lyon in France. Azbine was created by 2 childhood friends in 2018. They take their influences from house and minimal through deeptech and they want to bring a retro has-been touch in their electronic universe. This is their first solo EP.' },
-    credits: { artwork: 'JeunePenard', distribution: 'Subwax' },
+    credits: { artwork: 'JeunePenard', mastering: 'Octavix Studio', distribution: 'Subwax' },
+    aVerifier: ['credits.mastering : lu sur l’étiquette du disque, absent de Bandcamp'],
     links: {
       bandcamp: 'https://groovetograve.bandcamp.com/album/spacy-taste-ep',
       yoyaku: 'https://www.yoyaku.io/release/gtgr02/',
