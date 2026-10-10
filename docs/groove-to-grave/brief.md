@@ -430,16 +430,20 @@ Chaque phase suit la même méthode :
 
 ## 10. Definition of done
 
-- [ ] Toutes les pages du §4, rendues côté serveur, contenu réel avec sources, textes de notre main marqués `draft`.
-- [ ] Aucune œuvre du label altérée ; chaque pochette et chaque flyer est crédité.
-- [ ] Lecteur persistant : aucune coupure de lecture sur toutes les navigations internes, y compris retour et avance du navigateur.
-- [ ] Zéro son et zéro `AudioContext` avant un geste ; aucun mouvement continu quand rien ne joue.
-- [ ] Presets : filtre, son et URL synchronisés ; fonctionnent sans JavaScript (filtre seul).
-- [ ] Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur les quatre pages de référence.
-- [ ] Parcours complet au clavier, VoiceOver correct sur le lecteur, mouvement réduit propre, repli sans WebGL et sans JavaScript vérifiés.
+Cochée le 10 octobre 2026 (Phase 6), une preuve par ligne ; les lignes qui dépendent du directeur artistique ou du label restent ouvertes.
+
+- [x] Toutes les pages du §4, rendues côté serveur, contenu réel avec sources, textes de notre main marqués `draft`. Preuve : 11 pages servies en HTML sans JavaScript (`scripts/g2g-a11y.ts`, contrôle « sans JavaScript » aux deux formats), `content/*.ts` avec `sources` et `verified` par entrée, `draft: true` rendu en « brouillon » (`g2g-brouillon`), page `/sources`.
+- [x] Aucune œuvre du label altérée ; chaque pochette et chaque flyer est crédité. Preuve : `scripts/g2g-lib.ts` n'applique que `rotate()` d'orientation EXIF et un redimensionnement proportionnel (revue de code Phase 6) ; légende « Œuvre affichée intacte » et crédit artwork sur chaque pochette, `flyerCredit` sur chaque flyer ; le shader ne reprend aucune forme (`canvas/mur-shader.ts`).
+- [x] Lecteur persistant : aucune coupure de lecture sur toutes les navigations internes, y compris retour et avance du navigateur. Preuve : `scripts/g2g-verif.ts`, contrôle « lecture sans coupure : lien, retour, avance du navigateur », position de l'extrait qui avance à chaque étape, aux deux formats.
+- [x] Zéro son et zéro `AudioContext` avant un geste ; aucun mouvement continu quand rien ne joue. Preuve : `new AudioContext()` n'existe que dans `Moteur.demarrer()`, appelé par `lire()` depuis un gestionnaire de clic (revue de code Phase 6) ; ticker à l'arrêt sans abonnés, bande, bobines, spectre et mur arrêtés hors lecture (`g2g-verif.ts`, « canvas prêt », `g2g-a11y.ts`, mouvement réduit).
+- [x] Presets : filtre, son et URL synchronisés ; fonctionnent sans JavaScript (filtre seul). Preuve : `?genre=` lu par la page serveur et poussé par `SyncPreset`, `router.replace` depuis le lecteur ; sans JavaScript, les cinq filtres sont des liens (`g2g-a11y.ts`, « sans JavaScript »).
+- [ ] Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur les quatre pages de référence. État : desktop 100 en performance, accessibilité et bonnes pratiques sur les quatre pages ; mobile 91 à 93 en performance (LCP simulé 3,2 à 3,5 s, TBT < 10 ms, CLS 0), 100 ailleurs ; SEO à 63-66 des deux côtés à cause du `noindex` voulu par le §1 (seul audit en échec : `is-crawlable`). Preuve : `docs/groove-to-grave/lighthouse/phase-6/*.html`, `scripts/g2g-lighthouse.ts`. Décisions à prendre : lever le `noindex` (SEO 100) ; stratégie de polices pour le LCP mobile (compte-rendu de Phase 6).
+- [x] Parcours complet au clavier, mouvement réduit propre, repli sans WebGL et sans JavaScript vérifiés. Preuve : `scripts/g2g-a11y.ts` (lien d'évitement, ordre skin puis contenu, focus visible, rien sous le skin, menu et feuille sans piège, Échap, aria-live, replis page par page aux deux formats) et axe-core à zéro violation sur 11 pages × 2 formats et les états du lecteur.
+- [ ] VoiceOver correct sur le lecteur : à passer par le directeur artistique.
 - [ ] Planches finales 1440 et 390 validées par le directeur artistique ; checklist Safari macOS et iPhone passée par lui.
-- [ ] `tsc`, lint et build propres ; aucune nouvelle dépendance non validée ; aucune écriture en base.
-- [ ] Mention « concept non officiel » dans le pied de page ; vrais extraits et mise en ligne publique bloqués tant que l'accord du label n'est pas obtenu.
+- [x] `tsc`, lint et build propres ; aucune nouvelle dépendance non validée ; aucune écriture en base. Preuve : passés avant chaque push ; `git diff main -- package.json` ne touche que le script `test:g2g-tokens` ; aucun import Prisma sous `groove-to-grave` ; l'entrée de `seed.ts` n'est pas exécutée.
+- [x] Mention « concept non officiel » dans le pied de page ; vrais extraits et mise en ligne publique bloqués tant que l'accord du label n'est pas obtenu. Preuve : tampon dans le skin et texte du pied de page (`layout/fin-de-bande.tsx`), `robots: { index: false }` dans le layout, extraits provisoires synthétisés (`origine: 'provisoire'`, « extrait provisoire » dans la bande).
+- [ ] Accord écrit du label pour les visuels, la musique et la mise en ligne publique.
 
 ---
 
