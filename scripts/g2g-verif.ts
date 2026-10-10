@@ -6,7 +6,8 @@
  *   - aucun chevauchement entre cartes ; stickers et scotch jamais sur une autre carte ni sur une zone cliquable ;
  *   - insertion : clone monté dans la racine, mêmes classes, police au marqueur, sticker ; l'original reste visible ;
  *   - canvas : aucun voile au chargement, fondu de 300 ms après le premier rendu ;
- *   - lecture sans coupure sur une navigation interne, puis retour et avance du navigateur.
+ *   - lecture sans coupure sur une navigation interne, puis retour et avance du navigateur ;
+ *   - transition de page figée à mi-course (balayage du contenu) ; FIN DE BANDE dans l'afficheur au pied de page.
  * Le serveur doit tourner (`next start`) sur l'URL passée en option. Sort une table Markdown et un code de retour.
  *
  *   npx tsx scripts/g2g-verif.ts [--url http://localhost:3000]
@@ -181,6 +182,17 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   const apresAvant = await nav.evaluer<{ chemin: string; statut: string; t: number }>(s, etatLecture)
   const continu = apresNav.statut === 'lecture' && apresRetour.statut === 'lecture' && apresAvant.statut === 'lecture' && apresNav.t > avant && apresRetour.t > apresNav.t && apresAvant.t > apresRetour.t
   noter(f.largeur, '/sorties', 'lecture sans coupure : lien, retour, avance du navigateur', continu && apresNav.chemin.endsWith('/artistes') && apresRetour.chemin.endsWith('/sorties') && apresAvant.chemin.endsWith('/artistes'), `${avant.toFixed(1)} → ${apresNav.t.toFixed(1)} → ${apresRetour.t.toFixed(1)} → ${apresAvant.t.toFixed(1)} s`)
+  // Transition figée à mi-course : balayage à 50 %, puis libérée.
+  const fige = await nav.evaluer<{ attribut: boolean; valeur: string; libere: boolean }>(s, `(() => { window.__g2g.figerTransition(0.5); const m = document.getElementById('contenu'); const attribut = m.hasAttribute('data-balayage'); const valeur = m.style.getPropertyValue('--balayage'); window.__g2g.figerTransition(null); return { attribut, valeur, libere: !m.hasAttribute('data-balayage') } })()`)
+  noter(f.largeur, '/artistes', 'transition figée à mi-course puis libérée (balayage)', fige.attribut && fige.valeur === '50%' && fige.libere, fige.valeur)
+  // Fin de bande : le pied de page à l'écran remplace les compteurs (desktop) et ouvre la bande (mobile), puis tout revient.
+  await nav.evaluer(s, `document.getElementById('fin-de-bande').scrollIntoView({ block: 'end', behavior: 'instant' })`)
+  await attendre(700)
+  const fin = await nav.evaluer<{ compteurs: boolean; bande: boolean }>(s, `({ compteurs: !!document.querySelector('.g2g-compteurs--fin'), bande: (document.querySelector('.g2g-barre .g2g-bande') || document.querySelector('.g2g-bande')).textContent.includes('FIN DE BANDE') })`)
+  await nav.evaluer(s, `window.scrollTo(0, 0)`)
+  await attendre(700)
+  const retourHaut = await nav.evaluer<{ compteurs: boolean; bande: boolean }>(s, `({ compteurs: !!document.querySelector('.g2g-compteurs--fin'), bande: (document.querySelector('.g2g-barre .g2g-bande') || document.querySelector('.g2g-bande')).textContent.includes('FIN DE BANDE') })`)
+  noter(f.largeur, '/artistes', 'FIN DE BANDE dans l’afficheur au pied de page, compteurs de retour en haut', (mobile ? fin.bande : fin.compteurs && fin.bande) && !retourHaut.compteurs && !retourHaut.bande)
   await nav.envoyer('Page.stopScreencast', {}, s)
   off()
   await nav.envoyer('Target.closeTarget', { targetId })

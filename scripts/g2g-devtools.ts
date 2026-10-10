@@ -73,7 +73,7 @@ export class Devtools {
 
   async cliquer(s: string, selecteur: string): Promise<void> {
     const { result } = await this.envoyer<{ result: { value: { x: number; y: number } | null } }>('Runtime.evaluate', {
-      expression: `(() => { const el = document.querySelector(${JSON.stringify(selecteur)}); if (!el) return null; el.scrollIntoView({ block: 'center', behavior: 'instant' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })()`,
+      expression: `(() => { const el = document.querySelector(${JSON.stringify(selecteur)}); if (!el) return null; let r = el.getBoundingClientRect(); /* on ne défile que si la cible n'est pas déjà bien visible (barres fixes de 140 px) */ if (r.top < 140 || r.bottom > innerHeight - 140) { el.scrollIntoView({ block: 'center', behavior: 'instant' }); r = el.getBoundingClientRect() } return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })()`,
       returnByValue: true,
     }, s)
     if (!result.value) {

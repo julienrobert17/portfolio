@@ -3,15 +3,18 @@ import { label, textes } from '../content/label'
 import { routes } from '../lib/routes'
 import BoutonRembobiner from '../ui/bouton-rembobiner'
 import { Crane } from '../ui/logos/logo'
+import SentinelleFin from './sentinelle-fin'
 
 /**
  * Pied de page « fin de bande », gardé par le crâne : crédits du site, mention concept non
  * officiel, sources, réseaux du label, et « rembobiner » qui ramène en haut de page (ancre,
- * avec le son de rembobinage quand le lecteur est là).
+ * avec le son de rembobinage quand le lecteur est là). Sa sentinelle prévient le lecteur quand
+ * il entre dans l'écran : l'afficheur passe en FIN DE BANDE.
  */
 export default function FinDeBande() {
   return (
     <footer className="g2g-fin" id="fin-de-bande">
+      <SentinelleFin />
       <div className="g2g-fin__int">
         <Crane className="g2g-fin__crane" />
         <div className="g2g-fin__corps">

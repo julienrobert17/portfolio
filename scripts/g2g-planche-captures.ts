@@ -1,16 +1,16 @@
 /**
  * Planches de captures de « Groove To Grave » : chaque page de l'expérience en pleine
  * hauteur, à 1440 px et à 390 px, légendée, une image par format. Chrome (Google Chrome
- * installé sur la machine) en mode headless, pas de Playwright. Le serveur doit tourner
+ * installé sur la machine) en mode headless par le pilote partagé, pas de Playwright. Le serveur doit tourner
  * (`npm run start` ou `npm run dev`) sur l'URL passée en option.
  *
  *   npx tsx scripts/g2g-planche-captures.ts --phase 2 [--url http://localhost:3000]
  */
-import { spawn } from 'node:child_process'
-import { existsSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { couleurs } from '../src/components/experience/groove-to-grave/tokens'
+import { Devtools } from './g2g-devtools'
 import { CACHE, RACINE, dossier } from './g2g-lib'
 
 const DATE = new Date().toISOString().slice(0, 10)
@@ -21,7 +21,6 @@ const arg = (nom: string, defaut: string) => {
 const PHASE = arg('--phase', '2')
 const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
-const CHROMES = ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser']
 
 interface Etat {
   chemin: string
@@ -32,6 +31,10 @@ interface Etat {
   fenetre?: boolean
   /** Seulement pour ce format. */
   format?: 1440 | 390
+  /** Après les gestes : défile jusqu'à cet élément (bas de l'écran), puis attend la sentinelle. */
+  defiler?: string
+  /** Après les gestes : fige la transition de page (avance rapide du mur et balayage) à cette progression. */
+  figer?: number
 }
 
 const PAGES: Etat[] = [
@@ -41,6 +44,7 @@ const PAGES: Etat[] = [
   { chemin: '/sorties/gtgr05', titre: 'Sortie GTGR05' },
   { chemin: '/artistes', titre: 'Artistes' },
   { chemin: '/artistes/kitchen-plug', titre: 'Artiste Kitchen Plug' },
+  { chemin: '/artistes/lungo', titre: 'Artiste Lungo, invité de compilation' },
   { chemin: '/soirees', titre: 'Soirées' },
   { chemin: '/label', titre: 'Le label' },
   { chemin: '/contact', titre: 'Contact' },
@@ -56,6 +60,10 @@ const ETATS_LECTEUR: Etat[] = [
   { chemin: '/sorties', titre: 'Mode mini en lecture', actions: ['[data-g2g="ecouter"]', '[data-g2g="mini"]'], fenetre: true, format: 1440 },
   { chemin: '/sorties', titre: 'Feuille mobile dépliée', actions: ['[data-g2g="ecouter"]', '[data-g2g="deplier"]'], fenetre: true, format: 390 },
   { chemin: '/sorties', titre: 'Menu mobile ouvert', actions: ['[data-g2g="menu"]'], fenetre: true, format: 390 },
+  // Phase 5 : l'avance rapide figée à mi-course (bandes de suivi sur le papier, balayage du contenu), la fin de bande.
+  { chemin: '/sorties', titre: 'Avance rapide, mi-transition', actions: ['[data-g2g="ecouter"]', '.g2g-lecteur__nav a[href$="/artistes"]'], figer: 0.5, fenetre: true, format: 1440 },
+  { chemin: '/sorties', titre: 'Avance rapide, mi-transition', actions: ['[data-g2g="ecouter"]', '[data-g2g="menu"]', '.g2g-menu__nav a[href$="/artistes"]'], figer: 0.5, fenetre: true, format: 390 },
+  { chemin: '/sorties', titre: 'Fin de bande dans l’afficheur', actions: ['[data-g2g="ecouter"]'], defiler: '#fin-de-bande', fenetre: true },
 ]
 
 const FORMATS = [
@@ -63,90 +71,15 @@ const FORMATS = [
   { largeur: 390, echelle: 2, hauteurMax: 16000 },
 ]
 
-function chrome(): string {
-  const c = CHROMES.find((p) => existsSync(p))
-  if (!c) throw new Error('Chrome introuvable dans /Applications')
-  return c
-}
-
-/**
- * Chrome piloté par le protocole DevTools (WebSocket natif de Node, aucune dépendance) :
- * émulation d'appareil à la largeur voulue (Chrome refuse une fenêtre de moins de 500 px),
- * attente du chargement, hauteur réelle du document, capture pleine page.
- */
-class Devtools {
-  private ws!: WebSocket
-  private id = 0
-  private attentes = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
-  private evenements = new Set<(methode: string, params: unknown) => void>()
-  private processus!: ReturnType<typeof spawn>
-
-  async demarrer(): Promise<void> {
-    const port = 9222 + Math.floor(Math.random() * 1000)
-    this.processus = spawn(chrome(), ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--autoplay-policy=no-user-gesture-required', '--no-default-browser-check', `--user-data-dir=${join(CACHE, 'chrome-profil')}`, `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
-    let version: { webSocketDebuggerUrl: string } | null = null
-    for (let i = 0; i < 50 && !version; i++) {
-      try {
-        version = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()) as { webSocketDebuggerUrl: string }
-      } catch {
-        await new Promise((r) => setTimeout(r, 200))
-      }
-    }
-    if (!version) throw new Error('Chrome ne répond pas sur le port de débogage')
-    this.ws = new WebSocket(version.webSocketDebuggerUrl)
-    await new Promise<void>((resolve, reject) => {
-      this.ws.addEventListener('open', () => resolve())
-      this.ws.addEventListener('error', () => reject(new Error('WebSocket DevTools refusé')))
-    })
-    this.ws.addEventListener('message', (ev) => {
-      const m = JSON.parse(String(ev.data)) as { id?: number; result?: unknown; error?: { message: string }; method?: string; params?: unknown }
-      if (m.id !== undefined) {
-        const a = this.attentes.get(m.id)
-        this.attentes.delete(m.id)
-        if (!a) return
-        if (m.error) a.reject(new Error(m.error.message))
-        else a.resolve(m.result)
-      } else if (m.method) {
-        for (const fn of this.evenements) fn(m.method, m.params)
-      }
-    })
-  }
-
-  envoyer<T = unknown>(method: string, params: Record<string, unknown> = {}, sessionId?: string): Promise<T> {
-    const id = ++this.id
-    this.ws.send(JSON.stringify({ id, method, params, sessionId }))
-    return new Promise<T>((resolve, reject) => this.attentes.set(id, { resolve: resolve as (v: unknown) => void, reject }))
-  }
-
-  attendre(methode: string, delai = 15000): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const minuteur = setTimeout(() => {
-        this.evenements.delete(fn)
-        reject(new Error(`${methode} : délai dépassé`))
-      }, delai)
-      const fn = (m: string) => {
-        if (m !== methode) return
-        clearTimeout(minuteur)
-        this.evenements.delete(fn)
-        resolve()
-      }
-      this.evenements.add(fn)
-    })
-  }
-
-  /** Clic par un vrai événement de pointeur (geste utilisateur) au centre de l'élément, puis une pause. */
-  async cliquer(s: string, selecteur: string, pause = 900): Promise<void> {
-    const { result } = await this.envoyer<{ result: { value: { x: number; y: number } | null } }>('Runtime.evaluate', {
-      expression: `(() => { const el = document.querySelector(${JSON.stringify(selecteur)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })()`,
-      returnByValue: true,
-    }, s)
-    if (!result.value) throw new Error(`${selecteur} introuvable`)
-    const { x, y } = result.value
-    for (const type of ['mousePressed', 'mouseReleased'] as const) await this.envoyer('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }, s)
+/** Pilote partagé (scripts/g2g-devtools.ts, SwiftShader pour WebGL2 : le canvas du mur est bien capturé), plus la capture d'une page. */
+class Captures extends Devtools {
+  /** Clic par un vrai geste, puis une pause pour les animations. */
+  async cliquerEtAttendre(s: string, selecteur: string, pause = 900): Promise<void> {
+    await this.cliquer(s, selecteur)
     await new Promise((r) => setTimeout(r, pause))
   }
 
-  async capturer(url: string, largeur: number, echelle: number, hauteurMax: number, actions: string[] = [], fenetre = false): Promise<Buffer> {
+  async capturer(url: string, largeur: number, echelle: number, hauteurMax: number, actions: string[] = [], fenetre = false, defiler?: string, figer?: number): Promise<Buffer> {
     const { targetId } = await this.envoyer<{ targetId: string }>('Target.createTarget', { url: 'about:blank' })
     const { sessionId } = await this.envoyer<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true })
     const s = sessionId
@@ -159,31 +92,35 @@ class Devtools {
     await charge
     // Polices et images visibles, puis une respiration pour les mises en page tardives.
     await this.envoyer('Runtime.evaluate', { expression: 'document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))', awaitPromise: true }, s)
-    for (const a of actions) await this.cliquer(s, a)
-    if (fenetre) {
+    for (const a of actions) await this.cliquerEtAttendre(s, a)
+    if (defiler) {
+      await this.envoyer('Runtime.evaluate', { expression: `document.querySelector(${JSON.stringify(defiler)}).scrollIntoView({ block: 'end', behavior: 'instant' })` }, s)
+      await new Promise((r) => setTimeout(r, 900))
+    } else if (fenetre) {
       await this.envoyer('Runtime.evaluate', { expression: 'window.scrollTo(0, 0)' }, s)
       await new Promise((r) => setTimeout(r, 300))
+    }
+    if (figer !== undefined) {
+      await this.envoyer('Runtime.evaluate', { expression: `window.__g2g && window.__g2g.figerTransition(${figer})` }, s)
+      await new Promise((r) => setTimeout(r, 400))
+      const { result: mur } = await this.envoyer<{ result: { value: string } }>('Runtime.evaluate', { expression: `(() => { const c = document.querySelector('.g2g-mur-canvas'); return c ? \`canvas prêt ${'$'}{c.hasAttribute('data-pret')}, progression dessinée ${'$'}{c.dataset.avance}\` : 'pas de canvas' })()`, returnByValue: true }, s)
+      process.stderr.write(`    transition figée à ${figer} : ${mur.value}\n`)
     }
     const { result } = await this.envoyer<{ result: { value: number } }>('Runtime.evaluate', { expression: 'Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)', returnByValue: true }, s)
     const hauteur = fenetre ? hauteurFenetre : Math.min(hauteurMax, Math.ceil(result.value))
     await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: hauteur, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
     await this.envoyer('Runtime.evaluate', { expression: 'new Promise(r => requestAnimationFrame(() => setTimeout(r, 200)))', awaitPromise: true }, s)
-    // États du lecteur : capture de la fenêtre seule, sans dépassement (les éléments fixes restent à leur place).
-    const { data } = await this.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png', captureBeyondViewport: !fenetre, clip: { x: 0, y: 0, width: largeur, height: hauteur, scale: 1 } }, s)
+    // États du lecteur : capture de la fenêtre telle quelle (défilement compris, éléments fixes à leur place) ; pages : tout le document.
+    const { data } = await this.envoyer<{ data: string }>('Page.captureScreenshot', fenetre ? { format: 'png' } : { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: largeur, height: hauteur, scale: 1 } }, s)
     await this.envoyer('Target.closeTarget', { targetId })
     return Buffer.from(data, 'base64')
-  }
-
-  fermer(): void {
-    this.ws.close()
-    this.processus.kill()
   }
 }
 
 async function main(): Promise<void> {
   dossier(join(CACHE, 'chrome-profil'))
   dossier(join(CACHE, 'captures'))
-  const navigateur = new Devtools()
+  const navigateur = new Captures()
   await navigateur.demarrer()
   const PLANCHES = dossier(join(RACINE, 'docs/groove-to-grave/planches'))
   const POLICE = 'Helvetica Neue, Helvetica, Arial, sans-serif'
@@ -195,7 +132,7 @@ async function main(): Promise<void> {
     const hauteurEcran = (f.largeur < 600 ? 844 : 900) * f.echelle
     let numero = 0
     for (const p of liste) {
-      const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax, p.actions, p.fenetre)
+      const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax, p.actions, p.fenetre, p.defiler, p.figer)
       numero++
       const nom = `${String(numero).padStart(2, '0')}-${p.titre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.jpg`
       const meta = await sharp(buf).metadata()

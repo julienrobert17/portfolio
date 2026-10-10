@@ -10,8 +10,9 @@ interface NewsletterProps {
 
 /**
  * Newsletter : le formulaire passe par une server action qui valide l'adresse et n'enregistre
- * rien tant qu'aucun fournisseur n'est choisi avec le label ; le message le dit. Fonctionne
- * sans JavaScript (redirection avec l'état dans l'URL). « Suivre sur Bandcamp » fonctionne.
+ * rien tant qu'aucun fournisseur n'est choisi avec le label ; la note sous le titre et le
+ * message de confirmation le disent. Fonctionne sans JavaScript (redirection avec l'état dans
+ * l'URL, retour sur l'ancre). « Suivre sur Bandcamp » fonctionne.
  */
 export default function Newsletter({ etat, retour }: NewsletterProps) {
   return (
@@ -19,7 +20,8 @@ export default function Newsletter({ etat, retour }: NewsletterProps) {
       <h2 id="newsletter" className="g2g-affiche g2g-titre-section">
         Reste branché
       </h2>
-      <form action={inscrireNewsletter} className="g2g-form">
+      <p id="newsletter-note">Sorties, repress et soirées, quelques fois par an. Le label n’a pas encore choisi son outil de newsletter : l’adresse est vérifiée, rien n’est enregistré pour l’instant.</p>
+      <form action={inscrireNewsletter} className="g2g-form" aria-describedby="newsletter-note">
         <input type="hidden" name="retour" value={retour} />
         <label htmlFor="newsletter-email">Ton adresse e-mail</label>
         <input id="newsletter-email" name="email" type="email" autoComplete="email" required placeholder="toi@exemple.fr" />

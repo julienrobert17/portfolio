@@ -15,9 +15,14 @@ interface Props {
   searchParams: Promise<{ newsletter?: string }>
 }
 
-/** Contacts (adresse à obtenir du label, en attendant Instagram), newsletter, cassette vierge « envoie ta tape ». */
+/**
+ * Contact : la démo (cassette vierge « envoie ta tape », procédure en brouillon), l'adresse
+ * quand le label l'aura donnée (en attendant, Instagram), les réseaux et disquaires, la
+ * newsletter (validation serveur, aucun enregistrement, message honnête).
+ */
 export default async function ContactPage({ searchParams }: Props) {
   const { newsletter } = await searchParams
+  const instagram = label.reseaux.find((r) => r.label === 'Instagram') ?? label.reseaux[0]
   return (
     <>
       <section className="g2g-entete-page" aria-labelledby="contact">
@@ -32,11 +37,10 @@ export default async function ContactPage({ searchParams }: Props) {
               {textes.demo.body}
               <span className="g2g-brouillon">brouillon</span>
             </p>
-            <p>{label.contact ?? 'L’adresse de contact reste à obtenir du label. En attendant, le message passe par Instagram.'}</p>
             <ul className="g2g-liens" style={{ marginTop: 0 }}>
               <li>
-                <a href={label.reseaux[2].url} rel="noopener" className="g2g-bouton--principal">
-                  Écrire sur Instagram
+                <a href={instagram.url} rel="noopener" className="g2g-bouton--principal">
+                  Envoyer le lien sur Instagram
                 </a>
               </li>
               <li>
@@ -45,6 +49,36 @@ export default async function ContactPage({ searchParams }: Props) {
             </ul>
           </div>
         </div>
+      </section>
+      <section className="g2g-section" aria-labelledby="ecrire">
+        <h2 id="ecrire" className="g2g-affiche g2g-titre-section">
+          Écrire au label
+        </h2>
+        {label.contact ? (
+          <p>
+            <a href={`mailto:${label.contact}`}>{label.contact}</a>
+          </p>
+        ) : (
+          <p>Le label n’a pas publié d’adresse e-mail : le message passe par Instagram, et par les disquaires pour les commandes.</p>
+        )}
+        <ul className="g2g-liens" aria-label="Le label en ligne">
+          {label.reseaux.map((l) => (
+            <li key={l.url}>
+              <a href={l.url} rel="noopener">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <ul className="g2g-liens" aria-label="Disquaires">
+          {label.disquaires.map((l) => (
+            <li key={l.url}>
+              <a href={l.url} rel="noopener">
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
       <Newsletter etat={newsletter} retour={routes.contact} />
     </>

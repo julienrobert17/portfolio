@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { couleurs, filtrerSorties, getSortie, sorties } from '@/components/experience/groove-to-grave/content'
+import { filtrerSorties, getSortie, sorties } from '@/components/experience/groove-to-grave/content'
 import { label } from '@/components/experience/groove-to-grave/content/label'
 import { dateLongue, duree } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
-import { couleurs as tokens } from '@/components/experience/groove-to-grave/tokens'
+import Bandeau from '@/components/experience/groove-to-grave/ui/bandeau'
 import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
 import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
 import CassetteDos from '@/components/experience/groove-to-grave/ui/cassette-dos'
@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const STATUTS = { disponible: 'Disponible', epuise: 'Vinyle épuisé', numerique: 'Numérique' } as const
 
 /**
- * Fiche d'une sortie : bandeau dans la dominante de la pochette (texte ink ou poster selon le
- * contraste) qui porte le sticker, pochette réelle en grand et intacte, pistes avec durées,
+ * Fiche d'une sortie : bandeau dans la dominante de la pochette (ui/bandeau.tsx, texte ink ou
+ * poster selon le contraste) qui porte le sticker, pochette réelle en grand et intacte, pistes avec durées,
  * texte de sortie dans sa langue, crédits complets, lien Bandcamp, sorties voisines (précédente
  * et suivante dans la série, plus une compilation). Le bouton écouter par piste arrive avec le
  * lecteur, seulement pour les pistes qui ont un extrait.
@@ -42,9 +42,6 @@ export default async function SortiePage({ params }: Props) {
   const { ref } = await params
   const s = getSortie(ref)
   if (!s) notFound()
-  const c = couleurs[s.ref]
-  const fond = c?.dominant ?? tokens.chrome
-  const texte = !c || c.contrasteInk.dominant >= 4.5 ? tokens.ink : tokens.poster
   const serie = filtrerSorties('tout').filter((x) => x.kind !== 'compilation')
   const compilations = filtrerSorties('tout').filter((x) => x.kind === 'compilation')
   const i = serie.findIndex((x) => x.ref === s.ref)
@@ -55,7 +52,7 @@ export default async function SortiePage({ params }: Props) {
   const sticker = s.status === 'epuise' ? { texte: 'épuisé', classe: 'g2g-sticker' } : s.noRepress ? { texte: 'no repress', classe: 'g2g-sticker g2g-sticker--vert' } : null
   return (
     <article>
-      <header className="g2g-bandeau" style={{ background: fond, color: texte }}>
+      <Bandeau sortieRef={s.ref}>
         <p className="g2g-meta">
           {s.catalog} · {s.format} · <time dateTime={s.releaseDate}>{dateLongue(s.releaseDate)}</time>
         </p>
@@ -75,7 +72,7 @@ export default async function SortiePage({ params }: Props) {
             </span>
           ) : null}
         </p>
-      </header>
+      </Bandeau>
       <div className="g2g-fiche">
         <div>
           {aPhoto(s.ref) ? (

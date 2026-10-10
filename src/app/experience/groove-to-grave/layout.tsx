@@ -8,6 +8,7 @@ import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-ba
 import Lecteur from '@/components/experience/groove-to-grave/layout/lecteur'
 import SkipLink from '@/components/experience/groove-to-grave/layout/skip-link'
 import SmoothScroll from '@/components/experience/groove-to-grave/layout/smooth-scroll'
+import TransitionPage from '@/components/experience/groove-to-grave/layout/transition-page'
 import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/catalogue-lecteur'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
@@ -61,7 +62,8 @@ const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','
 /**
  * Racine de « Groove To Grave » : palette du label en variables CSS quel que soit le thème de
  * l'OS, langue française, polices de l'expérience. Le lecteur vit dans ce layout, donc
- * persistant entre toutes les pages ; son moteur audio est un singleton de module.
+ * persistant entre toutes les pages ; son moteur audio est un singleton de module. La
+ * transition de page (avance rapide du mur, balayage du contenu) vit ici aussi.
  */
 export default function GrooveToGraveLayout({ children }: { children: ReactNode }) {
   const prochaine = soireesAVenir()[0]
@@ -78,6 +80,7 @@ export default function GrooveToGraveLayout({ children }: { children: ReactNode 
       <FinDeBande />
       <Collage />
       <SmoothScroll />
+      <TransitionPage />
     </div>
   )
 }

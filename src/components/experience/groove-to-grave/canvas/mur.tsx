@@ -93,7 +93,12 @@ export default function Mur() {
     let coup = 0
     let gravesLisses = 0
     let dernierGraves = 0
-    const dessiner = () => fn(el.width, el.height, echelle, temps, gravesLisses, coup, reduit ? 0 : progressionAvance())
+    const dessiner = () => {
+      const p = reduit ? 0 : progressionAvance()
+      fn(el.width, el.height, echelle, temps, gravesLisses, coup, p)
+      // Progression dessinée, lue par les scripts de capture et de vérification.
+      el.dataset.avance = p ? p.toFixed(2) : '0'
+    }
     const redimensionner = () => {
       el.width = Math.round(window.innerWidth * echelle)
       el.height = Math.round(window.innerHeight * echelle)

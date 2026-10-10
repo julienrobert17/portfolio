@@ -26,8 +26,8 @@ interface Scenario {
   hauteur: number
   echelle: number
   depart: string
-  /** Gestes au fil du temps (ms depuis le début) : clic sur un sélecteur, ou navigation par un lien. */
-  gestes: { a: number; clic: string }[]
+  /** Gestes au fil du temps (ms depuis le début) : clic sur un sélecteur (lien de navigation compris), ou molette vers le bas d'autant de pixels. */
+  gestes: { a: number; clic?: string; roulette?: number }[]
 }
 
 const SCENARIOS: Scenario[] = [
@@ -36,14 +36,14 @@ const SCENARIOS: Scenario[] = [
     hauteur: 900,
     echelle: 1,
     depart: '/sorties',
+    // Phase 5 : insertion, trois pages en lecture (avance rapide à chaque fois), descente jusqu'à la fin de bande, rembobinage.
     gestes: [
       { a: 1500, clic: '[data-g2g="ecouter"]' },
-      { a: 7000, clic: '.g2g-mur li:nth-child(3) [data-g2g="ecouter"]' },
-      { a: 11000, clic: '[data-g2g="preset-house"]' },
-      { a: 15000, clic: '.g2g-lecteur__nav a[href$="/soirees"]' },
-      { a: 20000, clic: '[data-g2g="mini"]' },
-      { a: 25500, clic: '[data-g2g="lecture-mini"]' },
-      { a: 27500, clic: '[data-g2g="lecture-mini"]' },
+      { a: 6000, clic: '.g2g-lecteur__nav a[href$="/artistes"]' },
+      { a: 10000, clic: '.g2g-lecteur__nav a[href$="/soirees"]' },
+      { a: 14000, clic: '.g2g-lecteur__nav a[href$="/label"]' },
+      { a: 18000, roulette: 9000 },
+      { a: 25500, clic: '[data-g2g="rembobiner"]' },
     ],
   },
   {
@@ -53,11 +53,14 @@ const SCENARIOS: Scenario[] = [
     depart: '/sorties',
     gestes: [
       { a: 1500, clic: '[data-g2g="ecouter"]' },
-      { a: 8000, clic: '[data-g2g="deplier"]' },
-      { a: 12000, clic: '[data-g2g="preset-electro"]' },
-      { a: 16000, clic: '[data-g2g="replier"]' },
-      { a: 20000, clic: '[data-g2g="menu"]' },
-      { a: 24000, clic: '.g2g-menu__nav a[href$="/soirees"]' },
+      { a: 5000, clic: '[data-g2g="menu"]' },
+      { a: 6000, clic: '.g2g-menu__nav a[href$="/artistes"]' },
+      { a: 10000, clic: '[data-g2g="menu"]' },
+      { a: 11000, clic: '.g2g-menu__nav a[href$="/soirees"]' },
+      { a: 15000, clic: '[data-g2g="menu"]' },
+      { a: 16000, clic: '.g2g-menu__nav a[href$="/label"]' },
+      { a: 19000, roulette: 9000 },
+      { a: 26000, clic: '[data-g2g="rembobiner"]' },
     ],
   },
 ]
@@ -92,7 +95,15 @@ async function enregistrer(nav: Devtools, sc: Scenario): Promise<string> {
   for (const g of sc.gestes) {
     const attente = g.a - (Date.now() - debut)
     if (attente > 0) await new Promise((r) => setTimeout(r, attente))
-    await nav.cliquer(s, g.clic)
+    if (g.roulette) {
+      // Molette : crans de 360 px toutes les 40 ms au centre de l'écran, sans attendre leur traitement (Lenis lisse sur desktop, défilement natif sur mobile).
+      for (let fait = 0; fait < g.roulette; fait += 360) {
+        void nav.envoyer('Input.dispatchMouseEvent', { type: 'mouseWheel', x: sc.largeur / 2, y: sc.hauteur / 2, deltaX: 0, deltaY: 360 }, s)
+        await new Promise((r) => setTimeout(r, 40))
+      }
+      continue
+    }
+    if (g.clic) await nav.cliquer(s, g.clic)
     if (!enregistreurLance) {
       enregistreurLance = true
       const restant = DUREE_MS - (Date.now() - debut)
@@ -126,10 +137,10 @@ async function enregistrer(nav: Devtools, sc: Scenario): Promise<string> {
     writeFileSync(audio, Buffer.from(result.value, 'base64'))
     // Le son commence au premier geste : décalé d'autant pour rester calé sur l'image.
     const decalage = (sc.gestes[0]?.a ?? 0) / 1000
-    ffmpeg(['-i', video, '-itsoffset', String(decalage), '-i', audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest', sortie])
+    ffmpeg(['-i', video, '-itsoffset', String(decalage), '-i', audio, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-t', String(DUREE_MS / 1000), sortie])
   } else {
     process.stderr.write('  aucun flux audio capturé : vidéo muette\n')
-    ffmpeg(['-i', video, '-c', 'copy', sortie])
+    ffmpeg(['-i', video, '-c', 'copy', '-t', String(DUREE_MS / 1000), sortie])
   }
   return sortie
 }

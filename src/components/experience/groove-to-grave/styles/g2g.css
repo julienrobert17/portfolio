@@ -2062,3 +2062,23 @@ html.g2g-verrou {
     transition: none;
   }
 }
+
+/* ═════════ Transitions et pages détail (Phase 5) ═════════ */
+
+/* Balayage horizontal : le nouveau contenu se révèle de gauche à droite pendant l'avance rapide (--balayage animée par GSAP). */
+.g2g-page[data-balayage] {
+  clip-path: inset(0 var(--balayage, 0%) 0 0);
+}
+
+/* Pochette en grand sur la page artiste : même cadre que la page sortie. */
+.g2g-fiche > .g2g-pochette {
+  min-width: 0;
+}
+
+.g2g-fiche .g2g-chapeau {
+  margin-top: 0;
+}
+
+.g2g-bandeau h1 + .g2g-bandeau__statut {
+  font-size: 16px;
+}
