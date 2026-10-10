@@ -1,6 +1,6 @@
 # Groove To Grave — compte-rendu du bloc 6.1 (LCP mobile, polices)
 
-11 octobre 2026 · branche `experience/groove-to-grave` · commits `33145ef` (code), `HASH_DOCS` (captures, rapports, compte-rendu) · preview Vercel : https://portfolio-git-experience-groov-35f191-juliens-projects-6a16cb9e.vercel.app/experience/groove-to-grave · ni seed, ni écriture en base, ni fusion.
+11 octobre 2026 · branche `experience/groove-to-grave` · commits `33145ef` (code), `6d04867` (captures, rapports, compte-rendu) · preview Vercel : https://portfolio-git-experience-groov-35f191-juliens-projects-6a16cb9e.vercel.app/experience/groove-to-grave · ni seed, ni écriture en base, ni fusion.
 
 ## Fait
 
