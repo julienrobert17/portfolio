@@ -4,7 +4,8 @@ import type { Sortie } from './types'
  * Sorties du label, dans l'ordre du catalogue. Données relevées le 10 octobre 2026 sur
  * les pages Bandcamp du label (titres, durées, dates, crédits, textes) et recoupées avec
  * les disquaires cités dans `sources`. Les genres sont déduits des mots-clés et des
- * textes publics, jamais confirmés par le label. Les prix ne sont pas stockés.
+ * textes publics, jamais confirmés par le label. Les prix ne sont pas stockés. Les crédits
+ * ne portent que des noms d'artiste (l'A&R des compilations est crédité sous son nom de scène).
  * Les extraits sont ajoutés à l'exécution depuis `extraits.ts` (voir index.ts).
  */
 export const sorties: Sortie[] = [
@@ -176,7 +177,7 @@ export const sorties: Sortie[] = [
     genres: ['house', 'minimal'],
     genresVerified: false,
     text: { lang: 'en', body: 'Introducing our very first VA : a compilation of 8 tracks by artists we love and who orbit around the label. Alongside our vinyl releases, this digital series, designed as an annual rendezvous, gives us the chance to invite our friends to share a track, just for the love of sound.\n\nHouse, Minimal, Deep, Funk or Downtempo: 8 sun-soaked tracks to set the tone for your summer, your beach days, your befores, your parties, your afters.' },
-    credits: { artwork: 'LukasDarian', mastering: 'Gregs', ar: 'Jules Fritsch', distribution: 'Groove To Grave Records' },
+    credits: { artwork: 'LukasDarian', mastering: 'Gregs', ar: 'Julius', distribution: 'Groove To Grave Records' },
     links: {
       bandcamp: 'https://groovetograve.bandcamp.com/album/summer-hits-vol-1',
     },
@@ -208,7 +209,7 @@ export const sorties: Sortie[] = [
     genres: ['house', 'minimal', 'break'],
     genresVerified: false,
     text: { lang: 'en', body: 'Summer is here, and it’s time for round two of our digital series with a new VA. Following the spirit of our first edition, this compilation brings together 8 artists we love: familiar faces and new discoveries.\n\nFrom House to Minimal, Deep, Acid, and Breaks, 8 sun-drenched tracks made for long sunny days, warm nights, and everything in between.' },
-    credits: { artwork: 'LukasDarian', mastering: 'Gregs', ar: 'Jules Fritsch', distribution: 'Groove To Grave Records' },
+    credits: { artwork: 'LukasDarian', mastering: 'Gregs', ar: 'Julius', distribution: 'Groove To Grave Records' },
     links: {
       bandcamp: 'https://groovetograve.bandcamp.com/album/summer-hits-vol-2',
     },
