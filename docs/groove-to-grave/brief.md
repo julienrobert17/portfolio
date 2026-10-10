@@ -1,9 +1,20 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1.1 · 10 octobre 2026 (v1 : 8 octobre 2026)
+> Expérience portfolio `groove-to-grave` · brief v1.2 · 10 octobre 2026 (v1 : 8 octobre, v1.1 : 10 octobre 2026)
 > Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1.1** (passe d'identité du directeur artistique sur la planche « relevé DA », 10 octobre 2026) :
+
+1. §2.2 devient « Identité relevée » : monogramme G2G et crâne coiffé d'un vinyle, style commun des deux illustrateurs, lettrages jamais imités.
+2. §2.1 : le site n'affiche que des noms d'artiste, jamais les noms civils lus sur les étiquettes ; mastering « Octavix Studio » ajouté à GTGR02, non vérifié.
+3. §3.1 : palette relevée sur les pochettes (red, redInk, green, greenDeep, chrome, lcd) avec ses règles de contraste ; l'orange safety et le jaune fluo disparaissent du brief et du code.
+4. §3.2 : Archivo, Permanent Marker et VT323 confirmés ; Permanent Marker réservée aux étiquettes de cassette et aux annotations.
+5. §3.5 : skin du lecteur dessiné comme les étiquettes du label, contour ink et aplats, sans biseau gris ; monogramme dans la barre de titre.
+6. §4 : fin de bande gardée par le crâne ; page soirées en mur de flyers réels ; bandeau de tête des pages sortie dans la dominante de la pochette.
+7. §11 : plus de red en texte sur fond clair, redInk à la place.
+8. Logos provisoires par vectorisation fidèle (potrace, outil machine hors repo) dans `ui/logos/`, commentaire `PLACEHOLDER-TRACE`, à remplacer par les fichiers du label.
 
 **Changements depuis la v1** (arbitrages de la Phase 0, validés le 10 octobre 2026) :
 
@@ -65,7 +76,9 @@ Pistes écartées pendant la conception, à ne pas réintroduire : univers nauti
 
 Le site écrit en français, dans ce ton. Tout texte inventé par nous est marqué `draft: true` dans `content/` et doit être validé par le label.
 
-**Les crédits visuels.** Les pochettes des vinyles sont de **JeunePenard** (GTGR02, 03 et 05 ; GTGR04 reste à vérifier). Les flyers et les compilations Summer Hits sont de **LukasDarian**. Ces œuvres sont affichées **intactes**, toujours créditées, jamais recadrées au point d'être dénaturées, jamais filtrées ni déformées. Le désordre du site s'applique autour d'elles, jamais sur elles.
+**Les noms.** Le site n'affiche que des noms d'artiste ; les noms civils lisibles sur les étiquettes des disques ne sont jamais repris. Le mastering « Octavix Studio » lu sur l'étiquette de GTGR02 est repris en `verified: false`.
+
+**Les crédits visuels.** Les pochettes des vinyles sont de **JeunePenard** (GTGR02, 03, 04 et 05). Les flyers et les compilations Summer Hits sont de **LukasDarian**. Ces œuvres sont affichées **intactes**, toujours créditées, jamais recadrées au point d'être dénaturées, jamais filtrées ni déformées. Le désordre du site s'applique autour d'elles, jamais sur elles.
 
 **Formats récurrents :**
 
@@ -74,47 +87,60 @@ Le site écrit en français, dans ce ton. Tout texte inventé par nous est marqu
 - soirées en péniche, en club (42 Marches) et en open air ;
 - distribution par Subwax, présence chez des disquaires spécialisés DJ (Redeye, deejay.de, Yoyaku).
 
-### 2.2 Ce qui n'a pas encore été vu
+### 2.2 Identité relevée
 
-Le logo, la palette réelle, les typographies réelles, le style exact de JeunePenard et de LukasDarian, l'Instagram (environ 1 070 abonnés et 30 publications lors de l'indexation).
+Relevé fait sur la planche « relevé DA » du 10 octobre 2026 (sept pochettes, treize flyers), en attendant les fichiers du label.
 
-Le site est donc construit sur des **tokens marqués `PLACEHOLDER`**, regroupés dans un seul fichier. La phase 1 produit une **planche « relevé DA »** qui réunit toutes les pochettes et tous les flyers récupérés. Le directeur artistique fait alors la passe d'identité : logo, palette, typographies. Les tokens sont remplacés à ce moment-là, et nulle part ailleurs.
+**Deux marques.**
 
-Une règle s'applique dès maintenant et survivra au remplacement des tokens : **les couleurs de chaque cassette sont extraites de la pochette réelle de sa sortie** (couleur dominante pour la coque, couleur d'accent pour la bande de l'étiquette). Le site prolonge leur DA mécaniquement, sortie par sortie.
+- Le **monogramme G2G** : deux G gras arrondis empilés, reliés par un 2 ; présent sur toutes les étiquettes de disque, recoloré par sortie (noir sur GTGR03, crème ou couleur de la pochette ailleurs). Sous le monogramme, « Groove To Grave Records » en grotesque gras sur deux lignes.
+- Le **crâne coiffé d'un vinyle** : la mascotte, depuis GTGR04, sur les étiquettes, les compilations et les flyers.
+
+**Style commun** à JeunePenard et LukasDarian : contour noir épais, aplats, papier crème, une couleur forte par pièce, rouge le plus souvent, vert ensuite. Le lettrage dessiné de chaque artiste (Kitchen Plug, Merov', Azbine, Emi Ömar) appartient à l'œuvre et n'est jamais imité.
+
+**Logos provisoires.** En attendant les fichiers du label, les deux marques sont vectorisées fidèlement, sans rien redessiner : recadrage du G2G noir de l'étiquette GTGR03 et du crâne de l'étiquette GTGR05 en pleine résolution, seuillage, potrace, SVG une couleur en `currentColor`, nettoyage minimal des nœuds parasites. Fichiers dans `src/components/experience/groove-to-grave/ui/logos/`, chacun commençant par un commentaire `PLACEHOLDER-TRACE` avec sa source, à remplacer par les fichiers du label. Le favicon de l'expérience vient du monogramme. Une planche « logos » montre source et tracé côte à côte, puis chaque marque en ink, red et green sur wall et poster.
+
+Une règle survit à tout remplacement : **les couleurs de chaque cassette sont extraites de la pochette réelle de sa sortie** (couleur dominante pour la coque, couleur d'accent pour la bande de l'étiquette). Le site prolonge leur DA mécaniquement, sortie par sortie.
 
 ---
 
 ## 3. Système de design
 
-### 3.1 Couleurs — PLACEHOLDER
+### 3.1 Couleurs
 
-Fichier unique : `src/components/experience/groove-to-grave/tokens.ts`, exposé en variables CSS.
+Fichier unique : `src/components/experience/groove-to-grave/tokens.ts`, exposé en variables CSS. Plus aucun placeholder : palette relevée sur les pochettes et les flyers.
 
 | Token | Valeur | Usage |
 |---|---|---|
-| `wall` | `#d8d3c4` | fond du mur (papier d'affichage) |
+| `wall` | `#efe6d2` | fond du mur (papier d'affichage) |
+| `poster` | `#faf4e6` | affiches, étiquettes de cassette, texte clair sur fonds sombres |
 | `ink` | `#111111` | texte, traits, contours |
-| `poster` | `#f4efe2` | affiches, étiquettes de cassette |
-| `safety` | `#ff4f1a` | accent principal (orange de sécurité) |
-| `fluo` | `#e9ff2e` | accent secondaire, segments allumés de l'afficheur |
-| `chrome` | `#cfcac0` | corps du lecteur |
-| `chromeLight` | `#e8e4da` | boutons, barres |
-| `bevelHi` / `bevelLo` | `#f6f3ec` / `#85806f` | relief à plat (bordures claires et sombres) |
-| `lcd` | `#0b0c0a` | fond de l'afficheur |
-| `lcdOff` / `lcdDim` | `#1d1f14` / `#9ea33a` | segments éteints, libellés de l'afficheur |
+| `red` | `#f14442` | aplats et éléments graphiques (relevé sur GTGRVA01) |
+| `redInk` | `#c21e19` | texte rouge sur fond clair |
+| `green` | `#268459` | aplats et éléments graphiques (relevé sur GTGRVA02) |
+| `greenDeep` | `#1d6b47` | fond vert sous texte clair |
+| `chrome` | `#e4dccb` | corps du lecteur |
+| `chromeLight` | `#f3ecdc` | boutons, barres |
+| `lcd` | `#111111` | fond de l'afficheur |
+| `lcdLit` | `#f6efe0` | segments allumés, texte de l'afficheur |
+| `lcdPeak` | `#f14442` | segments de crête |
+| `lcdOff` / `lcdDim` | `#2a2722` / `#8a8270` | segments éteints, libellés de l'afficheur |
 
-Règles de contraste, vérifiées au token près :
+Règles de contraste, vérifiées au token près par `tokens.test.ts` :
 
-- Le texte posé sur `wall` ou `poster` est toujours en `ink`.
-- `safety` n'est jamais une couleur de texte sur fond clair : son contraste avec `wall` est d'environ 2,1:1, ce qui échoue. En revanche, `ink` sur fond `safety` passe (environ 6:1), tout comme `safety` et `fluo` sur `ink` ou `lcd`.
-- Chaque paire texte/fond utilisée est listée dans `tokens.ts`, et un test vérifie qu'elle atteint 4,5:1 (3:1 pour le texte de 24 px et plus et pour les éléments d'interface).
+- Le texte posé sur `wall`, `poster`, `chrome` ou `chromeLight` est en `ink`.
+- `red` et `green` servent aux aplats et aux éléments graphiques, jamais en texte sur `wall` ou `poster`. Le texte rouge sur fond clair est en `redInk`, qui doit atteindre 4,6:1 sur `wall` (valeur finale `#c21e19` : 4,84:1 sur `wall`, 5,48:1 sur `poster`).
+- Le texte clair (`poster`) sur fond vert se pose seulement sur `greenDeep`. `ink` sur `red` est autorisé.
+- `lcdLit`, `lcdDim` et `lcdPeak` se posent sur `lcd`.
+- Focus en double anneau `ink` et `red`.
+- Chaque paire texte/fond utilisée est listée dans `tokens.ts`, et le test vérifie qu'elle atteint 4,5:1 (3:1 pour le texte de 24 px et plus et pour les éléments d'interface).
 
-### 3.2 Typographies — PLACEHOLDER
+### 3.2 Typographies
 
-Trois familles, auto-hébergées via `next/font`, sous-ensemble latin, `font-display: swap`. Seule la première est préchargée.
+Trois familles confirmées par la passe d'identité, auto-hébergées via `next/font`, sous-ensemble latin, `font-display: swap`. Seule la première est préchargée.
 
 1. **Archivo**, variable en largeur et en graisse. En largeur condensée et graisse 800 à 900, elle sert au titrage affiche (noms d'artistes, références, gros titres). En largeur normale et graisse 400 à 500, elle sert au texte courant. Chiffres tabulaires pour toutes les métadonnées.
-2. **Permanent Marker**, réservée à l'écriture « à la main » : étiquettes de cassette, annotations, stickers. Jamais plus de 6 mots, jamais pour une information qui n'existe pas aussi en texte normal (nom accessible, attribut `aria-label` ou texte voisin).
+2. **Permanent Marker**, réservée aux étiquettes de cassette et aux annotations. Jamais plus de 6 mots, jamais pour une information qui n'existe pas aussi en texte normal (nom accessible, attribut `aria-label` ou texte voisin).
 3. **VT323**, réservée à l'afficheur du lecteur et à rien d'autre.
 
 ### 3.3 Le désordre volontaire, et ses règles
@@ -145,8 +171,8 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 
 ### 3.5 Le lecteur (skin)
 
-- Chrome **à plat** : relief obtenu par bordures claires et sombres, sans dégradé ni ombre portée, sans rendu photoréaliste. Deux ou trois stickers et une signature au marqueur collés dessus.
-- **Barre de titre** : logo (placeholder) et un bouton fonctionnel de passage en mode mini.
+- Skin **dessiné comme les étiquettes du label** : contour `ink` de 2 à 3 px et aplats `chrome`, `red` et `green`, sans biseau gris, sans dégradé ni ombre portée, sans rendu photoréaliste. Deux ou trois stickers et une signature au marqueur collés dessus.
+- **Barre de titre** : le monogramme G2G et un bouton fonctionnel de passage en mode mini.
 - **Barre de menu** : la navigation principale (voir §4).
 - **Afficheur** :
   - la bande défilante en VT323 ;
@@ -192,16 +218,16 @@ Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` 
 |---|---|---|
 | Accueil | `/` | Bande défilante d'accueil. Grande cassette de la dernière sortie (GTGR05) avec texte de sortie et liens. Mur de toutes les cassettes, dans l'ordre de `/sorties`. Bloc soirées (prochaine date ou état vide). Phrase du label. Newsletter. Fin de bande. |
 | Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. La série GTGR du plus récent au plus ancien, vinyles et EP numérique ensemble, puis les compilations. Le search param est lu par la page serveur et poussé dans le store par un petit composant client de page ; le lecteur ne lit jamais les search params. |
-| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format réel (« 12″ vinyle », « EP numérique », « compilation numérique »). Faces A et B avec durées. Bouton écouter par piste, seulement pour les pistes qui ont un extrait (§7). Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
+| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | Bandeau de tête dans la couleur dominante de la pochette, texte en `ink` ou `poster` selon `contrasteInk` et `contrastePoster`. **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format réel (« 12″ vinyle », « EP numérique », « compilation numérique »). Faces A et B avec durées. Bouton écouter par piste, seulement pour les pistes qui ont un extrait (§7). Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
 | Artistes | `/artistes` | Les noms en typographie d'affiche collée, un par affiche. |
 | Artiste | `/artistes/[slug]` | Nom, ville, présentation factuelle tirée des textes publics, sorties sur le label, liens publics. Aucune biographie inventée. |
-| Soirées | `/soirees` | **À venir** : billetterie en lien externe (Shotgun ou RA). En l'absence de date, un état vide soigné (« aucune date annoncée, reste branché » avec newsletter et Instagram) : c'est l'état actuel, il doit être beau. **Passées** : archive en cassettes-flyers, avec le vrai flyer quand il a été récupéré, le lieu, le line-up et les mentions (reportée, annulée). |
+| Soirées | `/soirees` | **À venir** : billetterie en lien externe (Shotgun ou RA), classement par la logique de date (une soirée passe en archive le lendemain sans changement de contenu). En l'absence de date, un état vide soigné (« aucune date annoncée, reste branché » avec newsletter et Instagram), il doit être beau. **Passées** : mur de flyers réels collés au scotch, jamais recadrés, rotation de 2° au plus sur le support entier, avec date, lieu et line-up en texte à côté, et les mentions (reportée, annulée). Sans flyer récupéré, une affiche texte dans le même cadre. |
 | Le label | `/label` | Qui (les trois, leurs rôles réels d'après les crédits), pourquoi (texte `draft` dans leur ton, à faire valider), chronologie des sorties et des soirées, **comment proposer une démo** (procédure en `draft` : lien d'écoute privé, pas de fichier joint, délai de réponse à faire valider). |
 | Contact | `/contact` | Contacts (adresse à obtenir du label, en attendant le lien Instagram), newsletter, cassette vierge « envoie ta tape ». |
 
 **Navigation.** Barre de menu du lecteur, avec icône et libellé texte pour chaque entrée : sorties, artistes, soirées, le label, contact. Ce sont de vrais `<Link>` dans un `<nav aria-label="Navigation principale">`, page courante en `aria-current="page"`. Le logo ramène à l'accueil.
 
-**Pied de page, « fin de bande ».** Crédits du site, mention « concept non officiel », lien vers les sources, liens Bandcamp, SoundCloud, Instagram, Discogs et Linktree. Un bouton « rembobiner » ramène en haut de page avec le son de rembobinage.
+**Pied de page, « fin de bande ».** Gardée par le crâne coiffé d'un vinyle. Crédits du site, mention « concept non officiel », lien vers les sources, liens Bandcamp, SoundCloud, Instagram, Discogs et Linktree. Un bouton « rembobiner » ramène en haut de page avec le son de rembobinage.
 
 **Newsletter.** Le formulaire est conçu et passe par une server action qui valide l'adresse, mais **n'enregistre rien** tant qu'aucun fournisseur n'est choisi avec le label. Le message de confirmation le dit honnêtement. Un lien « suivre sur Bandcamp » fonctionne réellement à côté.
 
@@ -334,7 +360,7 @@ Le site est conçu pour recevoir, sans changement de code, les fichiers que Groo
 - Tous les contrôles du lecteur sont de vrais `<button>` avec un nom accessible. Les presets sont un groupe de bascules en `aria-pressed`. La barre de progression est un `input type="range"` étiqueté.
 - Une région `aria-live="polite"` annonce le changement de piste et le nombre de résultats après filtrage. La bande défilante est `aria-hidden`, son contenu est annoncé par cette région.
 - Aucun raccourci clavier à une seule touche. Les touches média passent par la Media Session.
-- Focus toujours visible, en double anneau (`ink` et `safety`) pour rester visible sur tous les fonds.
+- Focus toujours visible, en double anneau (`ink` et `red`) pour rester visible sur tous les fonds.
 - Le texte au marqueur a toujours un équivalent en texte normal.
 - Mouvement réduit respecté partout (voir §3.6).
 - Sur iOS, un arrêt dû au verrouillage est affiché comme une pause, jamais comme une lecture en cours.
@@ -406,7 +432,7 @@ Chaque phase suit la même méthode :
 - Pas de filtre, de distorsion ni de grain **sur** les pochettes et les flyers.
 - Pas de walkman ou de lecteur en 3D photoréaliste, pas de chrome en dégradé : l'objet est imprimé à plat.
 - Pas de la bande défilante comme seul moyen de navigation ou seule source d'une information.
-- Pas de Permanent Marker pour le texte courant, pas d'orange `safety` en texte sur fond clair.
+- Pas de Permanent Marker pour le texte courant, pas de `red` en texte sur fond clair : utiliser `redInk`.
 - Pas d'aléa au rendu (rotations), pas de second canvas.
 - Pas d'analyse audio des lecteurs intégrés Bandcamp ou SoundCloud, pas d'aspiration d'Instagram.
 - Pas de fait inventé (genre, biographie, date, prix) présenté comme vérifié. Pas de prix stockés : le prix est sur Bandcamp.
@@ -421,7 +447,7 @@ Chaque phase suit la même méthode :
 ## 12. Questions ouvertes
 
 1. **Accord du label** : pour la mise en ligne publique, les visuels et les vrais extraits. Qui les contacte, et quand ?
-2. **Fichiers de logo** et typographies réelles : à obtenir du label ou à relever à la phase 1.
+2. **Fichiers de logo** : à obtenir du label pour remplacer les tracés provisoires `PLACEHOLDER-TRACE` (§2.2). Typographies : confirmées en passe d'identité (§3.2).
 3. ~~**GTGR01** existe-t-il ?~~ Résolu en Phase 1 : GTGR01 est *Common Speed EP* de LukasDarian, sortie numérique du 22 juillet 2022 (artwork Cbrgraphics, mastering Marine Benabou). GTGR02 reste le premier vinyle.
 4. ~~**Crédits de GTGR04**~~ Résolu en Phase 1 : artwork JeunePenard, mastering Benoit D., sortie le 21 mars 2025, vinyle épuisé.
 5. **Genres par sortie** pour les presets : validation par le label.
