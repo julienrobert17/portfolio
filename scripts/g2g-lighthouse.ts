@@ -95,7 +95,7 @@ function main(): void {
     }
   }
   mkdirSync(SORTIE, { recursive: true })
-  process.stdout.write('| Format | Page | Perf | Access. | Bonnes pratiques | SEO | LCP | CLS | TBT | JS | Médiane (3 perf) |\n|---|---|---|---|---|---|---|---|---|---|---|\n')
+  process.stdout.write('| Format | Page | Perf | Access. | Bonnes pratiques | SEO | LCP | CLS | TBT | JS | Médiane (${PASSAGES} perf) |\n|---|---|---|---|---|---|---|---|---|---|---|\n')
   process.stdout.write(lignes.join('\n') + '\n')
   if (echecs) {
     process.stderr.write(`${echecs} page(s) sous les critères bloquants\n`)

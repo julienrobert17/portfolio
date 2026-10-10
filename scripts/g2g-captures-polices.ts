@@ -5,6 +5,7 @@
  *
  *   npx tsx scripts/g2g-captures-polices.ts --etape avant|apres [--url http://localhost:3000]
  *   npx tsx scripts/g2g-captures-polices.ts --etape diff
+ * Les PNG servent au calcul de la différence et ne sont pas gardés dans le dépôt (seuls les JPEG le sont).
  */
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
