@@ -1,9 +1,18 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1.3 · 10 octobre 2026 (v1 : 8 octobre, v1.1 et v1.2 : 10 octobre 2026)
+> Expérience portfolio `groove-to-grave` · brief v1.4 · 10 octobre 2026 (v1 : 8 octobre, v1.1 à v1.3 : 10 octobre 2026)
 > Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1.3** (bloc 5.1 et Phase 6, 10 octobre 2026) :
+
+1. §3.3, §5 : les lambeaux du mur sont placés en fractions de l'écran, six par écran, 30 % de la largeur au plus chacun, un quart de l'écran couvert ; chacun porte une trace d'impression abstraite (trame de points ou filets, 10 % plus sombre) ; tokens `trameSombre` et `lisereSombre` vérifiés à 7:1 sous ink.
+2. §4 : page artiste sans message interne ; pochette en grand et bandeau dans la dominante réservés aux sorties solo ; un invité de compilation garde la bande de papier, puis la cassette de la compilation et la ligne de son morceau. Le bandeau rapproche sa dominante du texte quand ni ink ni poster n'atteint 4,5:1 (GTGRVA02), la pochette reste intacte.
+3. §3.1, §8 : les aplats `green` sous un texte de moins de 24 px passent en `greenDeep` sous `poster` (sticker « no repress », affiches vertes des artistes) ; les liens sont nommés par leur texte visible.
+4. §3.6, §6 : ticker en `requestAnimationFrame` natif ; GSAP (sans ScrollTrigger) et Lenis chargés à l'inactivité après le premier rendu, jamais dans le JavaScript initial ; compilation du shader en parallèle (`KHR_parallel_shader_compile`) ; le canvas n'existe que côté client.
+5. §8 : Échap ferme le menu et la feuille et rend le focus au bouton d'origine ; le contenu et le pied de page sont inertes sous un panneau ; `scroll-padding-top` égal à la hauteur du skin ; scripts `g2g-lighthouse.ts`, `g2g-a11y.ts` et `g2g-verif.ts` comme preuves de la definition of done.
+6. §9 : tuile du carrousel (`scripts/generate-g2g-tuile.ts`), accent `#F14442` dans `accents.ts`, entrée Prisma préparée dans `seed.ts` et non exécutée.
 
 **Changements depuis la v1.2** (passe de direction 4.1 sur la Phase 4, 10 octobre 2026) :
 
@@ -192,7 +201,7 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 
 ### 3.6 Mouvement
 
-- Une seule horloge : le ticker GSAP partagé du repo. Lenis sur le document, comme dans la-coupe.
+- Une seule horloge : un ticker en `requestAnimationFrame` natif (`lib/ticker.ts`, même contrat que celui de la-coupe), qui ne tourne que s'il a des abonnés. Lenis sur le document comme dans la-coupe, chargé à l'inactivité après le premier rendu (Phase 6).
 - Arrivée des éléments du mur au défilement : un « collage » court (échelle 1,06 vers 1, rotation qui se pose, 220 ms), une seule fois par élément, sans effet de parallaxe.
 - **Tout ce qui bouge en continu bouge parce que la bande tourne.** La bande défilante, les bobines, le spectre et la respiration du mur sont arrêtés quand rien ne joue. C'est un choix de concept (la bande ne défile que quand elle tourne) et la réponse au critère WCAG 2.2.2 : l'utilisateur contrôle le mouvement par la lecture.
 - En mouvement réduit : bande défilante statique (texte tronqué avec points de suspension, texte complet dans l'attribut `title` et dans la région annoncée aux lecteurs d'écran), pas de rotation des bobines, transitions en fondu simple de 150 ms, mur figé.
@@ -319,8 +328,8 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 ## 6. Stack
 
 - Next.js 16 App Router, React 19, TypeScript strict, npm, Vercel : l'existant du repo.
-- Conventions de la-coupe reprises : ticker GSAP partagé, Lenis, **un seul canvas WebGL**, transitions de page, repli sans WebGL et en mouvement réduit, images AVIF et WebP générées par le bloc d'export du script existant, contenu typé dans le dossier `content/` du composant. Le curseur personnalisé de la-coupe n'est **pas** repris : ici, le curseur système va mieux avec le chrome imprimé.
-  - `ticker.ts`, `gsap.ts`, `lenis-store.ts` et `use-page-settled.ts` sont **dupliqués** depuis `la-coupe/lib/` dans `groove-to-grave/lib/`, chaque copie avec un commentaire d'origine en tête de fichier. La-coupe n'est pas modifiée.
+- Conventions de la-coupe reprises : Lenis, **un seul canvas WebGL**, transitions de page, repli sans WebGL et en mouvement réduit, images AVIF et WebP générées par le bloc d'export du script existant, contenu typé dans le dossier `content/` du composant. Le curseur personnalisé de la-coupe n'est **pas** repris : ici, le curseur système va mieux avec le chrome imprimé.
+  - `lenis-store.ts` et `use-page-settled.ts` sont **dupliqués** depuis `la-coupe/lib/` dans `groove-to-grave/lib/`, chaque copie avec un commentaire d'origine en tête de fichier. La-coupe n'est pas modifiée. **Écart de Phase 6** : `ticker.ts` est un ticker natif et `gsap.ts` un chargeur à la demande (GSAP ne sert qu'aux tweens de l'insertion et de la transition, sans ScrollTrigger) : GSAP et Lenis sortent du JavaScript initial, préchargés à l'inactivité.
   - Dans la copie du store de navigation, le repli quand aucun navigateur n'est enregistré utilise `router.push`, jamais `window.location.assign` : un rechargement complet couperait la lecture.
   - **Écart volontaire** : le mur n'utilise ni three ni fiber (environ 235 kB pour un rendu 2D). WebGL2 brut, un seul canvas, un quad plein écran, un fragment shader, module chargé après le LCP. Repli statique AVIF si WebGL2 est absent ou si le contexte est perdu.
 - **Audio** : Web Audio API native, sans bibliothèque.
@@ -359,8 +368,9 @@ Le site est conçu pour recevoir, sans changement de code, les fichiers que Groo
 
 - Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**. C'est le critère bloquant.
 - LCP < 2,5 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
-- Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur. DPR plafonné à 1,5 (1 sur mobile), grain rendu à demi-résolution, pause quand l'onglet est caché.
+- Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur, et le shader se compile en parallèle sans bloquer le fil principal. DPR plafonné à 1,5 (1 sur mobile), pause quand l'onglet est caché.
 - Aucun extrait audio chargé avant un geste. Trois fichiers de police au maximum, seul Archivo est préchargé.
+- Audits : `scripts/g2g-lighthouse.ts` (build de production local, `npx lighthouse`, mobile puis desktop, trois passages par page, médiane, rapports HTML dans `docs/groove-to-grave/lighthouse/`), `scripts/g2g-a11y.ts` (axe-core, clavier, aria-live, replis) et `scripts/g2g-verif.ts` (mise en page, lecture continue).
 - Le spectre en DOM ne met à jour que des `transform`, jamais de mise en page, à 30 images par seconde au plus, et rien quand rien ne joue.
 
 **Accessibilité**

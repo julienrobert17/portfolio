@@ -123,6 +123,26 @@ async function main() {
     },
   })
 
+  // Groove To Grave : concept non officiel, en preview (noindex) tant que le label n'a pas donné son accord.
+  // Entrée préparée en Phase 6, écrite en base seulement sur décision explicite (npx prisma db seed).
+  await prisma.project.upsert({
+    where: { slug: 'groove-to-grave' },
+    update: {
+      liveUrl: '/experience/groove-to-grave',
+      imageUrl: '/experience/groove-to-grave/tuile.svg',
+    },
+    create: {
+      slug: 'groove-to-grave',
+      title: 'Groove To Grave',
+      description: "Le site concept d'un label house parisien : un mur de cassettes, un lecteur persistant qui ne s'arrête jamais, du sillon à la tombe.",
+      tags: ['Next.js', 'Web Audio', 'WebGL2', 'GSAP'],
+      liveUrl: '/experience/groove-to-grave',
+      imageUrl: '/experience/groove-to-grave/tuile.svg',
+      featured: true,
+      publishedAt: new Date('2026-10-10'),
+    },
+  })
+
   // Réalisations en entreprise : tuiles placeholder, contenus à remplacer
   await prisma.project.upsert({
     where: { slug: 'entreprise-projet-1' },

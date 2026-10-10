@@ -2,7 +2,7 @@
 
 import { useLecteur } from '../store/lecteur-store'
 import { couleurs as tokens } from '../tokens'
-import { CassetteSvg } from './cassette'
+import { CassetteSvg } from './cassette-svg'
 
 /**
  * La fenêtre cassette du skin : la cassette chargée, bobines qui tournent à la vitesse du BPM

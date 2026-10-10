@@ -14,7 +14,8 @@ const RETARD_SANS_IDLE = 600
 
 /**
  * Le mur : un seul canvas WebGL2 plein écran derrière le contenu, un quad et un fragment
- * shader (canvas/mur-shader.ts). Le canvas reste à opacité 0 jusqu'à son premier rendu complet,
+ * shader (canvas/mur-shader.ts), compilé en parallèle sans bloquer le fil principal. Le canvas
+ * reste à opacité 0 jusqu'à son premier rendu complet,
  * puis fond en 300 ms sur la texture de repli ; couleur d'effacement wall. Rendu une fois à
  * l'arrivée et au redimensionnement, puis sur le ticker pendant la lecture (respiration sur
  * l'énergie des graves, tremblement sur les attaques, 3 px au plus) et pendant les 400 ms d'une
@@ -25,7 +26,8 @@ const RETARD_SANS_IDLE = 600
 export default function Mur() {
   const { statut } = useLecteur()
   const reduit = useReducedMotion()
-  const canvas = useRef<HTMLCanvasElement>(null)
+  const hote = useRef<HTMLDivElement>(null)
+  const canvas = useRef<HTMLCanvasElement | null>(null)
   const rendu = useRef<RenduMur | null>(null)
   const [mode, setMode] = useState<'attente' | 'canvas' | 'statique'>('attente')
   const [avance, setAvance] = useState(false)
@@ -35,17 +37,35 @@ export default function Mur() {
   useEffect(() => {
     let annule = false
     const charger = async () => {
-      const el = canvas.current
-      if (!el || annule) return
+      if (!hote.current || annule) return
+      // Le canvas n'existe que côté client, créé ici : sans JavaScript, seule la texture de repli est là.
+      const el = document.createElement('canvas')
+      el.className = 'g2g-mur-canvas'
+      el.setAttribute('aria-hidden', 'true')
+      hote.current.appendChild(el)
+      canvas.current = el
       const gl = el.getContext('webgl2', { alpha: false, antialias: false, powerPreference: 'low-power' })
       if (!gl) {
+        el.remove()
         setMode('statique')
         return
       }
-      const { creerMur } = await import('./mur-shader')
+      const { compilerMur, creerMur } = await import('./mur-shader')
       if (annule) return
-      const fn = creerMur(gl, couleurs)
+      const compilation = compilerMur(gl)
+      if (!compilation) {
+        el.remove()
+        setMode('statique')
+        return
+      }
+      // Compilation en parallèle (KHR_parallel_shader_compile) : on attend sans bloquer le fil principal.
+      while (!compilation.pretAEtreLie()) {
+        await new Promise((r) => window.setTimeout(r, 40))
+        if (annule) return
+      }
+      const fn = creerMur(gl, couleurs, compilation.programme)
       if (!fn) {
+        el.remove()
         setMode('statique')
         return
       }
@@ -53,6 +73,7 @@ export default function Mur() {
       el.addEventListener('webglcontextlost', (e) => {
         e.preventDefault()
         rendu.current = null
+        el.remove()
         setMode('statique')
       }, { once: true })
       setMode('canvas')
@@ -63,6 +84,8 @@ export default function Mur() {
       annule = true
       if (ric) window.cancelIdleCallback(id)
       else window.clearTimeout(id)
+      canvas.current?.remove()
+      canvas.current = null
     }
   }, [])
 
@@ -140,5 +163,5 @@ export default function Mur() {
   }, [mode, joue, avance, reduit])
 
   if (mode === 'statique') return null
-  return <canvas ref={canvas} className="g2g-mur-canvas" aria-hidden="true" />
+  return <div ref={hote} className="g2g-mur-hote" aria-hidden="true" />
 }

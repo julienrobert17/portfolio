@@ -11,6 +11,7 @@ const ACCENTS: Record<string, string> = {
   'portfolio-ia': '#F472B6',
   'task-manager-app': '#FACC15',
   'la-coupe': '#F87171',
+  'groove-to-grave': '#F14442',
   // Teintes provisoires, à ajuster quand les slugs entreprise définitifs seront connus
   'entreprise-projet-1': '#A3E635',
   'entreprise-projet-2': '#22D3EE',

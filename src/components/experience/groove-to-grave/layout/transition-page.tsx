@@ -1,9 +1,9 @@
 'use client'
 
-import gsap from 'gsap'
 import { usePathname } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { DUREE_AVANCE_MS, declencherAvance, figerAvance } from '../canvas/avance'
+import { chargerGsap, prechargerGsap } from '../lib/gsap'
 import { scrollEnHaut } from '../lib/lenis-store'
 
 const REDUIT = '(prefers-reduced-motion: reduce)'
@@ -24,9 +24,10 @@ export default function TransitionPage() {
   const pathname = usePathname()
   const precedent = useRef(pathname)
   const retour = useRef(false)
-  const tween = useRef<gsap.core.Tween | null>(null)
+  const tween = useRef<{ kill(): void } | null>(null)
 
   useEffect(() => {
+    prechargerGsap()
     const surPopstate = () => {
       retour.current = true
     }
@@ -45,7 +46,10 @@ export default function TransitionPage() {
       }
     }
     window.__g2g = { flux: () => null, mesure: () => undefined, position: () => -1, ...window.__g2g, figerTransition }
-    return () => window.removeEventListener('popstate', surPopstate)
+    return () => {
+      window.removeEventListener('popstate', surPopstate)
+      document.documentElement.classList.remove('g2g-document')
+    }
   }, [])
 
   // Nouvelle route montée, pas encore peinte : le balayage part du bord gauche.
@@ -60,19 +64,27 @@ export default function TransitionPage() {
     const reduit = window.matchMedia(REDUIT).matches
     tween.current?.kill()
     if (reduit) {
-      tween.current = gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: DUREE_FONDU, ease: 'none', clearProps: 'opacity' })
+      main.style.opacity = '0'
+      void chargerGsap().then((gsap) => {
+        tween.current = gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: DUREE_FONDU, ease: 'none', clearProps: 'opacity' })
+      })
       return
     }
     declencherAvance()
+    // État de départ posé avant le premier rendu ; le tween part dès que GSAP (préchargé) répond.
     main.setAttribute('data-balayage', '')
-    tween.current = gsap.fromTo(main, { '--balayage': '100%' }, {
-      '--balayage': '0%',
-      duration: DUREE_AVANCE_MS / 1000,
-      ease: 'power2.out',
-      onComplete: () => {
-        main.removeAttribute('data-balayage')
-        main.style.removeProperty('--balayage')
-      },
+    main.style.setProperty('--balayage', '100%')
+    void chargerGsap().then((gsap) => {
+      if (!main.hasAttribute('data-balayage')) return
+      tween.current = gsap.fromTo(main, { '--balayage': '100%' }, {
+        '--balayage': '0%',
+        duration: DUREE_AVANCE_MS / 1000,
+        ease: 'power2.out',
+        onComplete: () => {
+          main.removeAttribute('data-balayage')
+          main.style.removeProperty('--balayage')
+        },
+      })
     })
   }, [pathname])
 

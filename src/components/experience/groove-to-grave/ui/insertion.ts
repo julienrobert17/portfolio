@@ -1,4 +1,4 @@
-import gsap from 'gsap'
+import { chargerGsap } from '../lib/gsap'
 import { getLenis } from '../lib/lenis-store'
 
 const DUREE = 0.45
@@ -10,6 +10,8 @@ const DUREE = 0.45
  * bouton, monté dans la racine .g2g pour hériter des variables de police et de couleur ; il
  * atterrit droit. Positions mesurées après lenis.stop(). La cassette d'origine reste visible
  * pendant le vol. En mouvement réduit, rien : la cassette apparaît directement dans la fenêtre.
+ * GSAP est chargé à la demande (préchargé à l'inactivité) : le clone est posé tout de suite, le
+ * vol part dès que GSAP est là.
  */
 export function insererCassette(tuile: HTMLElement | null): void {
   if (!tuile || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -24,6 +26,7 @@ export function insererCassette(tuile: HTMLElement | null): void {
   const a = cible.getBoundingClientRect()
   const clone = tuile.cloneNode(true) as HTMLElement
   clone.setAttribute('aria-hidden', 'true')
+  clone.inert = true
   clone.classList.add('g2g-insertion')
   for (const attr of ['data-collage', 'data-colle', 'data-joue']) clone.removeAttribute(attr)
   for (const el of clone.querySelectorAll('.g2g-cassette__texte, .g2g-ecouter, [id]')) el.remove()
@@ -36,16 +39,18 @@ export function insererCassette(tuile: HTMLElement | null): void {
   const echelle = Math.min((a.width - 4) / largeur, (a.height - 4) / hauteur)
   const dx = a.left + (a.width - largeur * echelle) / 2 - de.left
   const dy = a.top + (a.height - hauteur * echelle) / 2 - de.top
-  gsap.fromTo(clone, { x: 0, y: 0, scale: 1, rotate: 0 }, {
-    x: dx,
-    y: dy,
-    scale: echelle,
-    rotate: -rot,
-    duration: DUREE,
-    ease: 'power3.in',
-    onComplete: () => {
-      clone.remove()
-      lenis?.start()
-    },
+  void chargerGsap().then((gsap) => {
+    gsap.fromTo(clone, { x: 0, y: 0, scale: 1, rotate: 0 }, {
+      x: dx,
+      y: dy,
+      scale: echelle,
+      rotate: -rot,
+      duration: DUREE,
+      ease: 'power3.in',
+      onComplete: () => {
+        clone.remove()
+        lenis?.start()
+      },
+    })
   })
 }

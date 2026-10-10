@@ -1,27 +1,27 @@
-// Copie de src/components/experience/la-coupe/lib/ticker.ts (brief v1.1, arbitrage 4) : la-coupe n'est pas modifiée.
-import gsap from 'gsap'
-
 type Tick = (temps: number, delta: number) => void
 
 const abonnes = new Set<Tick>()
-let installe = false
+let image = 0
+let precedent = 0
 
-function boucle(temps: number, delta: number) {
-  for (const fn of abonnes) fn(temps, delta)
+function boucle(maintenant: number): void {
+  const delta = precedent ? maintenant - precedent : 16.7
+  precedent = maintenant
+  for (const fn of abonnes) fn(maintenant / 1000, delta)
+  image = abonnes.size ? window.requestAnimationFrame(boucle) : 0
+  if (!abonnes.size) precedent = 0
 }
 
 /**
- * La seule boucle d'animation de l'expérience : le ticker GSAP. Lenis y
- * avance son défilement, le canvas R3F y rend sa frame (frameloop="never").
- * `temps` est en secondes, `delta` en millisecondes (convention GSAP).
+ * La seule boucle d'animation de l'expérience, en requestAnimationFrame natif : Lenis y avance
+ * son défilement, le mur et le spectre y rendent leur image, le pleurage y suit la lecture.
+ * Elle ne tourne que s'il y a des abonnés. `temps` est en secondes, `delta` en millisecondes
+ * (convention GSAP, gardée de la copie de la-coupe ; GSAP lui-même n'est plus chargé au départ,
+ * voir lib/gsap.ts).
  */
 export function onTick(fn: Tick): () => void {
   abonnes.add(fn)
-  if (!installe) {
-    installe = true
-    gsap.ticker.lagSmoothing(0)
-    gsap.ticker.add(boucle)
-  }
+  if (!image) image = window.requestAnimationFrame(boucle)
   return () => {
     abonnes.delete(fn)
   }

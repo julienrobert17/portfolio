@@ -1,47 +1,26 @@
-// Copie de src/components/experience/la-coupe/lib/gsap.ts (brief v1.1, arbitrage 4) : la-coupe n'est pas modifiée.
 'use client'
 
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import type gsapType from 'gsap'
 
-let enregistre = false
+type Gsap = typeof gsapType
 
-// En développement seulement : inspecter les ScrollTriggers depuis la console.
-declare global {
-  interface Window {
-    __g2gGsap?: { gsap: typeof gsap; ScrollTrigger: typeof ScrollTrigger }
-  }
-}
+let promesse: Promise<Gsap> | null = null
 
 /**
- * Enregistre ScrollTrigger une seule fois. À appeler depuis un composant
- * client uniquement. Les plugins optionnels (SplitText, Flip, DrawSVG) sont
- * chargés à la demande par `chargerSplitText`, `chargerFlip`, `chargerDrawSvg`
- * : ils ne pèsent rien dans le JS initial.
+ * GSAP chargé à la demande, hors du JavaScript initial (Phase 6, performance) : il ne sert
+ * qu'aux tweens de l'insertion et de la transition de page, jamais avant le LCP. Écart
+ * volontaire à la copie de la-coupe (brief v1.1, arbitrage 4) : pas de ScrollTrigger ici, le
+ * collage à l'arrivée passe par IntersectionObserver et le ticker est natif (lib/ticker.ts).
  */
-export function registerGsap() {
-  if (!enregistre && typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger)
-    enregistre = true
-    if (process.env.NODE_ENV !== 'production') window.__g2gGsap = { gsap, ScrollTrigger }
-  }
-  return { gsap, ScrollTrigger }
+export function chargerGsap(): Promise<Gsap> {
+  if (!promesse) promesse = import('gsap').then((m) => m.default)
+  return promesse
 }
 
-export async function chargerSplitText() {
-  const { SplitText } = await import('gsap/SplitText')
-  gsap.registerPlugin(SplitText)
-  return SplitText
-}
-
-export async function chargerFlip() {
-  const { Flip } = await import('gsap/Flip')
-  gsap.registerPlugin(Flip)
-  return Flip
-}
-
-export async function chargerDrawSvg() {
-  const { DrawSVGPlugin } = await import('gsap/DrawSVGPlugin')
-  gsap.registerPlugin(DrawSVGPlugin)
-  return DrawSVGPlugin
+/** Précharge GSAP pendant un temps libre, pour que la première transition soit fluide. */
+export function prechargerGsap(): void {
+  if (typeof window === 'undefined' || promesse) return
+  const lancer = () => void chargerGsap()
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(lancer, { timeout: 3000 })
+  else window.setTimeout(lancer, 1500)
 }

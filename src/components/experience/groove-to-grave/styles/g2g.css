@@ -583,7 +583,9 @@
 }
 
 .g2g-sticker--vert {
-  background: var(--g2g-green);
+  /* Texte de 13 px : greenDeep sous poster (5,9:1), green ne tient pas 4,5:1 sous ink. */
+  background: var(--g2g-greenDeep);
+  color: var(--g2g-poster);
 }
 
 .g2g-tuile {
@@ -782,7 +784,9 @@
 }
 
 .g2g .g2g-affiche-lien--vert {
-  background: var(--g2g-green);
+  /* La ligne de 13 px sous le nom impose greenDeep et poster (ink sur green ne fait que 4,07:1). */
+  background: var(--g2g-greenDeep);
+  color: var(--g2g-poster);
 }
 
 .g2g .g2g-affiche-lien--encre {
@@ -1651,9 +1655,18 @@
     height: 32px;
   }
 
-  .g2g[data-js] .g2g-lecteur__nav,
-  .g2g[data-js] .g2g-lecteur__nom > span {
+  .g2g[data-js] .g2g-lecteur__nav {
     display: none;
+  }
+
+  /* Le nom reste dans le nom accessible du lien : masqué visuellement, pas retiré. */
+  .g2g[data-js] .g2g-lecteur__nom > span:not(.g2g-cache) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .g2g:not([data-js]) .g2g-lecteur__r1 {
@@ -1861,6 +1874,24 @@ html.g2g-verrou {
   overflow: hidden;
 }
 
+/* Le skin collant ne masque jamais un élément amené au focus ou par une ancre : marge de défilement égale à sa hauteur. */
+html.g2g-document {
+  scroll-padding-top: 148px;
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  html.g2g-document {
+    scroll-padding-top: 172px;
+  }
+}
+
+@media (max-width: 767px) {
+  html.g2g-document {
+    scroll-padding-top: 72px;
+    scroll-padding-bottom: 80px;
+  }
+}
+
 /* Bouton écouter sur une cassette du mur : seconde cible, distincte du lien. */
 .g2g-ecouter {
   position: absolute;
@@ -1977,7 +2008,11 @@ html.g2g-verrou {
   }
 }
 
-/* Le canvas reste invisible jusqu'à son premier rendu complet (data-pret), puis fond en 300 ms sur la texture de repli. */
+/* Le canvas, créé côté client dans son hôte sans boîte, reste invisible jusqu'à son premier rendu complet (data-pret), puis fond en 300 ms sur la texture de repli. */
+.g2g-mur-hote {
+  display: contents;
+}
+
 .g2g-mur-canvas {
   position: fixed;
   inset: 0;

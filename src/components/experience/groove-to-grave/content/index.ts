@@ -22,11 +22,7 @@ export function getSortie(ref: string): Sortie | undefined {
   return sortiesAvecExtraits().find((s) => s.ref === ref)
 }
 
-export const PRESETS: Preset[] = ['tout', 'house', 'break', 'minimal', 'electro']
-
-export function estPreset(valeur: string | undefined): valeur is Preset {
-  return valeur !== undefined && (PRESETS as string[]).includes(valeur)
-}
+export { PRESETS, estPreset } from './presets'
 
 /** Filtre du mur : la série GTGR (vinyles et EP numérique ensemble) du plus récent au plus ancien, puis les compilations. */
 export function filtrerSorties(preset: Preset, liste: Sortie[] = sortiesAvecExtraits()): Sortie[] {

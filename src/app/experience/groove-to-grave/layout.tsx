@@ -56,8 +56,12 @@ export const metadata: Metadata = {
   openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: TITRE, description: label.presentation.body, url: BASE },
 }
 
-/** Avant le premier paint : la racine sait que JavaScript est là (le CSS montre le lecteur, cache la barre statique). */
-const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','')"
+/**
+ * Avant le premier paint : la racine sait que JavaScript est là (le CSS montre le lecteur, cache la
+ * barre statique) et le document reçoit la classe qui réserve la place du skin collant au focus
+ * (scroll-padding-top), retirée par la transition de page au démontage.
+ */
+const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','');document.documentElement.classList.add('g2g-document')"
 
 /**
  * Racine de « Groove To Grave » : palette du label en variables CSS quel que soit le thème de

@@ -1,12 +1,25 @@
 import type { ReactNode } from 'react'
 import { couleurs } from '../content/couleurs'
-import { couleurs as tokens } from '../tokens'
+import { contraste, melanger, couleurs as tokens } from '../tokens'
 
-/** Fond et texte du bandeau d'une sortie : sa dominante, texte ink si le contraste y atteint 4,5:1, sinon poster. */
+const MINIMUM = 4.5
+
+/**
+ * Fond et texte du bandeau d'une sortie : sa dominante, avec le texte (ink ou poster) qui y
+ * contraste le mieux. Si aucun n'atteint 4,5:1 (texte de 13 à 16 px dans le bandeau), la
+ * dominante est rapprochée de ce texte opposé par pas de 5 % jusqu'à y arriver : la pochette,
+ * elle, reste intacte, seul l'aplat du bandeau bouge (GTGRVA02, vert à 4,1:1 sous ink).
+ */
 export function couleursBandeau(ref: string | undefined): { fond: string; texte: string } {
   const c = ref ? couleurs[ref] : undefined
   if (!c) return { fond: tokens.chrome, texte: tokens.ink }
-  return { fond: c.dominant, texte: c.contrasteInk.dominant >= 4.5 ? tokens.ink : tokens.poster }
+  const surInk = contraste(c.dominant, tokens.ink)
+  const surPoster = contraste(c.dominant, tokens.poster)
+  const texte = surInk >= surPoster ? tokens.ink : tokens.poster
+  const vers = texte === tokens.ink ? tokens.poster : tokens.ink
+  let fond = c.dominant
+  for (let t = 0.05; contraste(fond, texte) < MINIMUM && t <= 0.6; t += 0.05) fond = melanger(c.dominant, vers, t)
+  return { fond, texte }
 }
 
 interface BandeauProps {

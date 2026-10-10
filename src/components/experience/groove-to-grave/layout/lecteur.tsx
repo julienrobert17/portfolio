@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, type CSSProperties } from 'react'
-import { PRESETS } from '../content'
+import { PRESETS } from '../content/presets'
 import { label } from '../content/label'
 import type { Preset } from '../content/types'
 import { onTick } from '../lib/ticker'
@@ -41,6 +41,8 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
   const router = useRouter()
   const precedentChemin = useRef(pathname)
   const feuilleRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const dernierOuvert = useRef<'deplier' | 'menu' | null>(null)
 
   useEffect(() => {
     definirCatalogue(catalogue)
@@ -63,16 +65,35 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
     })
   }, [etat.statut, etat.piste?.id])
 
-  // Feuille ou menu ouverts : le reste de la page est inerte et ne défile pas.
+  // Feuille ou menu ouverts : le reste de la page est inerte et ne défile pas ; le focus entre dans
+  // le panneau, Échap le ferme et le focus revient au bouton qui l'a ouvert.
   useEffect(() => {
     const ouvert = etat.feuille || etat.menu
     document.documentElement.classList.toggle('g2g-verrou', ouvert)
     const main = document.getElementById('contenu')
+    const pied = document.getElementById('fin-de-bande')
     if (main) main.inert = ouvert
-    if (ouvert) feuilleRef.current?.querySelector<HTMLElement>('button, a')?.focus()
+    if (pied) pied.inert = ouvert
+    const panneau = etat.feuille ? feuilleRef.current : etat.menu ? menuRef.current : null
+    if (panneau) {
+      dernierOuvert.current = etat.feuille ? 'deplier' : 'menu'
+      panneau.querySelector<HTMLElement>('button, a')?.focus()
+    } else if (dernierOuvert.current) {
+      document.querySelector<HTMLElement>(`[data-g2g="${dernierOuvert.current}"]`)?.focus()
+      dernierOuvert.current = null
+    }
+    const surTouche = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !ouvert) return
+      e.preventDefault()
+      if (etat.feuille) definirFeuille(false)
+      if (etat.menu) definirMenu(false)
+    }
+    document.addEventListener('keydown', surTouche)
     return () => {
+      document.removeEventListener('keydown', surTouche)
       document.documentElement.classList.remove('g2g-verrou')
       if (main) main.inert = false
+      if (pied) pied.inert = false
     }
   }, [etat.feuille, etat.menu])
 
@@ -165,12 +186,13 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
 
       {/* Rangée 1 : monogramme et nom, navigation, mention, mini. Barre du haut sur mobile. */}
       <div className="g2g-lecteur__r1">
-        <Link href={routes.accueil} className="g2g-lecteur__nom" aria-label={`${label.nom}, accueil`}>
+        <Link href={routes.accueil} className="g2g-lecteur__nom">
           <Monogramme className="g2g-lecteur__mono" />
-          <span aria-hidden="true">
+          <span>
             <span>Groove To Grave</span>
             <span>Records</span>
           </span>
+          <span className="g2g-cache">, accueil</span>
         </Link>
         <nav aria-label="Navigation principale" className="g2g-nav g2g-lecteur__nav" id="g2g-navigation">
           <NavLiens />
@@ -249,7 +271,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
       </div>
 
       {/* Menu mobile en plein écran : la même navigation, grandes cibles. */}
-      <div className="g2g-menu g2g-js" hidden={!etat.menu}>
+      <div className="g2g-menu g2g-js" ref={menuRef} hidden={!etat.menu}>
         <nav aria-label="Navigation principale" className="g2g-menu__nav">
           <NavLiens />
         </nav>
