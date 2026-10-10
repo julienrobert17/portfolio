@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { Archivo, Permanent_Marker, VT323 } from 'next/font/google'
 import type { ReactNode } from 'react'
-import { sorties } from '@/components/experience/groove-to-grave/content'
+import { soireesAVenir } from '@/components/experience/groove-to-grave/content'
 import { label } from '@/components/experience/groove-to-grave/content/label'
 import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-bande'
-import SkinStatique from '@/components/experience/groove-to-grave/layout/skin-statique'
+import Lecteur from '@/components/experience/groove-to-grave/layout/lecteur'
 import SkipLink from '@/components/experience/groove-to-grave/layout/skip-link'
+import SmoothScroll from '@/components/experience/groove-to-grave/layout/smooth-scroll'
+import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/catalogue-lecteur'
+import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
 import { variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
@@ -50,20 +53,27 @@ export const metadata: Metadata = {
   openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: TITRE, description: label.presentation.body, url: BASE },
 }
 
+/** Avant le premier paint : la racine sait que JavaScript est là (le CSS montre le lecteur, cache la barre statique). */
+const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','')"
+
 /**
  * Racine de « Groove To Grave » : palette du label en variables CSS quel que soit le thème de
- * l'OS, langue française, polices de l'expérience. Le lecteur (ici sa version statique) vit
- * dans ce layout, donc persistant entre toutes les pages de l'expérience.
+ * l'OS, langue française, polices de l'expérience. Le lecteur vit dans ce layout, donc
+ * persistant entre toutes les pages ; son moteur audio est un singleton de module.
  */
 export default function GrooveToGraveLayout({ children }: { children: ReactNode }) {
+  const prochaine = soireesAVenir()[0]
+  const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
-    <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" id="haut" style={variablesCss()}>
+    <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" id="haut" tabIndex={-1} style={variablesCss()}>
+      <script dangerouslySetInnerHTML={{ __html: SCRIPT_JS }} />
       <SkipLink />
-      <SkinStatique sorties={sorties.length} />
+      <Lecteur catalogue={catalogueLecteur()} prochaine={texteProchaine} />
       <main id="contenu" className="g2g-page">
         {children}
       </main>
       <FinDeBande />
+      <SmoothScroll />
     </div>
   )
 }

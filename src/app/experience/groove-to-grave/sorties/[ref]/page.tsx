@@ -6,7 +6,8 @@ import { label } from '@/components/experience/groove-to-grave/content/label'
 import { dateLongue, duree } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import { couleurs as tokens } from '@/components/experience/groove-to-grave/tokens'
-import Cassette from '@/components/experience/groove-to-grave/ui/cassette'
+import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
+import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
 import Photo, { aPhoto } from '@/components/experience/groove-to-grave/ui/photo'
 
 interface Props {
@@ -90,17 +91,21 @@ export default async function SortiePage({ params }: Props) {
         <div>
           <h2 className="g2g-affiche g2g-titre-section">Pistes</h2>
           <ol className="g2g-pistes" style={{ marginTop: 'var(--s2)' }}>
-            {s.tracks.map((t) => (
-              <li key={t.id}>
-                <span>{t.position}</span>
-                <span>
-                  {t.artist ? `${t.artist} — ` : ''}
-                  {t.title}
-                  {t.digitalOnly ? <span className="g2g-meta"> · bonus numérique</span> : null}
-                </span>
-                <span>{duree(t.duration)}</span>
-              </li>
-            ))}
+            {s.tracks.map((t) => {
+              const jouable = pisteJouable(s, t)
+              return (
+                <li key={t.id}>
+                  <span>{t.position}</span>
+                  <span>
+                    {t.artist ? `${t.artist} — ` : ''}
+                    {t.title}
+                    {t.digitalOnly ? <span className="g2g-meta"> · bonus numérique</span> : null}
+                  </span>
+                  <span>{jouable ? <BoutonPiste piste={jouable} /> : null}</span>
+                  <span>{duree(t.duration)}</span>
+                </li>
+              )
+            })}
           </ol>
           {s.text ? (
             <div className="g2g-prose" lang={s.text.lang} style={{ marginTop: 'var(--s3)' }}>

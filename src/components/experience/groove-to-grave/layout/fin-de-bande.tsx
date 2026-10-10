@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { label, textes } from '../content/label'
 import { routes } from '../lib/routes'
+import BoutonRembobiner from '../ui/bouton-rembobiner'
 import { Crane } from '../ui/logos/logo'
 
 /**
  * Pied de page « fin de bande », gardé par le crâne : crédits du site, mention concept non
  * officiel, sources, réseaux du label, et « rembobiner » qui ramène en haut de page (ancre,
- * sans JavaScript ; le son de rembobinage vient avec le lecteur).
+ * avec le son de rembobinage quand le lecteur est là).
  */
 export default function FinDeBande() {
   return (
@@ -37,9 +38,7 @@ export default function FinDeBande() {
             ))}
           </ul>
           <p className="g2g-fin__rembobiner">
-            <a href="#haut" className="g2g-bouton g2g-bouton--principal">
-              Rembobiner
-            </a>
+            <BoutonRembobiner />
           </p>
         </div>
       </div>

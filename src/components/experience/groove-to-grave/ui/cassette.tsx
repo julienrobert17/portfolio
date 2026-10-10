@@ -1,9 +1,13 @@
 import Link from 'next/link'
+import { extraits } from '../content/extraits'
+import { medias } from '../content/medias'
+import type { PisteJouable } from '../store/lecteur-store'
 import { couleurs } from '../content/couleurs'
 import type { Sortie } from '../content/types'
 import { styleRotation } from '../lib/desordre'
 import { routes } from '../lib/routes'
 import { couleurs as tokens } from '../tokens'
+import BoutonEcouter, { TuileJouable } from './cassette-jouable'
 
 /** Texte lisible sur une couleur : ink si son contraste y atteint 3:1, sinon poster. */
 function encreSur(contrasteInk: number): string {
@@ -48,7 +52,7 @@ export function CassetteSvg({ coque, etiquette, bande, reference, face = 'A', li
       </text>
       <rect x="52" y="56" width="96" height="18" rx="9" fill={tokens.ink} />
       {[72, 128].map((cx) => (
-        <g key={cx}>
+        <g key={cx} className="g2g-bobine">
           <circle cx={cx} cy="65" r="7" fill={tokens.poster} />
           <path d={`M${cx} 58.5v13M${cx - 5.6} 61.8l11.2 6.4M${cx - 5.6} 68.2l11.2-6.4`} stroke={tokens.ink} strokeWidth="1.6" />
         </g>
@@ -79,16 +83,44 @@ interface CassetteProps {
   priorite?: boolean
 }
 
+/** Première piste jouable d'une sortie, sérialisée pour le lecteur ; null sans extrait. */
+export function pisteJouable(sortie: Sortie, piste = sortie.tracks.find((t) => extraits[t.id])): PisteJouable | null {
+  if (!piste) return null
+  const extrait = extraits[piste.id]
+  if (!extrait) return null
+  const c = couleursCassette(sortie.ref)
+  return {
+    id: piste.id,
+    sortieRef: sortie.ref,
+    catalog: sortie.catalog,
+    artiste: piste.artist ?? sortie.artistName,
+    titre: piste.title,
+    position: piste.position,
+    format: sortie.format,
+    src: extrait.src,
+    duration: extrait.duration,
+    bpm: extrait.bpm ?? sortie.bpmProvisoire,
+    origine: extrait.origine,
+    genres: sortie.genres,
+    bandcamp: sortie.links.bandcamp,
+    coque: c.coque,
+    bande: c.bande,
+    texteBande: c.texteBande,
+    pochette: medias[sortie.ref] ? sortie.ref : undefined,
+  }
+}
+
 /**
  * Cassette d'une sortie : un lien vers sa page (fonctionne sans JavaScript), avec le format
- * et le statut en texte à côté, et un sticker pour l'épuisé. Le bouton « écouter » arrive avec
- * le lecteur (Phase 3), seulement si JavaScript est actif et qu'un extrait existe.
+ * et le statut en texte à côté, et un sticker pour l'épuisé. Deuxième cible distincte : le
+ * bouton rond « écouter », rendu seulement si JavaScript est actif et qu'un extrait existe.
  */
 export default function Cassette({ sortie, amplitude = 4 }: CassetteProps) {
   const c = couleursCassette(sortie.ref)
   const statut = sortie.status === 'epuise' ? 'épuisé' : sortie.noRepress ? 'no repress' : null
+  const piste = pisteJouable(sortie)
   return (
-    <div className="g2g-tuile">
+    <TuileJouable sortieRef={sortie.ref}>
       <Link href={routes.sortie(sortie.ref)} className="g2g-cassette" style={styleRotation(sortie.ref, amplitude)} aria-label={`${sortie.catalog}, ${sortie.artistName}, ${sortie.title}`}>
         <CassetteSvg coque={c.coque} etiquette={tokens.poster} bande={c.bande} texteBande={c.texteBande} reference={sortie.catalog} ligne1={court(sortie.artistName, 22)} ligne2={court(sortie.title, 30)} />
         <span className="g2g-cassette__texte">
@@ -107,7 +139,8 @@ export default function Cassette({ sortie, amplitude = 4 }: CassetteProps) {
           {statut}
         </span>
       ) : null}
-    </div>
+      {piste ? <BoutonEcouter piste={piste} /> : null}
+    </TuileJouable>
   )
 }
 

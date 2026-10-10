@@ -1075,3 +1075,713 @@
     transition: none !important;
   }
 }
+
+/* ═════════ Le lecteur (Phase 3) ═════════ */
+
+/* Avec JavaScript, la racine porte data-js (script en ligne du layout) : les éléments .g2g-js apparaissent, .g2g-sans-js disparaît. */
+.g2g:not([data-js]) .g2g-js {
+  display: none !important;
+}
+
+.g2g[data-js] .g2g-sans-js {
+  display: none !important;
+}
+
+.g2g-lecteur {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: min(100% - 2 * var(--marge), var(--largeur-max));
+  margin: var(--s2) auto 0;
+  border: var(--trait-fort) solid var(--g2g-ink);
+  border-radius: 10px;
+  background: var(--g2g-chrome);
+  padding: 6px 10px 8px;
+  color: var(--g2g-ink);
+  font-size: 15px;
+  display: grid;
+  gap: 6px;
+}
+
+.g2g-lecteur__r1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+}
+
+.g2g-lecteur__nom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  flex: none;
+}
+
+.g2g-lecteur__nom span {
+  display: block;
+}
+
+.g2g-lecteur__mono {
+  display: block;
+  height: 32px;
+  width: auto;
+}
+
+.g2g-lecteur__nav {
+  padding: 2px;
+}
+
+.g2g-lecteur__nav a {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: 14px;
+}
+
+.g2g-lecteur__concept {
+  margin-left: auto;
+}
+
+.g2g-lecteur .g2g-lecteur__menu-bouton {
+  display: none;
+}
+
+/* Rangée 2 : 64 px, transport, fenêtre, afficheur, presets, volume. */
+.g2g-lecteur__r2 {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  height: 56px;
+}
+
+.g2g-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.g2g-rond {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 50%;
+  background: var(--g2g-chromeLight);
+  color: var(--g2g-ink);
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-rond svg {
+  width: 18px;
+  height: 18px;
+}
+
+.g2g-rond--grand {
+  width: 52px;
+  height: 52px;
+  background: var(--g2g-red);
+}
+
+.g2g-rond--grand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.g2g-rond--petit {
+  width: 32px;
+  height: 32px;
+}
+
+.g2g-rond--petit svg {
+  width: 16px;
+  height: 16px;
+}
+
+.g2g-rond:hover:not(:disabled),
+.g2g-rond:active:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-rond:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Fenêtre cassette : environ 96 × 60 px, bobines qui tournent au BPM pendant la lecture. */
+.g2g-fenetre {
+  width: 96px;
+  height: 56px;
+  flex: none;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 4px;
+  background: var(--g2g-lcd);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.g2g-fenetre svg {
+  width: 100%;
+  height: auto;
+}
+
+.g2g-fenetre__vide {
+  width: 70%;
+  height: 4px;
+  background: var(--g2g-lcdOff);
+}
+
+.g2g-lecteur__fenetre--mini {
+  width: 48px;
+  height: 30px;
+  padding: 1px;
+}
+
+.g2g-lecteur__fenetre--barre {
+  width: 64px;
+  height: 40px;
+  padding: 1px;
+}
+
+@keyframes g2g-bobine {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+[data-joue] .g2g-bobine {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: g2g-bobine calc(60s / var(--bpm, 124) * 3) linear infinite;
+}
+
+.g2g-lecteur__afficheur {
+  margin-top: 0;
+  height: 56px;
+  padding: 2px 8px 2px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 1px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.g2g-bande {
+  font-size: 16px;
+  line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.g2g-bande--statique {
+  text-overflow: ellipsis;
+}
+
+@keyframes g2g-defile {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.g2g-bande__piste {
+  display: inline-flex;
+  width: max-content;
+  animation: g2g-defile var(--duree, 20s) linear infinite;
+}
+
+.g2g-bande:hover .g2g-bande__piste,
+.g2g-lecteur:focus-within .g2g-bande__piste {
+  animation-play-state: paused;
+}
+
+.g2g-lecteur__bas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Spectre : 32 colonnes, 9 segments par un masque, seule scaleY change. */
+.g2g-spectre {
+  display: grid;
+  grid-template-columns: repeat(32, minmax(0, 1fr));
+  gap: 2px;
+  height: 20px;
+  align-items: end;
+}
+
+.g2g-spectre__colonne {
+  display: block;
+  height: 100%;
+  background: linear-gradient(to top, var(--g2g-lcdLit) 0 77%, var(--g2g-lcdPeak) 77% 100%);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  -webkit-mask-image: repeating-linear-gradient(to top, #000 0 2px, transparent 2px 2.9px);
+  mask-image: repeating-linear-gradient(to top, #000 0 2px, transparent 2px 2.9px);
+  will-change: transform;
+}
+
+.g2g-compteurs {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+}
+
+.g2g-compteurs div {
+  display: grid;
+  gap: 0;
+}
+
+.g2g-compteurs dt {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--g2g-lcdDim);
+  letter-spacing: 0.04em;
+}
+
+.g2g-compteurs dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1;
+  padding-bottom: 1px;
+}
+
+.g2g-compteurs__temps dd {
+  color: var(--g2g-lcdPeak);
+}
+
+.g2g-compteurs__duree {
+  font-size: 13px;
+  color: var(--g2g-lcdDim);
+}
+
+/* Progression : input range étiqueté, piste fine sur l'afficheur. */
+.g2g-progression {
+  display: block;
+  line-height: 0;
+  height: 9px;
+}
+
+.g2g-progression input {
+  display: block;
+  width: 100%;
+  height: 7px;
+  margin: 0;
+  appearance: none;
+  background: linear-gradient(to right, var(--g2g-lcdPeak) var(--pc, 0%), var(--g2g-lcdOff) var(--pc, 0%));
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.g2g-progression input::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--g2g-lcdLit);
+  border: 2px solid var(--g2g-lcd);
+}
+
+.g2g-progression input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--g2g-lcdLit);
+  border: 2px solid var(--g2g-lcd);
+}
+
+.g2g-progression input:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Presets : boutons du langage commun, l'actif en aplat ink. */
+.g2g-presets {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 4px;
+}
+
+.g2g-presets button {
+  min-height: 28px;
+  padding: 2px 8px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-poster);
+  color: var(--g2g-ink);
+  font: inherit;
+  font-family: var(--g2g-font-lcd), VT323, monospace;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-presets button:hover,
+.g2g-presets button:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-presets button[aria-pressed='true'] {
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+}
+
+.g2g-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.g2g-volume input {
+  width: 90px;
+  accent-color: var(--g2g-ink);
+}
+
+/* Mode mini : rangée 1 et une ligne fine. */
+.g2g-lecteur__fine {
+  display: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  height: 36px;
+}
+
+.g2g-lecteur__afficheur-mini {
+  margin: 0;
+  padding: 4px 8px;
+  height: 32px;
+  display: grid;
+  align-items: center;
+}
+
+.g2g-lecteur--mini .g2g-lecteur__r2 {
+  display: none;
+}
+
+.g2g-lecteur--mini .g2g-lecteur__fine {
+  display: grid;
+}
+
+/* Barre basse, feuille et menu : mobile seulement. */
+.g2g-barre,
+.g2g-feuille,
+.g2g-menu {
+  display: none;
+}
+
+.g2g-lecteur__statique {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.g2g-lecteur__statique a {
+  font-weight: 700;
+}
+
+.g2g[data-js] .g2g-page {
+  padding-top: var(--s2);
+}
+
+@media (max-width: 767px) {
+  .g2g-lecteur {
+    width: 100%;
+    margin: 0;
+    border-width: 0 0 var(--trait-fort);
+    border-radius: 0;
+    padding: 0 var(--marge);
+    gap: 0;
+  }
+
+  .g2g-lecteur__r1 {
+    min-height: 56px;
+    gap: 8px;
+  }
+
+  .g2g-lecteur__mono {
+    height: 32px;
+  }
+
+  .g2g[data-js] .g2g-lecteur__nav,
+  .g2g[data-js] .g2g-lecteur__nom > span {
+    display: none;
+  }
+
+  .g2g:not([data-js]) .g2g-lecteur__r1 {
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+
+  .g2g:not([data-js]) .g2g-lecteur__nav {
+    width: 100%;
+  }
+
+  .g2g[data-js] .g2g-lecteur__menu-bouton {
+    display: inline-flex;
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+  }
+
+  .g2g-lecteur__mini,
+  .g2g-lecteur__concept,
+  .g2g-lecteur__r2,
+  .g2g-lecteur__fine {
+    display: none !important;
+  }
+
+  .g2g[data-js] .g2g-barre {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 var(--marge) env(safe-area-inset-bottom);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    background: var(--g2g-chrome);
+    border-top: var(--trait-fort) solid var(--g2g-ink);
+  }
+
+  .g2g-barre__bande {
+    margin: 0;
+    padding: 6px 8px;
+    height: 40px;
+    display: grid;
+    align-items: center;
+  }
+
+  .g2g[data-js] .g2g-page {
+    padding-bottom: calc(var(--s5) + 80px);
+  }
+
+  .g2g[data-js] .g2g-feuille:not([hidden]) {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    display: grid;
+    gap: var(--s2);
+    padding: var(--s2) var(--marge) calc(var(--s3) + env(safe-area-inset-bottom));
+    background: var(--g2g-chrome);
+    border-top: var(--trait-fort) solid var(--g2g-ink);
+    border-radius: 14px 14px 0 0;
+    max-height: 92dvh;
+    overflow: auto;
+  }
+
+  .g2g-feuille__entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .g2g-feuille__afficheur {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .g2g-feuille .g2g-spectre {
+    height: 36px;
+  }
+
+  .g2g-feuille .g2g-compteurs dd {
+    font-size: 24px;
+  }
+
+  .g2g-feuille .g2g-compteurs dt {
+    font-size: 12px;
+  }
+
+  .g2g-feuille .g2g-bande {
+    font-size: 20px;
+  }
+
+  .g2g-feuille .g2g-presets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .g2g-feuille .g2g-presets button {
+    min-height: 44px;
+  }
+
+  .g2g-feuille .g2g-transport {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .g2g-feuille .g2g-rond {
+    width: 48px;
+    height: 48px;
+  }
+
+  .g2g-feuille .g2g-rond--grand {
+    width: 64px;
+    height: 64px;
+  }
+
+  .g2g-feuille .g2g-volume input {
+    width: 100%;
+  }
+
+  .g2g-feuille .g2g-volume {
+    gap: 12px;
+  }
+
+  .g2g-feuille .g2g-volume label {
+    flex: 1;
+  }
+
+  .g2g[data-js] .g2g-menu:not([hidden]) {
+    position: fixed;
+    inset: 56px 0 0;
+    z-index: 65;
+    display: grid;
+    align-content: start;
+    padding: var(--s3) var(--marge);
+    background: var(--g2g-wall);
+    overflow: auto;
+  }
+
+  .g2g-menu__nav {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .g2g-menu__nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 12px 16px;
+    border: var(--trait-fort) solid var(--g2g-ink);
+    background: var(--g2g-poster);
+    text-decoration: none;
+    font-family: var(--g2g-font-archivo), Archivo, sans-serif;
+    font-stretch: 75%;
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+  }
+
+  .g2g-menu__nav a[aria-current='page'] {
+    background: var(--g2g-ink);
+    color: var(--g2g-poster);
+  }
+
+  .g2g-menu__nav svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+html.g2g-verrou {
+  overflow: hidden;
+}
+
+/* Bouton écouter sur une cassette du mur : seconde cible, distincte du lien. */
+.g2g-ecouter {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 50%;
+  background: var(--g2g-red);
+  color: var(--g2g-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-ecouter svg {
+  width: 20px;
+  height: 20px;
+}
+
+.g2g-ecouter:hover,
+.g2g-ecouter:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-tuile[data-joue] .g2g-cassette {
+  transform: rotate(var(--rot)) translateY(-2px);
+}
+
+.g2g-bouton-piste {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 2px 10px 2px 6px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-poster);
+  color: var(--g2g-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-bouton-piste svg {
+  width: 14px;
+  height: 14px;
+}
+
+.g2g-bouton-piste:hover,
+.g2g-bouton-piste:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-bouton-piste[aria-pressed='true'] {
+  background: var(--g2g-red);
+}
+
+.g2g-pistes li {
+  grid-template-columns: 56px minmax(0, 1fr) auto auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-joue] .g2g-bobine,
+  .g2g-bande__piste {
+    animation: none !important;
+  }
+
+  .g2g-bande__piste {
+    width: auto;
+  }
+}

@@ -4,6 +4,7 @@ import { PRESETS, estPreset, filtrerSorties, type Preset } from '@/components/ex
 import { label } from '@/components/experience/groove-to-grave/content/label'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import MurSorties from '@/components/experience/groove-to-grave/sections/mur-sorties'
+import SyncPreset from '@/components/experience/groove-to-grave/sections/sync-preset'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default async function SortiesPage({ searchParams }: Props) {
   const liste = filtrerSorties(preset)
   return (
     <section className="g2g-entete-page" aria-labelledby="sorties">
+      <SyncPreset preset={preset} />
       <TitrePage id="sorties" texte="Sorties" teinte="rouge">
         Sorties
       </TitrePage>
