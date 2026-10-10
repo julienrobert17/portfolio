@@ -10,7 +10,7 @@
 2. **Pages artiste.** Plus de message interne : sans présentation, la page montre le nom, la ligne de statut et les sorties.
 3. **Invités de compilation.** Bande de papier comme les autres pages, ligne « N compilation(s) sur le label · GTGRVA02 », puis « Sur le label » : la cassette de la compilation et la ligne de chaque morceau de l'artiste (position, titre, featuring éventuel, bouton écouter s'il y a un extrait, durée). La pochette en grand et le bandeau dans la dominante sont réservés aux artistes ayant une sortie solo illustrée (Azbine, Kitchen Plug, Emi Ömar, Merov', LukasDarian).
 
-### Phase 6, finition et audits (`191dc74`, `df6c534`, `HASH_DOCS`)
+### Phase 6, finition et audits (`191dc74`, `df6c534`, `16e9b32`)
 
 **Performance** (`scripts/g2g-lighthouse.ts` : build de production local, `next build` puis `next start`, `npx lighthouse@13.5.0` sans rien ajouter au dépôt, Chrome headless sur le GPU de la machine, mobile simulé puis desktop, strictement l'un après l'autre, trois passages par page, médiane par la performance ; rapports HTML de la médiane dans `docs/groove-to-grave/lighthouse/phase-6/`).
 
