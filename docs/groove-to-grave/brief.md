@@ -1,9 +1,15 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1.4 · 10 octobre 2026 (v1 : 8 octobre, v1.1 à v1.3 : 10 octobre 2026)
+> Expérience portfolio `groove-to-grave` · brief v1.5 · 11 octobre 2026 (v1 : 8 octobre, v1.1 à v1.4 : 10 octobre 2026)
 > Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1.4** (bloc 6.1, 11 octobre 2026) :
+
+1. §3.2, §6, §8 : polices auto-hébergées par `next/font/local`, sous-ensemblées par `scripts/g2g-polices.ts` (fontTools et brotli dans un environnement Python hors dépôt) : Archivo restreinte aux largeurs 75 à 100 % et graisses 400 à 900, les trois au jeu de caractères du site ; 69 kB avant le LCP au lieu de 124. Seule Archivo est préchargée.
+2. §8 : la mesure de référence Lighthouse est la preview Vercel (HTTP/2, Brotli), mobile simulé, cinq passages par page, médiane ; la mesure locale reste indicative. Le critère SEO porte l'exception assumée du `noindex` tant que le label n'a pas donné son accord.
+3. §9, §10 : ni seed, ni écriture en base, ni fusion sur main avant l'accord du label ; `scripts/g2g-upsert-projet.ts` remplace la commande de seed, non exécuté.
 
 **Changements depuis la v1.3** (bloc 5.1 et Phase 6, 10 octobre 2026) :
 
@@ -366,7 +372,8 @@ Le site est conçu pour recevoir, sans changement de code, les fichiers que Groo
 
 **Performance**
 
-- Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**. C'est le critère bloquant.
+- Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**. C'est le critère bloquant. **Mesure de référence** (bloc 6.1) : la preview Vercel, mobile simulé, cinq passages par page l'un après l'autre, médiane retenue ; la mesure sur le build local reste indicative.
+- **Exception assumée du critère SEO** : le site est en `noindex` tant que le label n'a pas donné son accord (§1), ce qui fait échouer l'audit `is-crawlable` et plafonne le SEO vers 66 ; tout le reste de l'axe passe. Le jour de la mise en ligne publique, retirer la ligne `robots: { index: false, follow: false },` de `src/app/experience/groove-to-grave/layout.tsx` et le SEO revient à 100.
 - LCP < 2,5 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
 - Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur, et le shader se compile en parallèle sans bloquer le fil principal. DPR plafonné à 1,5 (1 sur mobile), pause quand l'onglet est caché.
 - Aucun extrait audio chargé avant un geste. Trois fichiers de police au maximum, seul Archivo est préchargé.
@@ -424,7 +431,7 @@ Chaque phase suit la même méthode :
 
 **Phase 5 — Transitions et pages détail.** Avance rapide, pages sortie, artiste et label, contact et newsletter (sans enregistrement), fin de bande. Planche.
 
-**Phase 6 — Finition et audits.** Passe d'accessibilité (clavier complet, VoiceOver avec le directeur artistique, mouvement réduit), audits de performance séquentiels, corrections, checklist Safari remise au directeur artistique. Tuile dans le carrousel de la home : la ligne Prisma est **préparée mais pas écrite** ; on demande l'accord explicite avant toute écriture en base, puisqu'elle est partagée avec la prod.
+**Phase 6 — Finition et audits.** Passe d'accessibilité (clavier complet, VoiceOver avec le directeur artistique, mouvement réduit), audits de performance séquentiels, corrections, checklist Safari remise au directeur artistique. Tuile dans le carrousel de la home : la ligne Prisma est **préparée mais pas écrite** (`prisma/seed.ts` et `scripts/g2g-upsert-projet.ts`, upsert de la seule entrée `groove-to-grave`, non exécuté) ; l'écriture en base, partagée avec la prod, comme la fusion de la branche sur `main`, attendent l'accord écrit du label.
 
 ---
 

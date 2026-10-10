@@ -5,10 +5,11 @@
  * passage de performance médiane ; son rapport HTML est gardé). Chrome headless sans
  * SwiftShader : le GPU de la machine rend le mur, comme un appareil réel.
  *
- *   npx tsx scripts/g2g-lighthouse.ts [--url http://localhost:3000] [--passages 3] [--pages accueil,sorties]
+ *   npx tsx scripts/g2g-lighthouse.ts [--url http://localhost:3000] [--passages 3] [--pages accueil,sorties] [--formats mobile] [--sortie phase-6]
  *
  * Sort une table Markdown (scores, LCP, CLS, TBT) et un code de retour non nul si un critère
- * bloquant manque : 95 sur les quatre axes, LCP mobile < 2,5 s, CLS < 0,02, TBT < 150 ms.
+ * bloquant manque : 95 en performance, accessibilité et bonnes pratiques (le SEO porte l'exception
+ * assumée du noindex, brief §8), CLS < 0,02, TBT < 150 ms.
  */
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
@@ -31,9 +32,11 @@ const PAGES_TOUTES: { nom: string; chemin: string }[] = [
 ]
 const filtre = arg('--pages', '')
 const PAGES = filtre ? PAGES_TOUTES.filter((p) => filtre.split(',').includes(p.nom)) : PAGES_TOUTES
-const FORMATS = ['mobile', 'desktop'] as const
+const FORMATS_TOUS = ['mobile', 'desktop'] as const
+const formats = arg('--formats', '')
+const FORMATS = formats ? FORMATS_TOUS.filter((f) => formats.split(',').includes(f)) : FORMATS_TOUS
 const AXES = ['performance', 'accessibility', 'best-practices', 'seo'] as const
-const SORTIE = dossier(join(RACINE, 'docs/groove-to-grave/lighthouse/phase-6'))
+const SORTIE = dossier(join(RACINE, 'docs/groove-to-grave/lighthouse', arg('--sortie', 'phase-6')))
 
 interface Resultat {
   json: string
@@ -79,10 +82,15 @@ function main(): void {
       const med = tri[Math.floor(tri.length / 2)]
       const html = med.json.replace(/\.report\.json$/, '.report.html')
       if (existsSync(html)) copyFileSync(html, join(SORTIE, `${p.nom}-${format}.html`))
-      const ok = AXES.every((a) => med.scores[a] >= 95) && med.cls < 0.02 && med.tbt < 150 && (format === 'desktop' || med.lcp < 2500)
+      const ok = AXES.filter((a) => a !== 'seo').every((a) => med.scores[a] >= 95) && med.cls < 0.02 && med.tbt < 150
       if (!ok) echecs++
       const s = med.scores
       lignes.push(`| ${format} | ${p.nom} | ${s.performance} | ${s.accessibility} | ${s['best-practices']} | ${s.seo} | ${(med.lcp / 1000).toFixed(2).replace('.', ',')} s | ${med.cls.toFixed(3).replace('.', ',')} | ${Math.round(med.tbt)} ms | ${Math.round(med.js / 1024)} kB | ${ok ? 'ok' : 'KO'} (${passages.map((x) => x.scores.performance).join('/')}) |`)
+      // Poids des polices et des scripts demandés avant le LCP (tableau du compte-rendu).
+      const polices = JSON.parse(readFileSync(med.json, 'utf8')) as Rapport
+      let poidsPolices = 0
+      for (const i of polices.audits['network-requests'].details?.items ?? []) if (i.resourceType === 'Font') poidsPolices += i.transferSize ?? 0
+      process.stderr.write(`    polices ${Math.round(poidsPolices / 1024)} kB\n`)
       process.stderr.write(`${lignes[lignes.length - 1]}\n`)
     }
   }
