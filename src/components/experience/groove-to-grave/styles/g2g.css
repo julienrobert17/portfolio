@@ -1871,9 +1871,10 @@ html.g2g-verrou {
 /* Texture statique générée depuis le shader : fond de repli, sous le canvas quand il est là. */
 .g2g {
   background-image: url('/experience/groove-to-grave/mur-1920.webp');
-  background-size: 1920px auto;
-  background-position: top center;
-  background-attachment: scroll;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 @supports (background-image: url('a.avif')) {
@@ -1884,8 +1885,12 @@ html.g2g-verrou {
 
 @media (max-width: 767px) {
   .g2g {
+    /* iOS ignore l'attachement fixe : la texture suit la page et se répète au-delà de 2200 px, repli assumé. */
     background-image: url('/experience/groove-to-grave/mur-1280.webp');
-    background-size: 1280px auto;
+    background-size: 100% auto;
+    background-attachment: scroll;
+    background-repeat: repeat-y;
+    background-position: top center;
   }
 
   @supports (background-image: url('a.avif')) {
@@ -1895,7 +1900,7 @@ html.g2g-verrou {
   }
 }
 
-.g2g-mur {
+.g2g-mur-canvas {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -1906,7 +1911,7 @@ html.g2g-verrou {
   transition: opacity 600ms ease;
 }
 
-.g2g-mur[data-pret] {
+.g2g-mur-canvas[data-pret] {
   opacity: 1;
 }
 
@@ -1972,7 +1977,7 @@ html.g2g-verrou {
     animation: none !important;
   }
 
-  .g2g-mur {
+  .g2g-mur-canvas {
     transition: none;
   }
 }

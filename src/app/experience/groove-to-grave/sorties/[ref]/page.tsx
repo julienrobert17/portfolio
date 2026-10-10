@@ -8,6 +8,7 @@ import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import { couleurs as tokens } from '@/components/experience/groove-to-grave/tokens'
 import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
 import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
+import CassetteDos from '@/components/experience/groove-to-grave/ui/cassette-dos'
 import Photo, { aPhoto } from '@/components/experience/groove-to-grave/ui/photo'
 
 interface Props {
@@ -87,6 +88,12 @@ export default async function SortiePage({ params }: Props) {
           ) : (
             <Cassette sortie={s} amplitude={0} />
           )}
+          {s.kind === 'compilation' ? (
+            <figure className="g2g-dos">
+              <CassetteDos sortie={s} />
+              <figcaption className="g2g-meta">Au dos de la mixtape : les titres à la main</figcaption>
+            </figure>
+          ) : null}
         </div>
         <div>
           <h2 className="g2g-affiche g2g-titre-section">Pistes</h2>

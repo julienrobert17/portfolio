@@ -35,7 +35,7 @@ export function SupportFlyer({ soiree, sizes = '(max-width: 600px) 100vw, 400px'
 export default function Flyer({ soiree }: { soiree: Soiree }) {
   const mention = soiree.status === 'annulee' ? 'Annulée' : soiree.status === 'reportee' ? 'Reportée' : null
   return (
-    <article className="g2g-flyer">
+    <article className="g2g-flyer" data-collage="">
       <SupportFlyer soiree={soiree} />
       <div className="g2g-flyer__texte">
         <strong>

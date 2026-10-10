@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { basculer, useLecteur, type PisteJouable } from '../store/lecteur-store'
 import IconePlay from './icone-play'
+import { insererCassette } from './insertion'
 
 interface TuileProps {
   sortieRef: string
@@ -14,7 +15,7 @@ export function TuileJouable({ sortieRef, children }: TuileProps) {
   const { piste, statut } = useLecteur()
   const joue = statut === 'lecture' && piste?.sortieRef === sortieRef
   return (
-    <div className="g2g-tuile" data-joue={joue || undefined} style={piste && joue ? { '--bpm': piste.bpm } as React.CSSProperties : undefined}>
+    <div className="g2g-tuile" data-collage="" data-joue={joue || undefined} style={piste && joue ? { '--bpm': piste.bpm } as React.CSSProperties : undefined}>
       {children}
     </div>
   )
@@ -30,7 +31,11 @@ export default function BoutonEcouter({ piste }: { piste: PisteJouable }) {
   const courante = etat.piste?.id === piste.id
   const joue = courante && etat.statut === 'lecture'
   return (
-    <button type="button" className="g2g-ecouter g2g-js" data-g2g="ecouter" aria-pressed={joue} aria-label={`${joue ? 'Pause' : 'Écouter'} ${piste.catalog}, ${piste.artiste}, ${piste.titre}`} onClick={() => basculer(piste)}>
+    <button type="button" className="g2g-ecouter g2g-js" data-g2g="ecouter" aria-pressed={joue} aria-label={`${joue ? 'Pause' : 'Écouter'} ${piste.catalog}, ${piste.artiste}, ${piste.titre}`} onClick={(e) => {
+        // Insertion : la cassette vole du mur vers la fenêtre du skin, puis la lecture démarre.
+        if (!joue) insererCassette(e.currentTarget.parentElement?.querySelector('svg') ?? null)
+        basculer(piste)
+      }}>
       <IconePlay pause={joue} />
     </button>
   )

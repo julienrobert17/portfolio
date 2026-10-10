@@ -21,7 +21,7 @@ export class Devtools {
     const chrome = CHROMES.find((p) => existsSync(p))
     if (!chrome) throw new Error('Chrome introuvable dans /Applications')
     const port = 9222 + Math.floor(Math.random() * 1000)
-    this.processus = spawn(chrome, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--autoplay-policy=no-user-gesture-required', `--user-data-dir=${join(CACHE, 'chrome-profil')}`, `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
+    this.processus = spawn(chrome, ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', '--no-first-run', '--autoplay-policy=no-user-gesture-required', `--user-data-dir=${join(CACHE, 'chrome-profil')}`, `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
     let version: { webSocketDebuggerUrl: string } | null = null
     for (let i = 0; i < 50 && !version; i++) {
       try {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Archivo, Permanent_Marker, VT323 } from 'next/font/google'
 import type { ReactNode } from 'react'
+import Mur from '@/components/experience/groove-to-grave/canvas/mur'
 import { soireesAVenir } from '@/components/experience/groove-to-grave/content'
 import { label } from '@/components/experience/groove-to-grave/content/label'
 import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-bande'
@@ -11,6 +12,7 @@ import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/ca
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
 import { variablesCss } from '@/components/experience/groove-to-grave/tokens'
+import Collage from '@/components/experience/groove-to-grave/ui/collage'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
 
 // Archivo variable en largeur et en graisse : titrage condensé et texte courant avec un seul fichier préchargé.
@@ -67,12 +69,14 @@ export default function GrooveToGraveLayout({ children }: { children: ReactNode 
   return (
     <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" id="haut" tabIndex={-1} style={variablesCss()}>
       <script dangerouslySetInnerHTML={{ __html: SCRIPT_JS }} />
+      <Mur />
       <SkipLink />
       <Lecteur catalogue={catalogueLecteur()} prochaine={texteProchaine} />
       <main id="contenu" className="g2g-page">
         {children}
       </main>
       <FinDeBande />
+      <Collage />
       <SmoothScroll />
     </div>
   )
