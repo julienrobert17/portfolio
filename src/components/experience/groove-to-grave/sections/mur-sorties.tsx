@@ -11,7 +11,7 @@ interface MurProps {
 export default function MurSorties({ sorties, preset = 'tout', titre }: MurProps) {
   return (
     <div>
-      <p className="g2g-meta" role="status">
+      <p className="g2g-meta g2g-mur-compte" role="status">
         {sorties.length} {sorties.length > 1 ? 'sorties' : 'sortie'}
         {preset !== 'tout' ? ` pour ${preset}` : ''}
         {titre ? ` · ${titre}` : ''}

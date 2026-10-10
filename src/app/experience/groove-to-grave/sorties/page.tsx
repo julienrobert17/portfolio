@@ -4,6 +4,7 @@ import { PRESETS, estPreset, filtrerSorties, type Preset } from '@/components/ex
 import { label } from '@/components/experience/groove-to-grave/content/label'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import MurSorties from '@/components/experience/groove-to-grave/sections/mur-sorties'
+import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
   title: 'Sorties',
@@ -17,18 +18,18 @@ interface Props {
 /**
  * Le mur, filtrable par les presets : le search param est lu ici, côté serveur, et les presets
  * sont de simples liens de filtre, partageables et fonctionnels sans JavaScript. Le lecteur
- * recevra l'état par un composant client de page en Phase 3.
+ * reçoit l'état par un composant client de page.
  */
 export default async function SortiesPage({ searchParams }: Props) {
   const { genre } = await searchParams
   const preset: Preset = estPreset(genre) ? genre : 'tout'
   const liste = filtrerSorties(preset)
   return (
-    <section className="g2g-section" aria-labelledby="sorties">
-      <h1 id="sorties" className="g2g-affiche g2g-titre">
+    <section className="g2g-entete-page" aria-labelledby="sorties">
+      <TitrePage id="sorties" texte="Sorties" teinte="rouge">
         Sorties
-      </h1>
-      <p className="g2g-sous">La série GTGR du plus récent au plus ancien, puis les compilations. Les genres sont déduits des textes publics, pas encore validés par le label.</p>
+      </TitrePage>
+      <p className="g2g-chapeau">La série GTGR du plus récent au plus ancien, puis les compilations. Les genres sont déduits des textes publics, pas encore validés par le label.</p>
       <ul className="g2g-filtres" aria-label="Filtrer par genre">
         {PRESETS.map((p) => (
           <li key={p}>

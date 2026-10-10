@@ -33,6 +33,8 @@ interface Marque {
   composantePrincipale: boolean
   /** Composantes plus petites que cette fraction de la plus grande : éclats de voisinage, écartés. */
   eclatMinimum: number
+  /** turdsize potrace : nœuds parasites de cette taille et moins, en pixels. */
+  parasites: number
 }
 
 const MARQUES: Marque[] = [
@@ -45,6 +47,7 @@ const MARQUES: Marque[] = [
     encre: (r, g, b) => Math.max(r, g, b) < 70,
     composantePrincipale: false,
     eclatMinimum: 0.02,
+    parasites: 8,
   },
   {
     nom: 'crane',
@@ -55,7 +58,9 @@ const MARQUES: Marque[] = [
     // Noir des contours et du vinyle, pas le bleu nuit du fond (plus bleu que rouge).
     encre: (r, g, b) => Math.max(r, g, b) < 90 && b - r < 14,
     composantePrincipale: true,
-    eclatMinimum: 0.002,
+    // Assez bas pour garder le point noir de l'axe au centre du vinyle (une centaine de pixels).
+    eclatMinimum: 0.0004,
+    parasites: 3,
   },
 ]
 
@@ -170,9 +175,9 @@ interface Trace {
 }
 
 /** potrace puis extraction du viewBox, de la transformation et du tracé ; rien d'autre n'est gardé. */
-function tracer(entree: string, sortie: string): Trace {
-  // -s SVG, --flat : un seul chemin ; -t 8 : nœuds parasites de 8 px et moins ; -a 1 et -O 0.2 : réglages par défaut explicités.
-  execFileSync('potrace', ['-s', '--flat', '-t', '8', '-a', '1', '-O', '0.2', '-r', '72', '-o', sortie, entree], { stdio: 'inherit' })
+function tracer(entree: string, sortie: string, parasites: number): Trace {
+  // -s SVG, --flat : un seul chemin ; -t : nœuds parasites de cette taille et moins ; -a 1 et -O 0.2 : réglages par défaut explicités.
+  execFileSync('potrace', ['-s', '--flat', '-t', String(parasites), '-a', '1', '-O', '0.2', '-r', '72', '-o', sortie, entree], { stdio: 'inherit' })
   const svg = readFileSync(sortie, 'utf8')
   const viewBox = svg.match(/viewBox="([^"]+)"/)?.[1]
   const transform = svg.match(/<g transform="([^"]+)"/)?.[1]
@@ -196,7 +201,7 @@ async function main(): Promise<void> {
     const entree = join(CACHE, 'logos', `${m.nom}.pbm`)
     const sortie = join(CACHE, 'logos', `${m.nom}.potrace.svg`)
     const dims = pbm(bits, w, h, entree)
-    const t = tracer(entree, sortie)
+    const t = tracer(entree, sortie, m.parasites)
     const source = `${m.credit} ; recadrage ${m.crop.left},${m.crop.top} ${m.crop.width}×${m.crop.height} px de content/groove-to-grave/media/source/${m.ref}`
     const commentaire = `PLACEHOLDER-TRACE : vectorisation potrace (${DATE}) du ${m.titre.toLowerCase()} relevé sur l'${source}. À remplacer par le fichier du label.`
     writeFileSync(join(LOGOS, `${m.nom}.svg`), svgMarque(t, 'currentColor', commentaire))

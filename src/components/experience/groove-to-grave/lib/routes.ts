@@ -10,6 +10,7 @@ export const routes = {
   soirees: `${BASE}/soirees`,
   label: `${BASE}/label`,
   contact: `${BASE}/contact`,
+  sources: `${BASE}/sources`,
 } as const
 
 export const NAV: { href: string; label: string; icone: 'disque' | 'artistes' | 'soirees' | 'label' | 'contact' }[] = [

@@ -3,34 +3,47 @@ import { styleRotation } from '../lib/desordre'
 import { dateLongue } from '../lib/format'
 import Photo, { aPhoto } from './photo'
 
+/** Nom affiché d'une soirée : le sien, sinon celui du label. Jamais fabriqué à partir du lieu. */
+export function nomSoiree(s: Soiree): string {
+  return s.name ?? 'Groove To Grave Records'
+}
+
+/** Support poster collé au scotch : le flyer réel jamais recadré, ou l'affiche typographique. */
+export function SupportFlyer({ soiree, sizes = '(max-width: 600px) 100vw, 400px', priority }: { soiree: Soiree; sizes?: string; priority?: boolean }) {
+  return (
+    <figure className="g2g-flyer__support" style={styleRotation(soiree.date, 2)}>
+      {aPhoto(soiree.date) ? (
+        <Photo id={soiree.date} alt={`Visuel de la soirée ${nomSoiree(soiree)}, ${dateLongue(soiree.date)}`} sizes={sizes} priority={priority} />
+      ) : (
+        <div className="g2g-affiche-date">
+          <span className="g2g-affiche">
+            <time dateTime={soiree.date}>{dateLongue(soiree.date)}</time>
+          </span>
+          <span className="g2g-affiche g2g-affiche--lieu">{soiree.venue}</span>
+          <span className="g2g-meta">visuel non retrouvé</span>
+        </div>
+      )}
+      {soiree.flyerCredit ? <figcaption className="g2g-meta">Visuel : {soiree.flyerCredit}</figcaption> : null}
+    </figure>
+  )
+}
+
 /**
- * Flyer réel collé au scotch sur un support poster, jamais recadré, rotation de 2° au plus sur
- * le support entier ; date, lieu et line-up en texte à côté. Sans flyer récupéré, une affiche
- * texte dans le même cadre. Le scotch est décoratif (pseudo-éléments).
+ * Flyer d'archive : support poster, rotation de 2° au plus sur le support entier ; date,
+ * lieu et line-up en texte à côté, mentions annulée ou reportée.
  */
 export default function Flyer({ soiree }: { soiree: Soiree }) {
-  const titre = soiree.name ?? `Groove To Grave à ${soiree.venue}`
   const mention = soiree.status === 'annulee' ? 'Annulée' : soiree.status === 'reportee' ? 'Reportée' : null
   return (
     <article className="g2g-flyer">
-      <figure className="g2g-flyer__support" style={styleRotation(soiree.date, 2)}>
-        {aPhoto(soiree.date) ? (
-          <Photo id={soiree.date} alt={`Visuel de la soirée ${titre}, ${dateLongue(soiree.date)}`} sizes="(max-width: 600px) 100vw, 420px" />
-        ) : (
-          <div className="g2g-flyer__affiche">
-            <span className="g2g-affiche">{titre}</span>
-            <small className="g2g-meta">{dateLongue(soiree.date)}</small>
-          </div>
-        )}
-        {soiree.flyerCredit ? <figcaption className="g2g-meta">Visuel : {soiree.flyerCredit}</figcaption> : null}
-      </figure>
+      <SupportFlyer soiree={soiree} />
       <div className="g2g-flyer__texte">
         <strong>
           <time dateTime={soiree.date}>{dateLongue(soiree.date)}</time>
           {mention ? <span className="g2g-rouge"> · {mention}</span> : null}
         </strong>
         <span>
-          {titre}
+          {nomSoiree(soiree)}
           {soiree.hours ? `, ${soiree.hours}` : ''}
         </span>
         <span>

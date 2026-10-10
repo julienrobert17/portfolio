@@ -33,7 +33,7 @@ export default function SkinStatique({ sorties, preset = 'tout' }: SkinProps) {
       <nav aria-label="Navigation principale" className="g2g-nav">
         <NavLiens />
       </nav>
-      <div className="g2g-lcd g2g-lcd-texte">
+      <div className="g2g-skin__lcd g2g-lcd g2g-lcd-texte">
         <div className="g2g-lcd__bande" aria-hidden="true" title="Groove To Grave Records · Paris · insère une cassette">
           GROOVE TO GRAVE RECORDS · PARIS · INSÈRE UNE CASSETTE · DU SILLON À LA TOMBE ···
         </div>

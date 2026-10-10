@@ -16,14 +16,14 @@ interface NewsletterProps {
 export default function Newsletter({ etat, retour }: NewsletterProps) {
   return (
     <section className="g2g-section" aria-labelledby="newsletter">
-      <h2 id="newsletter" className="g2g-affiche">
+      <h2 id="newsletter" className="g2g-affiche g2g-titre-section">
         Reste branché
       </h2>
       <form action={inscrireNewsletter} className="g2g-form">
         <input type="hidden" name="retour" value={retour} />
         <label htmlFor="newsletter-email">Ton adresse e-mail</label>
         <input id="newsletter-email" name="email" type="email" autoComplete="email" required placeholder="toi@exemple.fr" />
-        <button type="submit" className="g2g-bouton g2g-bouton--rouge">
+        <button type="submit" className="g2g-bouton g2g-bouton--principal">
           M’inscrire
         </button>
       </form>

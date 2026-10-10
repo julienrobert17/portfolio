@@ -4,7 +4,7 @@ import { filtrerSorties, soireesAVenir } from '@/components/experience/groove-to
 import { label, textes } from '@/components/experience/groove-to-grave/content/label'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, routes } from '@/components/experience/groove-to-grave/lib/routes'
-import BlocSoirees from '@/components/experience/groove-to-grave/sections/bloc-soirees'
+import HerosSoiree from '@/components/experience/groove-to-grave/sections/heros-soiree'
 import MurSorties from '@/components/experience/groove-to-grave/sections/mur-sorties'
 import Newsletter from '@/components/experience/groove-to-grave/sections/newsletter'
 import Cassette from '@/components/experience/groove-to-grave/ui/cassette'
@@ -26,28 +26,26 @@ export default async function AccueilPage({ searchParams }: Props) {
   const prochaine = soireesAVenir()[0]
   return (
     <>
-      <section className="g2g-section" aria-labelledby="une">
+      <section className="g2g-entete-page" aria-labelledby="une">
         <p className="g2g-meta">Dernière sortie · {dateLongue(derniere.releaseDate)}</p>
         <div className="g2g-une">
-          <Cassette sortie={derniere} amplitude={0} priorite />
-          <div>
-            <h1 id="une" className="g2g-affiche g2g-titre">
+          <Cassette sortie={derniere} amplitude={0} />
+          <div className="g2g-pile">
+            <h1 id="une" className="g2g-affiche g2g-titre-section">
               {derniere.artistName}
               <br />
               {derniere.title}
             </h1>
-            <p className="g2g-sous">
+            <p className="g2g-meta">
               {derniere.catalog} · {derniere.format}
               {derniere.noRepress ? ' · pressage limité, sans repress' : ''}
             </p>
-            {derniere.text ? (
-              <p className="g2g-prose" lang={derniere.text.lang}>
-                {derniere.text.body.split('\n\n')[0]}
-              </p>
-            ) : null}
-            <ul className="g2g-liens">
+            {derniere.text ? <p lang={derniere.text.lang}>{derniere.text.body.split('\n\n')[0]}</p> : null}
+            <ul className="g2g-liens" style={{ marginTop: 0 }}>
               <li>
-                <Link href={routes.sortie(derniere.ref)}>La sortie</Link>
+                <Link href={routes.sortie(derniere.ref)} className="g2g-bouton--principal">
+                  La sortie
+                </Link>
               </li>
               <li>
                 <a href={derniere.links.bandcamp} rel="noopener">
@@ -59,7 +57,7 @@ export default async function AccueilPage({ searchParams }: Props) {
         </div>
       </section>
       <section className="g2g-section" aria-labelledby="mur">
-        <h2 id="mur" className="g2g-affiche">
+        <h2 id="mur" className="g2g-affiche g2g-titre-section">
           Le mur
         </h2>
         <MurSorties sorties={mur} />
@@ -70,17 +68,17 @@ export default async function AccueilPage({ searchParams }: Props) {
         </ul>
       </section>
       <section className="g2g-section" aria-labelledby="soirees">
-        <h2 id="soirees" className="g2g-affiche">
+        <h2 id="soirees" className="g2g-affiche g2g-titre-section">
           Soirées
         </h2>
-        <BlocSoirees prochaine={prochaine} />
+        <HerosSoiree prochaine={prochaine} lienToutes />
       </section>
-      <section className="g2g-section" aria-label="Le label en une phrase">
-        <p className="g2g-marqueur g2g-titre" style={{ transform: 'rotate(-1.5deg)', display: 'inline-block' }}>
+      <section className="g2g-section g2g-pile" aria-label="Le label en une phrase">
+        <p className="g2g-marqueur g2g-titre-section" style={{ transform: 'rotate(-1.5deg)', display: 'inline-block', maxWidth: 'none' }}>
           {textes.phrase.body}
           <span className="g2g-brouillon">brouillon</span>
         </p>
-        <p className="g2g-sous">
+        <p>
           {label.presentation.body} <Link href={routes.label}>Le label</Link>.
         </p>
       </section>
