@@ -67,7 +67,7 @@ async function main(): Promise<void> {
       chemin: c.chemin,
       titre: `${s.catalog} · ${s.artistName} — ${s.title}`,
       lignes: [
-        `${s.kind === 'vinyle' ? '12″ vinyle' : 'compilation numérique'} · ${s.releaseDate}`,
+        `${s.format} · ${s.releaseDate}`,
         `source : ${c.origine === 'label' ? 'fichier du label' : c.origine === 'public' ? hote(c.url) : 'aucune'}${e ? ` · ${e.width}×${e.height} px` : ''}`,
         `artwork : ${s.credits.artwork ?? 'à vérifier'}`,
       ],

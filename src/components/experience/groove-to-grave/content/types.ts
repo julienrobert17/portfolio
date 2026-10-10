@@ -51,6 +51,8 @@ export interface Piste {
 
 export type StatutSortie = 'disponible' | 'epuise' | 'numerique'
 
+export type FormatSortie = '12″ vinyle' | 'EP numérique' | 'compilation numérique'
+
 export interface Credits {
   artwork?: string
   mastering?: string
@@ -63,7 +65,10 @@ export interface Sortie extends Provenance {
   ref: string
   /** Référence de catalogue imprimée : GTGR05. */
   catalog: string
-  kind: 'vinyle' | 'compilation'
+  /** Vinyle 12″ de la série GTGR, EP numérique de la même série, ou compilation numérique (GTGRVA). */
+  kind: 'vinyle' | 'ep-numerique' | 'compilation'
+  /** Format imprimé sur la cassette et la page : « 12″ vinyle », « EP numérique », « compilation numérique ». */
+  format: FormatSortie
   /** Slug d'artiste pour une sortie solo, absent pour une compilation. */
   artistSlug?: string
   artistName: string

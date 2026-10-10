@@ -138,6 +138,7 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 - Le bouton « écouter » n'est rendu que si la sortie a au moins une piste avec un extrait (voir §4.1 et §7) : une cassette sans extrait reste un lien.
 - Variantes :
   - **sortie vinyle**, avec mention « 12″ vinyle » visible à côté de la cassette : on vend des disques, la cassette est l'objet d'écoute ;
+  - **EP numérique** de la série GTGR (GTGR01, *Common Speed EP*), même cassette avec la mention « EP numérique » ; chaque cassette porte son vrai format, lu dans `format` ;
   - **compilation**, en mixtape avec liste des titres écrite à la main au dos ;
   - **soirée**, avec date dans la bande, lieu et horaires sur l'étiquette, sans bouton écouter ;
   - **vierge**, pour la page contact (« envoie ta tape »).
@@ -189,9 +190,9 @@ Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` 
 
 | Page | Chemin | Contenu |
 |---|---|---|
-| Accueil | `/` | Bande défilante d'accueil. Grande cassette de la dernière sortie (GTGR05) avec texte de sortie et liens. Mur de toutes les cassettes. Bloc soirées (prochaine date ou état vide). Phrase du label. Newsletter. Fin de bande. |
-| Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. Vinyles d'abord, compilations ensuite. Le search param est lu par la page serveur et poussé dans le store par un petit composant client de page ; le lecteur ne lit jamais les search params. |
-| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format. Faces A et B avec durées. Bouton écouter par piste, seulement pour les pistes qui ont un extrait (§7). Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
+| Accueil | `/` | Bande défilante d'accueil. Grande cassette de la dernière sortie (GTGR05) avec texte de sortie et liens. Mur de toutes les cassettes, dans l'ordre de `/sorties`. Bloc soirées (prochaine date ou état vide). Phrase du label. Newsletter. Fin de bande. |
+| Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. La série GTGR du plus récent au plus ancien, vinyles et EP numérique ensemble, puis les compilations. Le search param est lu par la page serveur et poussé dans le store par un petit composant client de page ; le lecteur ne lit jamais les search params. |
+| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format réel (« 12″ vinyle », « EP numérique », « compilation numérique »). Faces A et B avec durées. Bouton écouter par piste, seulement pour les pistes qui ont un extrait (§7). Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
 | Artistes | `/artistes` | Les noms en typographie d'affiche collée, un par affiche. |
 | Artiste | `/artistes/[slug]` | Nom, ville, présentation factuelle tirée des textes publics, sorties sur le label, liens publics. Aucune biographie inventée. |
 | Soirées | `/soirees` | **À venir** : billetterie en lien externe (Shotgun ou RA). En l'absence de date, un état vide soigné (« aucune date annoncée, reste branché » avec newsletter et Instagram) : c'est l'état actuel, il doit être beau. **Passées** : archive en cassettes-flyers, avec le vrai flyer quand il a été récupéré, le lieu, le line-up et les mentions (reportée, annulée). |

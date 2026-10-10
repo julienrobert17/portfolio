@@ -28,11 +28,11 @@ export function estPreset(valeur: string | undefined): valeur is Preset {
   return valeur !== undefined && (PRESETS as string[]).includes(valeur)
 }
 
-/** Filtre du mur : vinyles d'abord, compilations ensuite, du plus récent au plus ancien. */
+/** Filtre du mur : la série GTGR (vinyles et EP numérique ensemble) du plus récent au plus ancien, puis les compilations. */
 export function filtrerSorties(preset: Preset, liste: Sortie[] = sortiesAvecExtraits()): Sortie[] {
   const garde = (s: Sortie) => preset === 'tout' || s.genres.includes(preset as Genre)
   const tri = (a: Sortie, b: Sortie) => b.releaseDate.localeCompare(a.releaseDate)
-  return [...liste.filter((s) => s.kind === 'vinyle' && garde(s)).sort(tri), ...liste.filter((s) => s.kind === 'compilation' && garde(s)).sort(tri)]
+  return [...liste.filter((s) => s.kind !== 'compilation' && garde(s)).sort(tri), ...liste.filter((s) => s.kind === 'compilation' && garde(s)).sort(tri)]
 }
 
 export function soireesAVenir(aujourdhui = new Date().toISOString().slice(0, 10)): Soiree[] {
