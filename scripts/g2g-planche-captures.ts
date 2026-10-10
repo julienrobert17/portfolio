@@ -7,7 +7,7 @@
  *   npx tsx scripts/g2g-planche-captures.ts --phase 2 [--url http://localhost:3000]
  */
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { couleurs } from '../src/components/experience/groove-to-grave/tokens'
@@ -33,6 +33,7 @@ const PAGES: { chemin: string; titre: string }[] = [
   { chemin: '/soirees', titre: 'Soirées' },
   { chemin: '/label', titre: 'Le label' },
   { chemin: '/contact', titre: 'Contact' },
+  { chemin: '/sources', titre: 'Sources et crédits' },
 ]
 
 const FORMATS = [
@@ -140,6 +141,7 @@ class Devtools {
 
 async function main(): Promise<void> {
   dossier(join(CACHE, 'chrome-profil'))
+  dossier(join(CACHE, 'captures'))
   const navigateur = new Devtools()
   await navigateur.demarrer()
   const PLANCHES = dossier(join(RACINE, 'docs/groove-to-grave/planches'))
@@ -148,6 +150,8 @@ async function main(): Promise<void> {
     const captures: { titre: string; buf: Buffer; w: number; h: number }[] = []
     for (const p of PAGES) {
       const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax)
+      // Capture brute gardée hors dépôt, utile pour la revue page par page.
+      writeFileSync(join(CACHE, 'captures', `p${PHASE}-${f.largeur}-${p.chemin.replace(/[^a-z0-9]+/gi, '_') || 'accueil'}.png`), buf)
       const m = await sharp(buf).metadata()
       captures.push({ titre: p.titre, buf, w: m.width ?? 0, h: m.height ?? 0 })
       process.stdout.write(`  ${f.largeur} · ${p.titre} : ${m.width}×${m.height}\n`)
