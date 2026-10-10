@@ -12,11 +12,12 @@ import sharp from 'sharp'
 import { FRAGMENT, VERTEX, rgb01 } from '../src/components/experience/groove-to-grave/canvas/mur-shader'
 import { couleurs } from '../src/components/experience/groove-to-grave/tokens'
 import { Devtools } from './g2g-devtools'
-import { PUBLIC, RACINE, dossier } from './g2g-lib'
+import { CACHE, PUBLIC, RACINE, dossier } from './g2g-lib'
 
 const TAILLES = [
   { largeur: 1920, hauteur: 1200, nom: 'mur-1920' },
-  { largeur: 1280, hauteur: 2200, nom: 'mur-1280' },
+  // Mobile : au ratio d'un écran de 390 × 844, répété verticalement ; un écran montre donc les six lambeaux une fois.
+  { largeur: 1280, hauteur: 2770, nom: 'mur-1280' },
 ]
 
 async function main(): Promise<void> {
@@ -42,6 +43,8 @@ async function main(): Promise<void> {
     await nav.envoyer('Target.closeTarget', { targetId })
     if (!b64 || b64 === 'pas de webgl2') throw new Error(`${t.nom} : ${b64 || 'rendu vide'}`)
     const png = Buffer.from(b64, 'base64')
+    // Rendu brut gardé hors dépôt, pour contrôler le shader au pixel près.
+    writeFileSync(join(dossier(CACHE), `${t.nom}.png`), png)
     dossier(PUBLIC)
     for (const format of ['avif', 'webp'] as const) {
       const sortie = join(PUBLIC, `${t.nom}.${format}`)

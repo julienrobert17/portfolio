@@ -3,8 +3,10 @@
  * froissé dans l'esprit du flyer Marcounet, traces de colle) et lambeaux d'affiches en papier
  * déchiré : bords nets antialiasés sur un pixel, déchirure fibreuse à l'échelle de 2 à 4 px,
  * liseré de 1 px un peu plus sombre, aucun flou ; teintes pâles (poster, wall mêlé de red ou de
- * green à 35 % au plus, tokens lambeauRouge et lambeauVert). Jamais une pochette ni un flyer du
- * label : leurs œuvres ne sont ni déchirées ni texturées. Partagé par le composant client et le
+ * green à 35 % au plus, tokens lambeauRouge et lambeauVert) ; six lambeaux par écran, 30 % de la
+ * largeur au plus chacun, un quart de l'écran couvert en tout, chacun portant une trace
+ * d'impression abstraite (trame de points ou filets) à peine plus sombre. Jamais une pochette ni
+ * un flyer du label : leurs œuvres ne sont ni déchirées ni texturées, aucune forme n'en est reprise. Partagé par le composant client et le
  * script du repli statique (scripts/g2g-mur-statique.ts), qui rendent exactement la même image.
  *
  * Uniforms : u_resolution (px), u_temps (s, figé quand rien ne joue), u_graves (0 à 1, énergie
@@ -51,8 +53,10 @@ float fbm(vec2 p) {
 
 // Lambeau de papier déchiré : distance signée (px) à un rectangle tourné, déchirée par une
 // ondulation large (fbm, ~80 px) et par des fibres de 2 à 4 px (bruit fin). 1 dedans, 0 dehors,
-// antialiasé sur 1,2 px ; liser vaut 1 sur le pixel qui longe le bord, dedans.
-float lambeau(vec2 px, vec2 centre, vec2 demi, float angle, float graine, out float liser) {
+// antialiasé sur 1,2 px ; liser vaut 1 sur le pixel qui longe le bord, dedans ; trame vaut 1 sur
+// la trace d'impression (trame de points de 8 px ou trois filets de 3 px selon la graine), toujours
+// abstraite, dans le repère du lambeau, jamais sur le liseré.
+float lambeau(vec2 px, vec2 centre, vec2 demi, float angle, float graine, out float liser, out float trame) {
   vec2 d = px - centre;
   float c = cos(angle), s = sin(angle);
   d = vec2(c * d.x - s * d.y, s * d.x + c * d.y);
@@ -61,7 +65,16 @@ float lambeau(vec2 px, vec2 centre, vec2 demi, float angle, float graine, out fl
   sd += (fbm(d * 0.012 + graine) - 0.5) * 18.0;
   sd += (bruit(d * 0.38 + graine * 3.0) - 0.5) * 3.6;
   float dedans = 1.0 - smoothstep(-0.6, 0.6, sd);
-  liser = dedans * (1.0 - smoothstep(-2.0, -0.8, sd));
+  liser = dedans * smoothstep(-2.0, -0.8, sd);
+  if (mod(graine, 2.0) < 1.0) {
+    vec2 g = (fract(d / 8.0) - 0.5) * 8.0;
+    trame = 1.0 - smoothstep(1.6, 2.6, length(g));
+  } else {
+    float ecart = demi.y * 0.5;
+    float dy = abs(mod(d.y + ecart * 0.5, ecart) - ecart * 0.5);
+    trame = (1.0 - smoothstep(1.0, 2.0, dy)) * step(abs(d.y), demi.y * 0.8) * step(abs(d.x), demi.x * 0.85);
+  }
+  trame *= dedans * (1.0 - liser);
   return dedans;
 }
 
@@ -82,32 +95,33 @@ vec3 scene(vec2 px) {
   papier += colle * 0.4 * lumiere;
   papier *= 0.97 + 0.06 * lumiere;
 
-  // Lambeaux : sept morceaux, opaques, à peine modelés par la lumière, liseré sombre de 1 px.
+  // Lambeaux : six morceaux placés en fractions de l'écran (largeur 30 % au plus chacun, 24 % de
+  // la surface en tout), opaques, à peine modelés par la lumière, trame d'impression à 0,9,
+  // liseré sombre de 1 px à 0,9 (facteurs repris dans tokens.ts, LAMBEAU).
+  vec2 R = u_resolution / u_echelle;
   vec3 couleur = papier;
   float liser;
+  float trame;
   float l;
   vec3 teinte;
-  l = lambeau(px, vec2(198.0, 702.0), vec2(250.0, 162.0), 0.08, 1.0, liser);
-  teinte = u_poster * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(1125.0, 315.0), vec2(206.0, 295.0), -0.12, 2.0, liser);
-  teinte = u_lambeauRouge * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(648.0, 162.0), vec2(310.0, 103.0), 0.05, 3.0, liser);
-  teinte = u_lambeauVert * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(1395.0, 828.0), vec2(162.0, 133.0), 0.2, 4.0, liser);
-  teinte = u_poster * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(45.0, 270.0), vec2(133.0, 221.0), -0.3, 5.0, liser);
-  teinte = u_lambeauRouge * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(855.0, 558.0), vec2(89.0, 66.0), 0.35, 6.0, liser);
-  teinte = u_lambeauVert * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
-  l = lambeau(px, vec2(1278.0, 72.0), vec2(118.0, 52.0), -0.08, 7.0, liser);
-  teinte = u_poster * (0.98 + 0.04 * lumiere) + grain * 0.6;
-  couleur = mix(couleur, teinte * (1.0 - 0.1 * liser), l);
+  l = lambeau(px, R * vec2(0.14, 0.80), R * vec2(0.14, 0.11), 0.08, 1.0, liser, trame);
+  teinte = (u_poster * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
+  l = lambeau(px, R * vec2(0.80, 0.36), R * vec2(0.11, 0.15), -0.12, 2.0, liser, trame);
+  teinte = (u_lambeauRouge * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
+  l = lambeau(px, R * vec2(0.46, 0.16), R * vec2(0.13, 0.07), 0.05, 3.0, liser, trame);
+  teinte = (u_lambeauVert * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
+  l = lambeau(px, R * vec2(0.92, 0.88), R * vec2(0.09, 0.10), 0.2, 4.0, liser, trame);
+  teinte = (u_poster * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
+  l = lambeau(px, R * vec2(0.05, 0.30), R * vec2(0.07, 0.05), -0.3, 5.0, liser, trame);
+  teinte = (u_lambeauRouge * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
+  l = lambeau(px, R * vec2(0.62, 0.62), R * vec2(0.10, 0.06), 0.35, 6.0, liser, trame);
+  teinte = (u_lambeauVert * (0.98 + 0.04 * lumiere) + grain * 0.6) * (1.0 - 0.1 * trame) * (1.0 - 0.1 * liser);
+  couleur = mix(couleur, teinte, l);
   return couleur;
 }
 

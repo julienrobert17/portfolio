@@ -2082,3 +2082,37 @@ html.g2g-verrou {
 .g2g-bandeau h1 + .g2g-bandeau__statut {
   font-size: 16px;
 }
+
+/* Invité de compilation : la cassette de la compilation et la ligne de son morceau. */
+.g2g-participations {
+  display: grid;
+  gap: var(--s4) var(--gouttiere);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.g2g-participations > li {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+  gap: var(--s3) var(--gouttiere);
+  align-items: start;
+}
+
+.g2g-participations .g2g-pistes {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .g2g-participations > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .g2g-participations .g2g-cassette {
+    max-width: 280px;
+  }
+}
+
+.g2g-entete-page > .g2g-bandeau__statut {
+  margin-top: var(--s2);
+}

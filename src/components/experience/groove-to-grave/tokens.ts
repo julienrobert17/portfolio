@@ -35,13 +35,29 @@ export const MELANGE_LAMBEAU = 0.35
  */
 export const PAPIER_SOMBRE = { facteur: 0.93 * 0.94 * 0.92 * 0.97, retrait: 0.035 }
 
+/**
+ * Lambeaux du mur, tenus en phase avec le shader : relief minimal 0,98, grain de 0,021 au plus,
+ * trame d'impression (points ou filets) à 0,9, liseré de bord à 0,9. La trame et le liseré ne
+ * se superposent jamais.
+ */
+export const LAMBEAU = { relief: 0.98, grain: 0.021, trame: 0.9, lisere: 0.9 }
+
+const LAMBEAU_ROUGE = melanger(WALL, RED, MELANGE_LAMBEAU)
+const LAMBEAU_VERT = melanger(WALL, GREEN, MELANGE_LAMBEAU)
+/** Le lambeau le moins lumineux, sur lequel trame et liseré sont les plus sombres. */
+const LAMBEAU_SOMBRE = luminance(LAMBEAU_ROUGE) < luminance(LAMBEAU_VERT) ? LAMBEAU_ROUGE : LAMBEAU_VERT
+
 export const couleurs = {
   /** Fond du mur, papier d'affichage. */
   wall: WALL,
   /** Lambeau d'affiche rouge du mur : wall mêlé de red à 35 %. */
-  lambeauRouge: melanger(WALL, RED, MELANGE_LAMBEAU),
+  lambeauRouge: LAMBEAU_ROUGE,
   /** Lambeau d'affiche vert du mur : wall mêlé de green à 35 %. */
-  lambeauVert: melanger(WALL, GREEN, MELANGE_LAMBEAU),
+  lambeauVert: LAMBEAU_VERT,
+  /** Trame d'impression (points ou filets) d'un lambeau, à son plus sombre (dérivé du shader, voir LAMBEAU). */
+  trameSombre: assombrir(LAMBEAU_SOMBRE, LAMBEAU.relief * LAMBEAU.trame, LAMBEAU.grain),
+  /** Liseré de bord d'un lambeau, à son plus sombre (dérivé du shader, voir LAMBEAU). */
+  lisereSombre: assombrir(LAMBEAU_SOMBRE, LAMBEAU.relief * LAMBEAU.lisere, LAMBEAU.grain),
   /** Le papier du mur à son grain le plus sombre (dérivé du shader, voir PAPIER_SOMBRE). */
   papierSombre: assombrir(WALL, PAPIER_SOMBRE.facteur, PAPIER_SOMBRE.retrait),
   /** Affiches, étiquettes de cassette, texte clair sur fonds sombres. */
@@ -88,6 +104,8 @@ export const PAIRES: Paire[] = [
   { texte: 'ink', fond: 'lambeauRouge', minimum: 7, usage: 'texte sur un lambeau rouge du mur' },
   { texte: 'ink', fond: 'lambeauVert', minimum: 7, usage: 'texte sur un lambeau vert du mur' },
   { texte: 'ink', fond: 'papierSombre', minimum: 7, usage: 'texte sur le grain le plus sombre du papier' },
+  { texte: 'ink', fond: 'trameSombre', minimum: 7, usage: 'texte sur la trame d’impression la plus sombre d’un lambeau' },
+  { texte: 'ink', fond: 'lisereSombre', minimum: 7, usage: 'texte sur le liseré le plus sombre d’un lambeau' },
   { texte: 'ink', fond: 'poster', minimum: 4.5, usage: 'texte sur affiches et étiquettes' },
   { texte: 'ink', fond: 'chrome', minimum: 4.5, usage: 'libellés du lecteur' },
   { texte: 'ink', fond: 'chromeLight', minimum: 4.5, usage: 'boutons du lecteur' },
