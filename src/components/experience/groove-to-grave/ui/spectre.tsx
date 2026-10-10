@@ -7,10 +7,14 @@ import { useLecteur } from '../store/lecteur-store'
 
 const COLONNES = 32
 const INTERVALLE = 1000 / 30
+const SEGMENTS = 6
+/** Descente lissée : une colonne met environ 300 ms à retomber de pleine échelle à zéro. */
+const DESCENTE_PAR_MS = 1 / 300
 
 /**
- * Le spectre en segments : 32 colonnes de 9 segments en DOM, seules des `transform` changent,
- * à 30 images par seconde au plus, arrêté quand rien ne joue (brief §3.5, §8). Décoratif.
+ * Le spectre en segments : 32 bandes logarithmiques de 40 Hz à 16 kHz, 6 segments dans 30 px,
+ * en DOM, seules des `transform` changent, à 30 images par seconde au plus, montée franche et
+ * descente lissée d'environ 300 ms, arrêté quand rien ne joue (brief §3.5, §8). Décoratif.
  */
 export default function Spectre() {
   const { statut } = useLecteur()
@@ -25,15 +29,18 @@ export default function Spectre() {
       for (let i = 0; i < COLONNES; i++) (colonnes[i] as HTMLElement).style.transform = 'scaleY(0)'
       return
     }
+    const affiches = new Float32Array(COLONNES)
     let dernier = 0
     return onTick((temps) => {
       const ms = temps * 1000
       if (ms - dernier < INTERVALLE) return
+      const dt = dernier ? ms - dernier : INTERVALLE
       dernier = ms
       if (!moteur().spectre(COLONNES, niveaux)) return
       for (let i = 0; i < COLONNES; i++) {
-        // Quantifié sur 9 segments : la colonne ne bouge qu'au segment près.
-        const v = Math.round(niveaux[i] * 9) / 9
+        affiches[i] = Math.max(niveaux[i], affiches[i] - dt * DESCENTE_PAR_MS)
+        // Quantifié au segment près.
+        const v = Math.round(affiches[i] * SEGMENTS) / SEGMENTS
         ;(colonnes[i] as HTMLElement).style.transform = `scaleY(${v})`
       }
     })

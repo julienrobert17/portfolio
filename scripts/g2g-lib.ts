@@ -163,6 +163,36 @@ export function ffmpeg(args: string[]): void {
   execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: 'inherit' })
 }
 
+/**
+ * Normalisation à `cible` LUFS intégrés avec crête vraie sous −1 dBTP une fois décodé : gain
+ * mesuré par ebur128 puis limiteur à −3 dBTP (le MP3 dépasse d'environ 1 à 2 dB sur des crêtes
+ * limitées), répété tant que la sonie s'écarte de plus de 0,2 LU (le limiteur en retire un peu
+ * à chaque passe), puis MP3 192 kbps. `filtresAvant` : filtres appliqués d'abord (découpe,
+ * fondus). loudnorm n'est pas utilisé : en linéaire il n'atteint pas la cible à cause du facteur
+ * de crête des boucles, en dynamique il la manque de 3 à 4 LU sur des fichiers courts.
+ */
+export function encoderMp3Normalise(entree: string, sortie: string, cible = -14, filtresAvant: string[] = [], argsEntree: string[] = []): void {
+  const temp = join(dossier(join(CACHE, 'audio-temp')), `${Date.now()}-${Math.round(Math.random() * 1e6)}`)
+  let courant = `${temp}-0.wav`
+  ffmpeg([...argsEntree, '-i', entree, ...(filtresAvant.length ? ['-af', filtresAvant.join(',')] : []), '-ar', '44100', courant])
+  for (let i = 1; i <= 6; i++) {
+    const mesure = sonie(courant)
+    const ecart = cible - mesure.lufs
+    if (Math.abs(ecart) <= 0.2 && mesure.crete <= -2.9) break
+    const suivant = `${temp}-${i}.wav`
+    ffmpeg(['-i', courant, '-af', `volume=${ecart.toFixed(2)}dB,alimiter=limit=0.708:attack=1.5:release=60:level=false`, suivant])
+    courant = suivant
+  }
+  ffmpeg(['-i', courant, '-codec:a', 'libmp3lame', '-b:a', '192k', '-ar', '44100', sortie])
+}
+
+/** Sonie intégrée (LUFS) et crête vraie (dBTP) d'un fichier, par ebur128. */
+export function sonie(chemin: string): { lufs: number; crete: number; lra: number } {
+  const brut = execFileSync('sh', ['-c', `ffmpeg -hide_banner -nostats -i '${chemin}' -af ebur128=peak=true -f null - 2>&1 | sed -n '/Summary/,$p'`], { encoding: 'utf8' })
+  const nombre = (re: RegExp) => Number(brut.match(re)?.[1] ?? NaN)
+  return { lufs: nombre(/I:\s*(-?[\d.]+) LUFS/), lra: nombre(/LRA:\s*(-?[\d.]+) LU/), crete: nombre(/Peak:\s*(-?[\d.]+) dBFS/) }
+}
+
 /** Durée d'un fichier audio en secondes, par ffprobe. */
 export function dureeAudio(chemin: string): number {
   const sortie = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', chemin], { encoding: 'utf8' })

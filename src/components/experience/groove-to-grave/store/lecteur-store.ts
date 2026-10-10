@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { Preset } from '../content/types'
-import { moteur } from '../audio/moteur'
+import { VOLUME_DEFAUT, moteur } from '../audio/moteur'
 
 /** Piste jouable, telle que le layout la sérialise pour le lecteur (données plates, pas de fonctions). */
 export interface PisteJouable {
@@ -52,7 +52,7 @@ let etat: EtatLecteur = {
   piste: null,
   position: 0,
   preset: 'tout',
-  volume: 0.7,
+  volume: VOLUME_DEFAUT,
   muet: false,
   muetUi: false,
   mini: false,

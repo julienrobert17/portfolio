@@ -188,14 +188,23 @@ async function main(): Promise<void> {
   const POLICE = 'Helvetica Neue, Helvetica, Arial, sans-serif'
   for (const f of FORMATS) {
     const captures: { titre: string; buf: Buffer; w: number; h: number }[] = []
-    const liste = (PHASE.startsWith('3') ? [...ETATS_LECTEUR, ...PAGES] : PAGES).filter((p) => !p.format || p.format === f.largeur)
+    const liste = (Number(PHASE) >= 3 ? [...PAGES, ...ETATS_LECTEUR] : PAGES).filter((p) => !p.format || p.format === f.largeur)
+    // Dossier par format : une image par page et par état, coupée à deux hauteurs d'écran au plus, JPEG 82.
+    const dossierFormat = dossier(join(PLANCHES, `phase-${PHASE}-${f.largeur}`))
+    const hauteurEcran = (f.largeur < 600 ? 844 : 900) * f.echelle
+    let numero = 0
     for (const p of liste) {
       const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax, p.actions, p.fenetre)
+      numero++
+      const nom = `${String(numero).padStart(2, '0')}-${p.titre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.jpg`
+      const meta = await sharp(buf).metadata()
+      const hauteurCoupee = Math.min(meta.height ?? 0, hauteurEcran * 2)
+      await sharp(buf).extract({ left: 0, top: 0, width: meta.width ?? 0, height: hauteurCoupee }).jpeg({ quality: 82, mozjpeg: true }).toFile(join(dossierFormat, nom))
       // Capture brute gardée hors dépôt, utile pour la revue page par page.
       writeFileSync(join(CACHE, 'captures', `p${PHASE}-${f.largeur}-${p.titre.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}.png`), buf)
       const m = await sharp(buf).metadata()
       captures.push({ titre: p.titre, buf, w: m.width ?? 0, h: m.height ?? 0 })
-      process.stdout.write(`  ${f.largeur} · ${p.titre} : ${m.width}×${m.height}\n`)
+      process.stdout.write(`  ${f.largeur} · ${nom} : ${m.width}×${m.height}\n`)
     }
     // Mise en page : à 1440, une capture par ligne ; à 390 (780 px réels), trois par ligne.
     const MARGE = 60

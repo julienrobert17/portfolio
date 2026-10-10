@@ -14,7 +14,7 @@ import { artistes } from '../src/components/experience/groove-to-grave/content/a
 import { soirees } from '../src/components/experience/groove-to-grave/content/events'
 import { sorties } from '../src/components/experience/groove-to-grave/content/releases'
 import type { Extrait, ImageMedia, OrigineMedia } from '../src/components/experience/groove-to-grave/content/types'
-import { CACHE, LABEL, MEDIA, PUBLIC_AUDIO, SOURCE, dossier, dureeAudio, ecrireModule, exporterImage, ffmpeg, ffmpegDisponible, lireJson, lireManifeste, lireSources } from './g2g-lib'
+import { CACHE, LABEL, MEDIA, PUBLIC_AUDIO, SOURCE, dossier, dureeAudio, ecrireModule, encoderMp3Normalise, exporterImage, ffmpegDisponible, lireJson, lireManifeste, lireSources } from './g2g-lib'
 
 // Pas de top-level await : le dépôt compile les scripts en CommonJS (voir fetch-la-coupe-photos.ts).
 async function main(): Promise<void> {
@@ -101,8 +101,8 @@ async function main(): Promise<void> {
         const duree = Math.min(duLabel.duration ?? 60, total)
         const depart = Math.max(0, Math.min(duLabel.start ?? total * 0.3, total - duree))
         const file = `${piste.id}.mp3`
-        // loudnorm en une passe (cible −14 LUFS, crête −1 dBTP), fondus de 2 s aux deux bouts.
-        ffmpeg(['-ss', String(depart), '-t', String(duree), '-i', chemin, '-af', `loudnorm=I=-14:TP=-1:LRA=11,afade=t=in:d=2,afade=t=out:st=${Math.max(0, duree - 2)}:d=2`, '-codec:a', 'libmp3lame', '-b:a', '192k', '-ar', '44100', join(PUBLIC_AUDIO, file)])
+        // Fondus de 2 s aux deux bouts, puis normalisation en deux passes (cible −14 LUFS, crête −1 dBTP).
+        encoderMp3Normalise(chemin, join(PUBLIC_AUDIO, file), -14, [`afade=t=in:d=2`, `afade=t=out:st=${Math.max(0, duree - 2)}:d=2`], ['-ss', String(depart), '-t', String(duree)])
         extraits[piste.id] = { src: `/experience/groove-to-grave/audio/${file}`, duration: dureeAudio(join(PUBLIC_AUDIO, file)), origine: 'label' }
         rapport.push({ emplacement: 'extrait', id: piste.id, origine: 'label', detail: `${duLabel.file}, départ ${Math.round(depart)} s, ${Math.round(duree)} s` })
         continue

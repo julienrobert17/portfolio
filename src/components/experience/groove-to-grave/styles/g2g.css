@@ -1151,13 +1151,37 @@
   display: none;
 }
 
-/* Rangée 2 : 64 px, transport, fenêtre, afficheur, presets, volume. */
+/* Tampon « concept non officiel » : redInk sur poster, contour pointillé, −2°, ni rayon ni ombre. */
+.g2g-tampon {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 2px dotted var(--g2g-redInk);
+  color: var(--g2g-redInk);
+  background: var(--g2g-poster);
+  font-size: var(--meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Rangée 2 : transport, fenêtre, afficheur, volume. */
 .g2g-lecteur__r2 {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  height: 56px;
+  height: 84px;
+}
+
+.g2g-lecteur__centre {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  align-self: stretch;
 }
 
 .g2g-transport {
@@ -1221,7 +1245,7 @@
 /* Fenêtre cassette : environ 96 × 60 px, bobines qui tournent au BPM pendant la lecture. */
 .g2g-fenetre {
   width: 96px;
-  height: 56px;
+  height: 60px;
   flex: none;
   border: var(--trait) solid var(--g2g-ink);
   border-radius: 4px;
@@ -1269,11 +1293,11 @@
 
 .g2g-lecteur__afficheur {
   margin-top: 0;
-  height: 56px;
-  padding: 2px 8px 2px;
+  height: 72px;
+  padding: 2px 8px 3px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
   box-sizing: border-box;
 }
@@ -1310,7 +1334,7 @@
 
 .g2g-lecteur__bas {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 60fr) minmax(0, 40fr);
   gap: 12px;
   align-items: end;
   min-height: 0;
@@ -1322,25 +1346,27 @@
   display: grid;
   grid-template-columns: repeat(32, minmax(0, 1fr));
   gap: 2px;
-  height: 20px;
+  height: 30px;
   align-items: end;
 }
 
 .g2g-spectre__colonne {
   display: block;
   height: 100%;
-  background: linear-gradient(to top, var(--g2g-lcdLit) 0 77%, var(--g2g-lcdPeak) 77% 100%);
   transform: scaleY(0);
   transform-origin: bottom;
-  -webkit-mask-image: repeating-linear-gradient(to top, #000 0 2px, transparent 2px 2.9px);
-  mask-image: repeating-linear-gradient(to top, #000 0 2px, transparent 2px 2.9px);
+  /* 6 segments dans 30 px : 4 px allumés, 1 px d'interstice ; les deux du haut en lcdPeak. */
+  background: linear-gradient(to top, var(--g2g-lcdLit) 0 66.7%, var(--g2g-lcdPeak) 66.7% 100%);
+  -webkit-mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
+  mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
   will-change: transform;
 }
 
 .g2g-compteurs {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   margin: 0;
+  justify-content: flex-end;
 }
 
 .g2g-compteurs div {
@@ -1357,7 +1383,7 @@
 
 .g2g-compteurs dd {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1;
   padding-bottom: 1px;
 }
@@ -1371,77 +1397,106 @@
   color: var(--g2g-lcdDim);
 }
 
-/* Progression : input range étiqueté, piste fine sur l'afficheur. */
-.g2g-progression {
-  display: block;
-  line-height: 0;
-  height: 9px;
-}
-
-.g2g-progression input {
-  display: block;
+/* Curseurs dessinés (volume, progression) : piste ink 2 px, partie remplie red, pouce poster 16 px à contour ink. */
+.g2g-curseur {
+  appearance: none;
   width: 100%;
-  height: 7px;
+  height: 16px;
   margin: 0;
-  appearance: none;
-  background: linear-gradient(to right, var(--g2g-lcdPeak) var(--pc, 0%), var(--g2g-lcdOff) var(--pc, 0%));
-  border-radius: 2px;
+  background: transparent;
   cursor: pointer;
+  --pc: 0%;
 }
 
-.g2g-progression input::-webkit-slider-thumb {
+.g2g-curseur::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(to right, var(--g2g-red) var(--pc), var(--g2g-ink) var(--pc));
+}
+
+.g2g-curseur::-moz-range-track {
+  height: 2px;
+  background: var(--g2g-ink);
+}
+
+.g2g-curseur::-moz-range-progress {
+  height: 2px;
+  background: var(--g2g-red);
+}
+
+.g2g-curseur::-webkit-slider-thumb {
   appearance: none;
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
   border-radius: 50%;
-  background: var(--g2g-lcdLit);
-  border: 2px solid var(--g2g-lcd);
+  background: var(--g2g-poster);
+  border: 2px solid var(--g2g-ink);
 }
 
-.g2g-progression input::-moz-range-thumb {
-  width: 10px;
-  height: 10px;
+.g2g-curseur::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: var(--g2g-lcdLit);
-  border: 2px solid var(--g2g-lcd);
+  background: var(--g2g-poster);
+  border: 2px solid var(--g2g-ink);
 }
 
-.g2g-progression input:disabled {
-  opacity: 0.5;
+.g2g-curseur:focus-visible {
+  outline: none;
+}
+
+.g2g-curseur:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid var(--g2g-red);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--g2g-ink);
+}
+
+.g2g-curseur:focus-visible::-moz-range-thumb {
+  outline: 3px solid var(--g2g-red);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--g2g-ink);
+}
+
+.g2g-curseur:disabled {
+  opacity: 0.45;
   cursor: default;
 }
 
-/* Presets : boutons du langage commun, l'actif en aplat ink. */
+.g2g-progression {
+  display: block;
+  line-height: 0;
+  height: 16px;
+}
+
+/* Presets dans l'afficheur (référence JetAudio) : VT323 15 px, 24 px de haut, actif en lcdLit et ink, inactifs en lcdDim. */
 .g2g-presets {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
+  display: flex;
   gap: 4px;
 }
 
 .g2g-presets button {
-  min-height: 28px;
-  padding: 2px 8px;
-  border: var(--trait) solid var(--g2g-ink);
-  border-radius: var(--radius);
-  background: var(--g2g-poster);
-  color: var(--g2g-ink);
-  font: inherit;
+  flex: 1;
+  min-height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--g2g-lcdOff);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--g2g-lcdDim);
   font-family: var(--g2g-font-lcd), VT323, monospace;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
-  transition: transform 80ms ease, box-shadow 80ms ease;
 }
 
-.g2g-presets button:hover,
-.g2g-presets button:active {
-  transform: translate(-2px, -2px);
-  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+.g2g-presets button:hover {
+  color: var(--g2g-lcdLit);
+  border-color: var(--g2g-lcdDim);
 }
 
 .g2g-presets button[aria-pressed='true'] {
-  background: var(--g2g-ink);
-  color: var(--g2g-poster);
+  background: var(--g2g-lcdLit);
+  color: var(--g2g-ink);
+  border-color: var(--g2g-lcdLit);
 }
 
 .g2g-volume {
@@ -1450,9 +1505,13 @@
   gap: 6px;
 }
 
+.g2g-volume label {
+  display: block;
+  line-height: 0;
+}
+
 .g2g-volume input {
-  width: 90px;
-  accent-color: var(--g2g-ink);
+  width: 96px;
 }
 
 /* Mode mini : rangée 1 et une ligne fine. */
@@ -1623,11 +1682,28 @@
   }
 
   .g2g-feuille .g2g-presets {
+    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .g2g-feuille .g2g-presets button {
     min-height: 44px;
+    font-size: 18px;
+    border: var(--trait) solid var(--g2g-ink);
+    border-radius: var(--radius);
+    background: var(--g2g-poster);
+    color: var(--g2g-ink);
+  }
+
+  .g2g-feuille .g2g-presets button[aria-pressed='true'] {
+    background: var(--g2g-ink);
+    color: var(--g2g-poster);
+    border-color: var(--g2g-ink);
+  }
+
+  .g2g-feuille .g2g-progression {
+    margin-top: 4px;
   }
 
   .g2g-feuille .g2g-transport {
@@ -1655,6 +1731,10 @@
 
   .g2g-feuille .g2g-volume label {
     flex: 1;
+  }
+
+  .g2g-feuille .g2g-volume input {
+    width: 100%;
   }
 
   .g2g[data-js] .g2g-menu:not([hidden]) {
@@ -1783,5 +1863,116 @@ html.g2g-verrou {
 
   .g2g-bande__piste {
     width: auto;
+  }
+}
+
+/* ═════════ Le mur (Phase 4) ═════════ */
+
+/* Texture statique générée depuis le shader : fond de repli, sous le canvas quand il est là. */
+.g2g {
+  background-image: url('/experience/groove-to-grave/mur-1920.webp');
+  background-size: 1920px auto;
+  background-position: top center;
+  background-attachment: scroll;
+}
+
+@supports (background-image: url('a.avif')) {
+  .g2g {
+    background-image: url('/experience/groove-to-grave/mur-1920.avif');
+  }
+}
+
+@media (max-width: 767px) {
+  .g2g {
+    background-image: url('/experience/groove-to-grave/mur-1280.webp');
+    background-size: 1280px auto;
+  }
+
+  @supports (background-image: url('a.avif')) {
+    .g2g {
+      background-image: url('/experience/groove-to-grave/mur-1280.avif');
+    }
+  }
+}
+
+.g2g-mur {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.g2g-mur[data-pret] {
+  opacity: 1;
+}
+
+.g2g-lecteur,
+.g2g-page,
+.g2g-fin,
+.g2g-skip {
+  position: relative;
+  z-index: 1;
+}
+
+.g2g-lecteur {
+  position: sticky;
+}
+
+/* Collage à l'arrivée : échelle 1,06 vers 1, la rotation se pose, 220 ms, une fois par élément. */
+@keyframes g2g-collage {
+  from {
+    transform: scale(1.06) rotate(calc(var(--rot) * 1.6));
+    opacity: 0.6;
+  }
+
+  to {
+    transform: scale(1) rotate(var(--rot));
+    opacity: 1;
+  }
+}
+
+[data-collage] > .g2g-cassette,
+[data-collage] > .g2g-flyer__support,
+[data-collage].g2g-affiche-lien {
+  opacity: 0;
+}
+
+[data-collage][data-colle] > .g2g-cassette,
+[data-collage][data-colle] > .g2g-flyer__support,
+[data-collage][data-colle].g2g-affiche-lien {
+  animation: g2g-collage 220ms ease-out both;
+}
+
+.g2g:not([data-js]) [data-collage] > .g2g-cassette,
+.g2g:not([data-js]) [data-collage] > .g2g-flyer__support,
+.g2g:not([data-js]) [data-collage].g2g-affiche-lien {
+  opacity: 1;
+}
+
+.g2g-cassette-dos {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 420px;
+}
+
+.g2g-dos {
+  margin-top: var(--s3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-collage] > .g2g-cassette,
+  [data-collage] > .g2g-flyer__support,
+  [data-collage].g2g-affiche-lien {
+    opacity: 1;
+    animation: none !important;
+  }
+
+  .g2g-mur {
+    transition: none;
   }
 }

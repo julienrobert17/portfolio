@@ -2,8 +2,9 @@ import { dbVersGain } from './presets'
 
 /**
  * Sons d'interface synthétisés en Web Audio, à partir des recettes de la maquette, poids nul.
- * Tous passent par le gain séparé `sortie`. Niveaux du brief §3.7 : clac −14 dB, avance rapide
- * et rembobinage −16 dB. Pas de son au survol ni sur les presets.
+ * Tous passent par le gain séparé `sortie`. Niveaux calés par mesure (scripts/g2g-mesures-audio.ts,
+ * bloc 3.1) : clac 10 dB sous la musique, avance rapide et rembobinage 12 dB sous. Pas de son
+ * au survol ni sur les presets.
  */
 export class SonsInterface {
   private bruit: AudioBuffer
@@ -29,7 +30,7 @@ export class SonsInterface {
   /** « Clac » mécanique : insertion, lecture, pause, stop. */
   clac(quand = this.ctx.currentTime): void {
     const t = quand
-    const niveau = dbVersGain(-14)
+    const niveau = dbVersGain(-5.2)
     const o = this.ctx.createOscillator()
     o.frequency.setValueAtTime(110, t)
     o.frequency.exponentialRampToValueAtTime(50, t + 0.06)
@@ -50,7 +51,7 @@ export class SonsInterface {
   /** Avance rapide : sifflement de bande qui monte et souffle, puis clac. Durée 0,42 s. */
   avanceRapide(quand = this.ctx.currentTime): number {
     const t = quand
-    const niveau = dbVersGain(-16)
+    const niveau = dbVersGain(-14.4)
     const o = this.ctx.createOscillator()
     o.type = 'sawtooth'
     o.frequency.setValueAtTime(300, t)
@@ -80,7 +81,7 @@ export class SonsInterface {
   /** Rembobinage : sifflement qui descend, souffle, puis clac. Durée 0,7 s. */
   rembobinage(quand = this.ctx.currentTime): number {
     const t = quand
-    const niveau = dbVersGain(-16)
+    const niveau = dbVersGain(-14.4)
     const o = this.ctx.createOscillator()
     o.type = 'sawtooth'
     o.frequency.setValueAtTime(2200, t)

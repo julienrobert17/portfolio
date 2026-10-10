@@ -16,14 +16,23 @@ export const COURBES: Record<Preset, CourbeEq> = {
   electro: { graves: 3, mediums: -4, aigus: 7, passeHaut: 20 },
 }
 
-/** Marge de la normalisation, en dB : un preset ne paraît jamais « mieux » parce que plus fort. */
-export const MARGE_DB = -6
+/**
+ * Normalisation mesurée, en dB : ce que chaque courbe ajoute ou retire de sonie intégrée sur
+ * les extraits (moyenne de trois extraits provisoires, ffmpeg ebur128, 10 octobre 2026). Un
+ * relèvement de 7 dB sur les graves n'ajoute que 3,6 LU : compenser le relèvement nominal
+ * surcorrigeait. À remesurer avec les vrais extraits du label (scripts/g2g-mesures-audio.ts).
+ */
+export const NORMALISATION_DB: Record<Preset, number> = {
+  tout: 0,
+  house: -3.6,
+  break: -1.5,
+  minimal: 3.0,
+  electro: -2.9,
+}
 
-/** Gain de normalisation d'un preset : on retire son plus fort relèvement, plus la marge. */
+/** Gain de normalisation d'un preset : aucun preset ne paraît « mieux » parce que plus fort. Le limiteur reste en bout de chaîne. */
 export function gainNormalisation(preset: Preset): number {
-  const c = COURBES[preset]
-  const boost = Math.max(0, c.graves, c.mediums, c.aigus)
-  return dbVersGain(MARGE_DB - boost)
+  return dbVersGain(NORMALISATION_DB[preset])
 }
 
 export function dbVersGain(db: number): number {

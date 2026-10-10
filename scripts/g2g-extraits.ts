@@ -3,7 +3,7 @@
  * sortie, distincte par BPM, motif de grosse caisse et ligne de basse, rendue en
  * TypeScript pur hors navigateur (recettes de docs/groove-to-grave/prototype-lecteur.html :
  * grosse caisse, charley, basse filtrée, souffle, pleurage au démarrage), écrite en WAV
- * puis encodée en MP3 192 kbps par ffmpeg avec fondus. Sans lien avec les vrais morceaux ;
+ * puis encodée en MP3 192 kbps par ffmpeg avec fondus et normalisation à −14 LUFS. Sans lien avec les vrais morceaux ;
  * attribuée à la seule piste A1 de chaque sortie par scripts/g2g-media.ts.
  *
  *   npx tsx scripts/g2g-extraits.ts
@@ -11,7 +11,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { sorties } from '../src/components/experience/groove-to-grave/content/releases'
-import { CACHE, MEDIA, PUBLIC_AUDIO, dossier, dureeAudio, ecrireWav, ffmpeg, ffmpegDisponible } from './g2g-lib'
+import { CACHE, MEDIA, PUBLIC_AUDIO, dossier, dureeAudio, ecrireWav, encoderMp3Normalise, ffmpegDisponible, sonie } from './g2g-lib'
 
 const SR = 44100
 const DUREE = 45
@@ -130,7 +130,7 @@ function rendre(ref: string, bpm: number, motif: Motif): Float32Array {
       let phase = 0
       ajouter(t, 0.33, (tt) => {
         phase += (2 * Math.PI * rampe(tt, 150, 42, 0.12) * wob) / SR
-        return Math.sin(phase) * env(tt, 0.9, 0.32)
+        return Math.sin(phase) * env(tt, 0.7, 0.32)
       })
     }
     const v = etape % 4 === 2 ? 0.22 : etape % 2 === 1 ? 0.06 : 0
@@ -156,11 +156,11 @@ function rendre(ref: string, bpm: number, motif: Motif): Float32Array {
   const souffle = new Biquad('highpass', 5000)
   for (let i = 0; i < n; i++) sortie[i] += souffle.traiter(alea()) * 0.025
 
-  // Gain général de la maquette, douce saturation, fondus.
+  // Gain général de la maquette, saturation franche (facteur de crête bas, pour tenir −14 LUFS sous −1 dBTP), fondus.
   for (let i = 0; i < n; i++) {
     const t = i / SR
     const fondu = Math.min(1, t / FONDU_ENTREE, (DUREE - t) / FONDU_SORTIE)
-    sortie[i] = Math.tanh(sortie[i] * 0.42 * 1.6) * fondu
+    sortie[i] = Math.tanh(sortie[i] * 0.42 * 2.6) * fondu
   }
   return sortie
 }
@@ -183,10 +183,12 @@ for (const s of sorties) {
   const wav = join(CACHE, 'extraits', `${piste}.wav`)
   const file = `${piste}-provisoire.mp3`
   ecrireWav(wav, rendre(s.ref, s.bpmProvisoire, motif), SR)
-  ffmpeg(['-i', wav, '-codec:a', 'libmp3lame', '-b:a', '192k', '-ar', '44100', '-ac', '1', join(PUBLIC_AUDIO, file)])
+  // Normalisé à −14 LUFS intégrés, crête vraie −1 dBTP, comme les extraits du label (brief §7).
+  encoderMp3Normalise(wav, join(PUBLIC_AUDIO, file), -14)
   const duration = dureeAudio(join(PUBLIC_AUDIO, file))
+  const mesure = sonie(join(PUBLIC_AUDIO, file))
   provisoires.push({ track: piste, file, bpm: s.bpmProvisoire, duration })
-  process.stdout.write(`  ${s.ref} ${s.bpmProvisoire} BPM → ${file} (${duration} s)\n`)
+  process.stdout.write(`  ${s.ref} ${s.bpmProvisoire} BPM → ${file} (${duration} s, ${mesure.lufs} LUFS, crête ${mesure.crete} dBTP)\n`)
 }
 writeFileSync(join(MEDIA, 'provisoires.json'), JSON.stringify({ genereLe: new Date().toISOString().slice(0, 10), extraits: provisoires }, null, 2) + '\n')
 process.stdout.write(`${provisoires.length} extrait(s) provisoire(s) écrits dans public/experience/groove-to-grave/audio/\n`)

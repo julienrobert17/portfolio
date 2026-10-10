@@ -111,7 +111,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
       </div>
       <div>
         <dt>PISTE</dt>
-        <dd>{etat.piste ? etat.piste.catalog.replace(/^GTGR/, '').padStart(2, '0') : '--'}</dd>
+        <dd>{etat.piste ? etat.piste.position : '--'}</dd>
       </div>
       <div className="g2g-compteurs__temps">
         <dt>TEMPS</dt>
@@ -124,7 +124,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
   )
 
   const presets = (
-    <div className="g2g-presets g2g-lcd-texte" role="group" aria-label="Presets : égalisation et filtre du catalogue">
+    <div className="g2g-presets" role="group" aria-label="Presets : égalisation et filtre du catalogue">
       {PRESETS.map((p) => (
         <button key={p} type="button" data-g2g={`preset-${p}`} aria-pressed={etat.preset === p} onClick={() => choisirPreset(p)}>
           {p.toUpperCase()}
@@ -140,7 +140,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
       </button>
       <label>
         <span className="g2g-cache">Volume</span>
-        <input type="range" min={0} max={100} step={1} value={Math.round(etat.volume * 100)} onChange={(e) => regler({ volume: Number(e.target.value) / 100 })} />
+        <input type="range" className="g2g-curseur" min={0} max={100} step={1} value={Math.round(etat.volume * 100)} onChange={(e) => regler({ volume: Number(e.target.value) / 100 })} style={{ '--pc': `${Math.round(etat.volume * 100)}%` } as CSSProperties} />
       </label>
     </div>
   )
@@ -148,7 +148,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
   const progression = (
     <label className="g2g-progression">
       <span className="g2g-cache">Position dans l’extrait</span>
-      <input type="range" min={0} max={Math.max(1, Math.round(duree))} step={1} value={Math.min(Math.round(etat.position), Math.round(duree))} disabled={!etat.piste} onChange={(e) => chercher(Number(e.target.value))} style={{ '--pc': `${duree ? (etat.position / duree) * 100 : 0}%` } as CSSProperties} />
+      <input type="range" className="g2g-curseur" min={0} max={Math.max(1, Math.round(duree))} step={1} value={Math.min(Math.round(etat.position), Math.round(duree))} disabled={!etat.piste} onChange={(e) => chercher(Number(e.target.value))} style={{ '--pc': `${duree ? (etat.position / duree) * 100 : 0}%` } as CSSProperties} />
     </label>
   )
 
@@ -170,7 +170,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
         <nav aria-label="Navigation principale" className="g2g-nav g2g-lecteur__nav" id="g2g-navigation">
           <NavLiens />
         </nav>
-        <span className="g2g-skin__concept g2g-lecteur__concept">concept non officiel</span>
+        <span className="g2g-tampon g2g-lecteur__concept">concept non officiel</span>
         <button type="button" className="g2g-rond g2g-rond--petit g2g-js g2g-lecteur__mini" data-g2g="mini" aria-pressed={etat.mini} aria-label={etat.mini ? 'Agrandir le lecteur' : 'Passer en mode mini'} onClick={() => definirMini(!etat.mini)}>
           <Icone nom={etat.mini ? 'agrandir' : 'mini'} />
         </button>
@@ -179,19 +179,21 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
         </button>
       </div>
 
-      {/* Rangée 2 (desktop) : transport, fenêtre cassette, afficheur, presets, volume. */}
+      {/* Rangée 2 (desktop) : transport, fenêtre cassette, afficheur (bande, spectre et compteurs, presets) puis progression, volume. */}
       <div className="g2g-lecteur__r2 g2g-js">
         {transport}
         <FenetreCassette className="g2g-lecteur__fenetre" />
-        <div className="g2g-lecteur__afficheur g2g-lcd">
-          <BandeDefilante prochaine={prochaine} />
-          <div className="g2g-lecteur__bas">
-            <Spectre />
-            {compteurs}
+        <div className="g2g-lecteur__centre">
+          <div className="g2g-lecteur__afficheur g2g-lcd">
+            <BandeDefilante prochaine={prochaine} />
+            <div className="g2g-lecteur__bas">
+              <Spectre />
+              {compteurs}
+            </div>
+            {presets}
           </div>
           {progression}
         </div>
-        {presets}
         {volume}
       </div>
 

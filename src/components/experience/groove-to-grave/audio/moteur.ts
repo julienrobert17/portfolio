@@ -27,6 +27,13 @@ export interface EvenementsMoteur {
 
 const CLE_REGLAGES = 'g2g-lecteur'
 const PLEURAGE_DUREE = 0.5
+export const VOLUME_DEFAUT = 0.85
+/**
+ * Le DynamicsCompressorNode applique un gain de compensation automatique qu'on ne peut pas
+ * désactiver : ce trim le retire après le limiteur, calibré par scripts/g2g-mesures-audio.ts pour
+ * −16 LUFS intégrés sur TOUT au volume par défaut.
+ */
+const TRIM_LIMITEUR_DB = -5
 
 export class Moteur {
   readonly audio: HTMLAudioElement
@@ -40,7 +47,7 @@ export class Moteur {
   private gainSouffle: GainNode | null = null
   private sons: SonsInterface | null = null
   private preset: Preset = 'tout'
-  private reglages: Reglages = { volume: 0.7, muet: false, muetUi: false }
+  private reglages: Reglages = { volume: VOLUME_DEFAUT, muet: false, muetUi: false }
   private pleurageDepart = 0
   private ecouteurs: EvenementsMoteur | null = null
   private enLecture = false
@@ -108,8 +115,8 @@ export class Moteur {
     this.eq = { graves, mediums, aigus, passeHaut }
     this.normalisation = ctx.createGain()
     this.analyseur = ctx.createAnalyser()
-    this.analyseur.fftSize = 256
-    this.analyseur.smoothingTimeConstant = 0.75
+    this.analyseur.fftSize = 2048
+    this.analyseur.smoothingTimeConstant = 0.5
     this.donnees = new Uint8Array(this.analyseur.frequencyBinCount)
     const limiteur = ctx.createDynamicsCompressor()
     limiteur.threshold.value = -3
@@ -268,7 +275,7 @@ export class Moteur {
   private appliquerReglages(): void {
     if (!this.ctx || !this.master || !this.gainUi) return
     const t = this.ctx.currentTime
-    this.master.gain.setTargetAtTime(this.reglages.muet ? 0 : this.reglages.volume * 0.85, t, 0.03)
+    this.master.gain.setTargetAtTime(this.reglages.muet ? 0 : this.reglages.volume * dbVersGain(TRIM_LIMITEUR_DB), t, 0.03)
     this.gainUi.gain.setTargetAtTime(this.reglages.muetUi ? 0 : 1, t, 0.03)
   }
 
@@ -277,28 +284,56 @@ export class Moteur {
       const brut = localStorage.getItem(CLE_REGLAGES)
       if (brut) {
         const r = JSON.parse(brut) as Partial<Reglages>
-        return { volume: typeof r.volume === 'number' ? Math.min(1, Math.max(0, r.volume)) : 0.7, muet: Boolean(r.muet), muetUi: Boolean(r.muetUi) }
+        return { volume: typeof r.volume === 'number' ? Math.min(1, Math.max(0, r.volume)) : VOLUME_DEFAUT, muet: Boolean(r.muet), muetUi: Boolean(r.muetUi) }
       }
     } catch {
       // Stockage indisponible ou valeur corrompue : réglages par défaut.
     }
-    return { volume: 0.7, muet: false, muetUi: false }
+    return { volume: VOLUME_DEFAUT, muet: false, muetUi: false }
   }
 
-  /** Niveaux du spectre, 0 à 1 par colonne, depuis l'analyseur ; tableau vide avant le premier geste. */
-  spectre(colonnes: number, sortie: Float32Array): boolean {
-    if (!this.analyseur || !this.donnees) return false
+  /**
+   * Niveaux du spectre, 0 à 1 par bande : 32 bandes réparties en fréquence logarithmique de
+   * 40 Hz à 16 kHz, chacune moyennée sur ses cases d'analyseur. Faux avant le premier geste.
+   */
+  spectre(bandes: number, sortie: Float32Array): boolean {
+    if (!this.ctx || !this.analyseur || !this.donnees) return false
     this.analyseur.getByteFrequencyData(this.donnees)
+    const largeurCase = this.ctx.sampleRate / this.analyseur.fftSize
     const n = this.donnees.length
-    for (let i = 0; i < colonnes; i++) {
-      // Répartition logarithmique approchée : les graves occupent plus de colonnes.
-      const a = Math.floor(Math.pow(i / colonnes, 1.6) * n * 0.55)
-      const b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / colonnes, 1.6) * n * 0.55))
-      let max = 0
-      for (let k = a; k < b && k < n; k++) if (this.donnees[k] > max) max = this.donnees[k]
-      sortie[i] = max / 255
+    const fMin = 40
+    const fMax = 16000
+    for (let i = 0; i < bandes; i++) {
+      const f0 = fMin * Math.pow(fMax / fMin, i / bandes)
+      const f1 = fMin * Math.pow(fMax / fMin, (i + 1) / bandes)
+      const a = Math.min(n - 1, Math.floor(f0 / largeurCase))
+      const b = Math.min(n, Math.max(a + 1, Math.ceil(f1 / largeurCase)))
+      let somme = 0
+      for (let k = a; k < b; k++) somme += this.donnees[k]
+      sortie[i] = somme / (b - a) / 255
     }
     return true
+  }
+
+  /** Énergie des graves (40 à 160 Hz), 0 à 1, pour la respiration du mur. */
+  graves(): number {
+    if (!this.ctx || !this.analyseur || !this.donnees || !this.enLecture) return 0
+    const largeurCase = this.ctx.sampleRate / this.analyseur.fftSize
+    const a = Math.floor(40 / largeurCase)
+    const b = Math.max(a + 1, Math.ceil(160 / largeurCase))
+    let somme = 0
+    for (let k = a; k < b; k++) somme += this.donnees[k]
+    return somme / (b - a) / 255
+  }
+
+  /** Outils de mesure (scripts) : un son d'interface seul, le souffle seul, ou la musique coupée. */
+  mesure(quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif = true): void {
+    if (!this.ctx || !this.sons || !this.normalisation || !this.gainSouffle) return
+    const t = this.ctx.currentTime
+    if (quoi === 'clac') this.sons.clac(t)
+    else if (quoi === 'avance') this.sons.avanceRapide(t)
+    else if (quoi === 'souffle') this.gainSouffle.gain.setTargetAtTime(actif ? dbVersGain(-34) : 0, t, 0.02)
+    else this.normalisation.gain.setTargetAtTime(actif ? gainNormalisation(this.preset) : 0, t, 0.02)
   }
 
   /** Flux audio de la sortie générale, pour l'enregistrement d'écran avec le son (scripts de captures). */
@@ -314,8 +349,8 @@ let instance: Moteur | null = null
 
 declare global {
   interface Window {
-    /** Outil de capture (scripts/g2g-video.ts) : flux audio de la sortie générale. */
-    __g2g?: { flux: () => MediaStream | null }
+    /** Outils de capture et de mesure (scripts/g2g-video.ts, scripts/g2g-mesures-audio.ts). */
+    __g2g?: { flux: () => MediaStream | null; mesure: (quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif?: boolean) => void }
   }
 }
 
@@ -323,7 +358,7 @@ declare global {
 export function moteur(): Moteur {
   if (!instance) {
     instance = new Moteur()
-    if (typeof window !== 'undefined') window.__g2g = { flux: () => instance?.flux() ?? null }
+    if (typeof window !== 'undefined') window.__g2g = { flux: () => instance?.flux() ?? null, mesure: (quoi, actif) => instance?.mesure(quoi, actif) }
   }
   return instance
 }
