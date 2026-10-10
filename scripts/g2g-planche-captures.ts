@@ -23,7 +23,18 @@ const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
 const CHROMES = ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser']
 
-const PAGES: { chemin: string; titre: string }[] = [
+interface Etat {
+  chemin: string
+  titre: string
+  /** Sélecteurs cliqués dans l'ordre (gestes utilisateur par le protocole), avec une pause après chacun. */
+  actions?: string[]
+  /** Capture de la fenêtre seulement (états du lecteur), pas de la page entière. */
+  fenetre?: boolean
+  /** Seulement pour ce format. */
+  format?: 1440 | 390
+}
+
+const PAGES: Etat[] = [
   { chemin: '', titre: 'Accueil' },
   { chemin: '/sorties', titre: 'Sorties' },
   { chemin: '/sorties?genre=break', titre: 'Sorties, filtre break' },
@@ -34,6 +45,17 @@ const PAGES: { chemin: string; titre: string }[] = [
   { chemin: '/label', titre: 'Le label' },
   { chemin: '/contact', titre: 'Contact' },
   { chemin: '/sources', titre: 'Sources et crédits' },
+]
+
+/** Phase 3 : les états du lecteur, capturés à la taille de la fenêtre après des gestes. */
+const ETATS_LECTEUR: Etat[] = [
+  { chemin: '/sorties', titre: 'Lecteur à l’arrêt', fenetre: true },
+  { chemin: '/sorties', titre: 'Lecteur en lecture', actions: ['[data-g2g="ecouter"]'], fenetre: true },
+  { chemin: '/sorties', titre: 'Preset HOUSE en lecture', actions: ['[data-g2g="ecouter"]', '[data-g2g="preset-house"]'], fenetre: true },
+  { chemin: '/sorties/gtgr05', titre: 'Page sortie, lecture par piste', actions: ['[data-g2g="ecouter-piste"]'], fenetre: true },
+  { chemin: '/sorties', titre: 'Mode mini en lecture', actions: ['[data-g2g="ecouter"]', '[data-g2g="mini"]'], fenetre: true, format: 1440 },
+  { chemin: '/sorties', titre: 'Feuille mobile dépliée', actions: ['[data-g2g="ecouter"]', '[data-g2g="deplier"]'], fenetre: true, format: 390 },
+  { chemin: '/sorties', titre: 'Menu mobile ouvert', actions: ['[data-g2g="menu"]'], fenetre: true, format: 390 },
 ]
 
 const FORMATS = [
@@ -61,7 +83,7 @@ class Devtools {
 
   async demarrer(): Promise<void> {
     const port = 9222 + Math.floor(Math.random() * 1000)
-    this.processus = spawn(chrome(), ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${join(CACHE, 'chrome-profil')}`, `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
+    this.processus = spawn(chrome(), ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--autoplay-policy=no-user-gesture-required', '--no-default-browser-check', `--user-data-dir=${join(CACHE, 'chrome-profil')}`, `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
     let version: { webSocketDebuggerUrl: string } | null = null
     for (let i = 0; i < 50 && !version; i++) {
       try {
@@ -112,20 +134,38 @@ class Devtools {
     })
   }
 
-  async capturer(url: string, largeur: number, echelle: number, hauteurMax: number): Promise<Buffer> {
+  /** Clic par un vrai événement de pointeur (geste utilisateur) au centre de l'élément, puis une pause. */
+  async cliquer(s: string, selecteur: string, pause = 900): Promise<void> {
+    const { result } = await this.envoyer<{ result: { value: { x: number; y: number } | null } }>('Runtime.evaluate', {
+      expression: `(() => { const el = document.querySelector(${JSON.stringify(selecteur)}); if (!el) return null; el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })()`,
+      returnByValue: true,
+    }, s)
+    if (!result.value) throw new Error(`${selecteur} introuvable`)
+    const { x, y } = result.value
+    for (const type of ['mousePressed', 'mouseReleased'] as const) await this.envoyer('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }, s)
+    await new Promise((r) => setTimeout(r, pause))
+  }
+
+  async capturer(url: string, largeur: number, echelle: number, hauteurMax: number, actions: string[] = [], fenetre = false): Promise<Buffer> {
     const { targetId } = await this.envoyer<{ targetId: string }>('Target.createTarget', { url: 'about:blank' })
     const { sessionId } = await this.envoyer<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true })
     const s = sessionId
     await this.envoyer('Page.enable', {}, s)
     await this.envoyer('Runtime.enable', {}, s)
-    await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: 900, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
+    const hauteurFenetre = largeur < 600 ? 844 : 900
+    await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: hauteurFenetre, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
     const charge = this.attendre('Page.loadEventFired')
     await this.envoyer('Page.navigate', { url }, s)
     await charge
     // Polices et images visibles, puis une respiration pour les mises en page tardives.
     await this.envoyer('Runtime.evaluate', { expression: 'document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))', awaitPromise: true }, s)
+    for (const a of actions) await this.cliquer(s, a)
+    if (fenetre) {
+      await this.envoyer('Runtime.evaluate', { expression: 'window.scrollTo(0, 0)' }, s)
+      await new Promise((r) => setTimeout(r, 300))
+    }
     const { result } = await this.envoyer<{ result: { value: number } }>('Runtime.evaluate', { expression: 'Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)', returnByValue: true }, s)
-    const hauteur = Math.min(hauteurMax, Math.ceil(result.value))
+    const hauteur = fenetre ? hauteurFenetre : Math.min(hauteurMax, Math.ceil(result.value))
     await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: hauteur, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
     await this.envoyer('Runtime.evaluate', { expression: 'new Promise(r => requestAnimationFrame(() => setTimeout(r, 200)))', awaitPromise: true }, s)
     const { data } = await this.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: largeur, height: hauteur, scale: 1 } }, s)
@@ -148,10 +188,11 @@ async function main(): Promise<void> {
   const POLICE = 'Helvetica Neue, Helvetica, Arial, sans-serif'
   for (const f of FORMATS) {
     const captures: { titre: string; buf: Buffer; w: number; h: number }[] = []
-    for (const p of PAGES) {
-      const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax)
+    const liste = (PHASE.startsWith('3') ? [...ETATS_LECTEUR, ...PAGES] : PAGES).filter((p) => !p.format || p.format === f.largeur)
+    for (const p of liste) {
+      const buf = await navigateur.capturer(`${URL}${BASE}${p.chemin}`, f.largeur, f.echelle, f.hauteurMax, p.actions, p.fenetre)
       // Capture brute gardée hors dépôt, utile pour la revue page par page.
-      writeFileSync(join(CACHE, 'captures', `p${PHASE}-${f.largeur}-${p.chemin.replace(/[^a-z0-9]+/gi, '_') || 'accueil'}.png`), buf)
+      writeFileSync(join(CACHE, 'captures', `p${PHASE}-${f.largeur}-${p.titre.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}.png`), buf)
       const m = await sharp(buf).metadata()
       captures.push({ titre: p.titre, buf, w: m.width ?? 0, h: m.height ?? 0 })
       process.stdout.write(`  ${f.largeur} · ${p.titre} : ${m.width}×${m.height}\n`)
@@ -175,7 +216,7 @@ async function main(): Promise<void> {
       Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${largeur}" height="${hauteur}"><text x="0" y="${taille}" font-family="${POLICE}" font-size="${taille}" font-weight="${gras ? 700 : 400}" fill="${couleurs.ink}">${s.replace(/&/g, '&amp;')}</text></svg>`)
     const couches: sharp.OverlayOptions[] = [
       { input: svgTexte(LARGEUR - MARGE * 2, 70, `Groove To Grave — Phase ${PHASE} · ${f.largeur} px`, 56, true), left: MARGE, top: 14 },
-      { input: svgTexte(LARGEUR - MARGE * 2, 40, `Planche du ${DATE} · pleines hauteurs · ${captures.length} pages · rendu serveur, sans JavaScript requis`, 24), left: MARGE, top: 88 },
+      { input: svgTexte(LARGEUR - MARGE * 2, 40, `Planche du ${DATE} · ${captures.length} captures · états du lecteur à la fenêtre, pages en pleine hauteur`, 24), left: MARGE, top: 88 },
     ]
     captures.forEach((c, i) => {
       const ligne = lignes[Math.floor(i / colonnes)]
