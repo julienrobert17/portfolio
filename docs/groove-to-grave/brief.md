@@ -1,9 +1,23 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1 · 8 octobre 2026
+> Expérience portfolio `groove-to-grave` · brief v1.1 · 10 octobre 2026 (v1 : 8 octobre 2026)
 > Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1** (arbitrages de la Phase 0, validés le 10 octobre 2026) :
+
+1. Contenu typé sous `src/components/experience/groove-to-grave/content/`, comme la-coupe ; `content/groove-to-grave/` garde `sources.md`, `sources.json` et les originaux de médias (§4.1).
+2. `sharp` reste une dépendance transitive de Next, comme dans la-coupe. Aucune nouvelle dépendance (§6).
+3. Extraits provisoires synthétisés en TypeScript pur hors navigateur, WAV puis MP3 par `ffmpeg` ; plus de Playwright (§6).
+4. `ticker.ts`, `gsap.ts`, `lenis-store.ts` et `use-page-settled.ts` dupliqués depuis la-coupe dans `groove-to-grave/lib/` avec un commentaire d'origine ; le repli de navigation sans navigateur enregistré passe par `router.push`, jamais `window.location.assign` (§6).
+5. Mur WebGL en WebGL2 brut (un canvas, un quad, un fragment shader), sans three ni fiber : seul écart volontaire aux conventions de la-coupe, pour le poids (§5.5, §6).
+6. Chaîne audio : marge de −6 dB dans la normalisation des presets et un `DynamicsCompressorNode` en limiteur avant le gain général (§3.7, §5.3).
+7. iOS : la lecture au travers du graphe Web Audio s'arrête au verrouillage, c'est accepté ; l'état passe honnêtement en pause, reprise au geste suivant (§3.7).
+8. Spectre DOM à 30 images par seconde au plus, arrêté quand rien ne joue (§3.5).
+9. Objectif LCP mobile simulé porté à 2,5 s ; Lighthouse ≥ 95 reste le critère bloquant (§7).
+10. Les search params ne sont lus que par les pages serveur et poussés dans le store par un composant client de page ; le lecteur ne les lit jamais (§4, §6).
+11. Nouvelle section « Médias fournis par le label » (§7) ; le modèle de données passe à un extrait optionnel par piste (§4.1).
 
 ---
 
@@ -121,6 +135,7 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 - Référence en titrage dans la bande, artiste et titre au marqueur sur l'étiquette.
 - **Deux cibles distinctes** : la cassette elle-même est un lien vers la page de la sortie (fonctionne sans JavaScript), et un bouton rond « écouter » posé dessus lance la lecture (rendu seulement si JavaScript est actif).
 - Les bobines tournent uniquement quand cette cassette joue, à une vitesse liée au BPM de l'extrait, et s'arrêtent en mouvement réduit.
+- Le bouton « écouter » n'est rendu que si la sortie a au moins une piste avec un extrait (voir §4.1 et §7) : une cassette sans extrait reste un lien.
 - Variantes :
   - **sortie vinyle**, avec mention « 12″ vinyle » visible à côté de la cassette : on vend des disques, la cassette est l'objet d'écoute ;
   - **compilation**, en mixtape avec liste des titres écrite à la main au dos ;
@@ -134,7 +149,7 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 - **Barre de menu** : la navigation principale (voir §4).
 - **Afficheur** :
   - la bande défilante en VT323 ;
-  - le spectre en segments, 32 colonnes de 9 segments, en DOM (colonnes `scaleY` avec masque à segments), pas de second canvas ;
+  - le spectre en segments, 32 colonnes de 9 segments, en DOM (colonnes `scaleY` avec masque à segments), pas de second canvas, mis à jour à 30 images par seconde au plus et arrêté quand rien ne joue ;
   - les compteurs SORTIES (nombre de sorties dans le filtre courant), PISTE et TEMPS (temps écoulé, durée réelle de l'extrait) ;
   - la ligne des presets HOUSE, BREAK, MINIMAL, ELECTRO et TOUT.
 - **Fenêtre cassette** : un emplacement dans le skin où la cassette chargée apparaît, bobines visibles.
@@ -149,7 +164,9 @@ Le désordre est un calque visuel posé sur une structure parfaitement ordonnée
 
 ### 3.7 Design sonore
 
-Aucun son avant un geste de l'utilisateur, jamais d'autoplay. L'`AudioContext` est créé au premier clic sur un contrôle audio.
+Aucun son avant un geste de l'utilisateur, jamais d'autoplay. L'`AudioContext` est créé au premier clic sur un contrôle audio : ce premier geste crée le contexte, le reprend et lance la lecture de façon synchrone dans le gestionnaire de clic (exigence iOS).
+
+**iOS.** La lecture au travers du graphe Web Audio s'arrête quand l'écran se verrouille ou que Safari passe en arrière-plan ; c'est accepté. La Media Session reste en place. Sur `visibilitychange` et sur `statechange` de l'`AudioContext`, l'état du lecteur passe honnêtement en pause (afficheur, bouton, bobines) et la reprise se fait au geste suivant, jamais automatiquement.
 
 | Événement | Son | Niveau |
 |---|---|---|
@@ -173,8 +190,8 @@ Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` 
 | Page | Chemin | Contenu |
 |---|---|---|
 | Accueil | `/` | Bande défilante d'accueil. Grande cassette de la dernière sortie (GTGR05) avec texte de sortie et liens. Mur de toutes les cassettes. Bloc soirées (prochaine date ou état vide). Phrase du label. Newsletter. Fin de bande. |
-| Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. Vinyles d'abord, compilations ensuite. |
-| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format. Faces A et B avec durées. Bouton écouter. Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
+| Sorties | `/sorties` | Mur de cassettes, filtrable par les presets du lecteur, synchronisés dans l'URL (`?genre=house`), donc partageables et fonctionnels sans JavaScript via de simples liens. Vinyles d'abord, compilations ensuite. Le search param est lu par la page serveur et poussé dans le store par un petit composant client de page ; le lecteur ne lit jamais les search params. |
+| Sortie | `/sorties/[ref]` (`gtgr05`, `gtgrva02`…) | **Pochette réelle en grand**, intacte. Référence, artiste, titre, date, format. Faces A et B avec durées. Bouton écouter par piste, seulement pour les pistes qui ont un extrait (§7). Texte de sortie (langue d'origine). Crédits complets (artwork, mastering, distribution). Statut (« no repress », « sold out ») en texte et en sticker. Lien d'achat Bandcamp. Sorties voisines. |
 | Artistes | `/artistes` | Les noms en typographie d'affiche collée, un par affiche. |
 | Artiste | `/artistes/[slug]` | Nom, ville, présentation factuelle tirée des textes publics, sorties sur le label, liens publics. Aucune biographie inventée. |
 | Soirées | `/soirees` | **À venir** : billetterie en lien externe (Shotgun ou RA). En l'absence de date, un état vide soigné (« aucune date annoncée, reste branché » avec newsletter et Instagram) : c'est l'état actuel, il doit être beau. **Passées** : archive en cassettes-flyers, avec le vrai flyer quand il a été récupéré, le lieu, le line-up et les mentions (reportée, annulée). |
@@ -189,13 +206,15 @@ Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` 
 
 ### 4.1 Contenu
 
-Tout le contenu est dans `content/groove-to-grave/`, typé en TypeScript (`releases.ts`, `artists.ts`, `events.ts`, `label.ts`). Chaque entrée porte :
+Tout le contenu typé est dans `src/components/experience/groove-to-grave/content/`, comme dans la-coupe, en TypeScript (`releases.ts`, `artists.ts`, `events.ts`, `label.ts`, `types.ts`, `index.ts`). Chaque entrée porte :
 
 - `sources: string[]`, les URL publiques ;
 - `verified: boolean` ;
 - `draft: true` pour tout texte de notre main.
 
-`content/groove-to-grave/sources.md` liste les sources et ce qui reste à vérifier.
+`content/groove-to-grave/` à la racine du repo ne contient pas de code : `sources.md` (sources et ce qui reste à vérifier), `media/source/` et `sources.json` (originaux publics récupérés par script), `media/label/` (fichiers fournis par le label, voir §7) et `media/rapport.md`.
+
+**Extraits.** Chaque piste porte un extrait optionnel (`excerpt?: { src, duration, provisional }`). Les extraits provisoires synthétisés ne sont attribués qu'à la piste A1 de chaque sortie ; les autres pistes n'affichent pas de bouton écouter tant qu'aucun vrai extrait n'existe.
 
 État relevé au 8 octobre 2026, à reprendre et compléter depuis les pages sources en phase 1 :
 
@@ -254,9 +273,9 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
    | MINIMAL | −6 dB | −2 dB | +4 dB | 180 Hz |
    | ELECTRO | +3 dB | −4 dB | +7 dB | 20 Hz |
 
-   La normalisation de gain évite qu'un preset paraisse « mieux » parce que plus fort.
+   La normalisation de gain évite qu'un preset paraisse « mieux » parce que plus fort, avec une marge de −6 dB ; un `DynamicsCompressorNode` réglé en limiteur, juste avant le gain général, rattrape les crêtes du preset HOUSE.
 4. **L'avance rapide.** Une navigation interne déclenche l'avance rapide sonore, une distorsion de bande (bandes horizontales de suivi, décalage chromatique léger) dans le canvas WebGL pendant 400 ms, et la révélation du nouveau contenu par un balayage horizontal. Elle reprend le mécanisme de transition de la-coupe, avec un rendu entièrement nouveau. La lecture continue sans coupure.
-5. **Le mur qui respire.** Un canvas WebGL plein écran derrière le contenu dessine le mur : papier, grain, couches d'affiches déchirées, traces de colle. Quand la musique joue, l'énergie des graves fait « respirer » le papier (déplacement de quelques pixels au maximum) et les attaques de grosse caisse le font légèrement trembler. Aucun mouvement quand rien ne joue.
+5. **Le mur qui respire.** Un canvas WebGL2 brut plein écran derrière le contenu, un quad et un fragment shader, dessine le mur : papier, grain, couches d'affiches déchirées, traces de colle. Quand la musique joue, l'énergie des graves fait « respirer » le papier (déplacement de quelques pixels au maximum) et les attaques de grosse caisse le font légèrement trembler. Aucun mouvement quand rien ne joue.
 6. **Mini, barre mobile et écran verrouillé.** Le bouton de la barre de titre passe le lecteur en mode mini (bande défilante, fenêtre cassette, lecture). Sur mobile, le lecteur est toujours en barre basse, et la Media Session prend le relais sur l'écran verrouillé.
 7. **Fin de bande.** Quand le pied de page entre dans l'écran, l'afficheur affiche « FIN DE BANDE » à la place des compteurs, et le bouton rembobiner ramène en haut de page.
 
@@ -265,28 +284,49 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 ## 6. Stack
 
 - Next.js 16 App Router, React 19, TypeScript strict, npm, Vercel : l'existant du repo.
-- Conventions de la-coupe reprises : ticker GSAP partagé, Lenis, **un seul canvas WebGL** (avec la bibliothèque déjà utilisée par la-coupe), transitions de page, repli sans WebGL et en mouvement réduit, images AVIF et WebP générées par le script existant, contenu 100 % dans `content/`. Le curseur personnalisé de la-coupe n'est **pas** repris : ici, le curseur système va mieux avec le chrome imprimé.
+- Conventions de la-coupe reprises : ticker GSAP partagé, Lenis, **un seul canvas WebGL**, transitions de page, repli sans WebGL et en mouvement réduit, images AVIF et WebP générées par le bloc d'export du script existant, contenu typé dans le dossier `content/` du composant. Le curseur personnalisé de la-coupe n'est **pas** repris : ici, le curseur système va mieux avec le chrome imprimé.
+  - `ticker.ts`, `gsap.ts`, `lenis-store.ts` et `use-page-settled.ts` sont **dupliqués** depuis `la-coupe/lib/` dans `groove-to-grave/lib/`, chaque copie avec un commentaire d'origine en tête de fichier. La-coupe n'est pas modifiée.
+  - Dans la copie du store de navigation, le repli quand aucun navigateur n'est enregistré utilise `router.push`, jamais `window.location.assign` : un rechargement complet couperait la lecture.
+  - **Écart volontaire** : le mur n'utilise ni three ni fiber (environ 235 kB pour un rendu 2D). WebGL2 brut, un seul canvas, un quad plein écran, un fragment shader, module chargé après le LCP. Repli statique AVIF si WebGL2 est absent ou si le contexte est perdu.
 - **Audio** : Web Audio API native, sans bibliothèque.
-  - Un seul `HTMLAudioElement` persistant (dans le layout), branché sur un `MediaElementAudioSourceNode`, puis la chaîne d'égalisation (graves, médiums, aigus, passe-haut), un gain de normalisation, l'analyseur, le gain général, la sortie.
+  - Un seul `HTMLAudioElement` persistant, créé par un singleton de module hors React (le `MediaElementAudioSourceNode` ne se crée qu'une fois par élément), branché sur la chaîne d'égalisation (graves, médiums, aigus, passe-haut), un gain de normalisation avec marge de −6 dB, l'analyseur, un `DynamicsCompressorNode` en limiteur, le gain général, la sortie.
   - Les sons d'interface passent par un gain séparé.
   - Les extraits sont **hébergés localement**, en même origine, ce qui est la seule façon de les analyser ; les lecteurs Bandcamp et SoundCloud intégrés ne sont pas analysables. Format MP3 192 kbps, `preload="none"`.
-- **État du lecteur** : un store léger dans le layout (contexte React et `useSyncExternalStore`), sans nouvelle dépendance. La Phase 0 dit si le repo a déjà une solution.
-- **Couleurs des cassettes** : extraites par script avec `sharp` (`stats().dominant`, plus une couleur d'accent calculée), écrites dans `content/` et vérifiées pour le contraste avec `ink`.
-- **Extraits provisoires** : générés par script en rejouant la synthèse de la maquette dans un `OfflineAudioContext` sous Playwright et Chromium, une boucle distincte par sortie (BPM, motif de grosse caisse, ligne de basse), de 45 s, avec fondus. Encodage par `ffmpeg` si présent ; la Phase 0 vérifie et propose sinon. **Aucune question de droits.** Les vrais extraits n'entrent qu'avec l'accord du label.
-- **Médias réels** : un script récupère les pochettes publiques (Bandcamp) et les visuels d'événements publics (Shotgun, RA) vers `content/groove-to-grave/media/source/`, avec un `sources.json` qui donne l'URL d'origine et la date. Ce qui échoue est listé pour capture manuelle. Instagram n'est **jamais** aspiré par script.
-- Aucune nouvelle dépendance sans proposition et accord en Phase 0. Aucune n'est prévue à ce stade.
+- **État du lecteur** : stores de module et `useSyncExternalStore`, le motif déjà en place dans la-coupe (`hero-store.ts`, `navigation-store.ts`, `use-reduced-motion.ts`). Pas de contexte React, pas de dépendance. Les search params ne sont lus que par les pages serveur (§4).
+- **Couleurs des cassettes** : extraites par script avec `sharp` (`stats().dominant`, plus une couleur d'accent calculée), écrites dans le contenu typé et vérifiées pour le contraste avec `ink`. `sharp` reste une dépendance transitive de Next, utilisée comme dans `fetch-la-coupe-photos.ts`.
+- **Extraits provisoires** : synthèse en TypeScript pur hors navigateur dans `scripts/g2g-extraits.ts`, qui rejoue les recettes de la maquette (grosse caisse, charley, basse, souffle, égalisation) échantillon par échantillon, une boucle distincte par sortie (BPM, motif de grosse caisse, ligne de basse), de 45 s, avec fondus, écrite en WAV puis encodée en MP3 192 kbps par `ffmpeg`. Pas de Playwright. **Aucune question de droits.** Les vrais extraits n'entrent qu'avec l'accord du label (§7).
+- **Médias réels** : `scripts/g2g-fetch-media.ts` récupère les pochettes publiques (Bandcamp) et les visuels d'événements publics (Shotgun, RA) vers `content/groove-to-grave/media/source/`, avec un `sources.json` qui donne l'URL d'origine, la date et les dimensions. Ce qui échoue est listé pour capture manuelle. Instagram n'est **jamais** aspiré par script. `scripts/g2g-media.ts` résout chaque emplacement selon la priorité du §7 et écrit `content/groove-to-grave/media/rapport.md`.
+- Aucune nouvelle dépendance. Décision de Phase 0 : il n'en faut aucune.
 
 ---
 
-## 7. Performance, accessibilité et mobile — non négociables
+## 7. Médias fournis par le label
+
+Le site est conçu pour recevoir, sans changement de code, les fichiers que Groove To Grave Records voudra bien fournir.
+
+**Priorité par emplacement média.** Pour chaque emplacement (extrait de piste, pochette, flyer de soirée, photo d'artiste, photo du label), dans l'ordre : fichier fourni par le label, sinon fichier public récupéré par script, sinon provisoire. `scripts/g2g-media.ts` applique cette règle et écrit dans `content/groove-to-grave/media/rapport.md`, pour chaque emplacement, la source retenue.
+
+**Dépôt.** `content/groove-to-grave/media/label/audio/` et `content/groove-to-grave/media/label/images/`, décrits par `content/groove-to-grave/media/label/manifest.json`. Le manifeste associe chaque fichier à un identifiant : une sortie (`gtgr05`), une piste (`gtgr05-a1`), une soirée (sa date ISO, `2026-01-09`) ou un artiste (son slug). Pour l'audio, un point de départ d'extrait optionnel en secondes. Un `README.md` dans `label/` rappelle ces conventions.
+
+**Git.** Les originaux du dossier `label/` sont exclus de git (`.gitignore`) ; seules les sorties traitées sous `public/experience/groove-to-grave/` sont commitées.
+
+**Audio.** Uniquement des extraits de morceaux déjà sortis : 60 s par défaut, départ à 30 % de la durée si non précisé, fondus de 2 s, MP3 192 kbps normalisé à −14 LUFS. Un fichier marqué inédit dans le manifeste, ou rattaché à une piste dont la sortie n'a pas de date passée, est refusé par le script.
+
+**Images.** Jamais retouchées ni recadrées au-delà du format d'origine ; seulement les déclinaisons AVIF et WebP aux largeurs du script.
+
+**Modèle de données.** Un extrait optionnel par piste. Les extraits provisoires ne sont attribués qu'à la piste A1 de chaque sortie ; les autres pistes n'affichent pas de bouton écouter tant qu'aucun vrai extrait n'existe.
+
+---
+
+## 8. Performance, accessibilité et mobile — non négociables
 
 **Performance**
 
-- Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**.
-- LCP < 2,0 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
+- Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**. C'est le critère bloquant.
+- LCP < 2,5 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
 - Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur. DPR plafonné à 1,5 (1 sur mobile), grain rendu à demi-résolution, pause quand l'onglet est caché.
 - Aucun extrait audio chargé avant un geste. Trois fichiers de police au maximum, seul Archivo est préchargé.
-- Le spectre en DOM ne met à jour que des `transform`, jamais de mise en page.
+- Le spectre en DOM ne met à jour que des `transform`, jamais de mise en page, à 30 images par seconde au plus, et rien quand rien ne joue.
 
 **Accessibilité**
 
@@ -296,6 +336,7 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 - Focus toujours visible, en double anneau (`ink` et `safety`) pour rester visible sur tous les fonds.
 - Le texte au marqueur a toujours un équivalent en texte normal.
 - Mouvement réduit respecté partout (voir §3.6).
+- Sur iOS, un arrêt dû au verrouillage est affiché comme une pause, jamais comme une lecture en cours.
 - `lang="fr"` ; les textes de sortie en anglais portent `lang="en"`.
 
 **Sans JavaScript**
@@ -316,7 +357,7 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 
 ---
 
-## 8. Phases de travail
+## 9. Phases de travail
 
 Chaque phase suit la même méthode :
 
@@ -326,9 +367,9 @@ Chaque phase suit la même méthode :
 - comptes rendus courts (fait / arbitrages / résultats / reste) ;
 - **planches** de captures légendées à 1440 et 390 px, pleines hauteurs après animations, une image par format, envoyées au directeur artistique pour la passe de direction.
 
-**Phase 0 — Audit.** Lire la-coupe (conventions, ticker, transitions, canvas, script d'images, tuile du carrousel et modèle Prisma, en lecture seule). Vérifier `ffmpeg`, Playwright et `sharp`. Proposer les dépendances (aucune attendue) et le plan de fichiers. Rien n'est installé ni écrit avant accord.
+**Phase 0 — Audit.** Faite le 8 octobre 2026. Lire la-coupe (conventions, ticker, transitions, canvas, script d'images, tuile du carrousel et modèle Prisma, en lecture seule). Vérifier `ffmpeg`, Playwright et `sharp`. Proposer les dépendances (aucune attendue) et le plan de fichiers. Rien n'est installé ni écrit avant accord. Arbitrages en tête de document.
 
-**Phase 1 — Contenu et médias.** Écrire `content/groove-to-grave/` depuis les sources publiques, script de récupération des médias, extraction des couleurs, extraits provisoires, puis **planche « relevé DA »** : toutes les pochettes et tous les flyers récupérés, légendés, avec la liste de ce qui manque. Stop : le directeur artistique fait la passe d'identité et les tokens sont mis à jour.
+**Phase 1 — Contenu et médias.** Aucun code d'interface hormis les types de contenu. Écrire le contenu typé depuis les sources publiques, `sources.md`, `scripts/g2g-fetch-media.ts`, dossiers `media/label/` avec README, manifeste vide et règles `.gitignore`, `scripts/g2g-media.ts` (priorité label / public / provisoire, images, extraits label, `rapport.md`), `scripts/g2g-couleurs.ts`, `scripts/g2g-extraits.ts`, puis **planche « relevé DA »** en une seule image : toutes les pochettes et tous les visuels de soirées récupérés, légendés (référence ou date, source, crédit, dimensions), les deux couleurs extraites en pastilles sous chaque pochette avec leur valeur hexadécimale, et la liste de ce qui manque. Stop : le directeur artistique fait la passe d'identité et les tokens sont mis à jour.
 
 **Phase 2 — Fondations.** Route, layout, tokens, polices, toutes les pages en rendu serveur avec le vrai contenu, parcours complet sans JavaScript, état vide des soirées. Planche.
 
@@ -342,7 +383,7 @@ Chaque phase suit la même méthode :
 
 ---
 
-## 9. Definition of done
+## 10. Definition of done
 
 - [ ] Toutes les pages du §4, rendues côté serveur, contenu réel avec sources, textes de notre main marqués `draft`.
 - [ ] Aucune œuvre du label altérée ; chaque pochette et chaque flyer est crédité.
@@ -357,7 +398,7 @@ Chaque phase suit la même méthode :
 
 ---
 
-## 10. À ne pas faire
+## 11. À ne pas faire
 
 - Pas d'autoplay sonore, pas de scroll-jacking, pas de défilement horizontal de page.
 - Pas de bouton décoratif : tout ce qui a l'air cliquable l'est.
@@ -370,16 +411,18 @@ Chaque phase suit la même méthode :
 - Pas de fait inventé (genre, biographie, date, prix) présenté comme vérifié. Pas de prix stockés : le prix est sur Bandcamp.
 - Pas de retour au vocabulaire nautique ou radio FM.
 - Pas de reprise de la DA de la-coupe.
+- Pas de three ni de fiber pour le mur, pas de Playwright pour les extraits.
+- Pas de `useSearchParams` dans le lecteur ni dans le layout.
 - Pas d'audits en parallèle, pas d'écriture Prisma, pas de fusion sans accord.
 
 ---
 
-## 11. Questions ouvertes
+## 12. Questions ouvertes
 
 1. **Accord du label** : pour la mise en ligne publique, les visuels et les vrais extraits. Qui les contacte, et quand ?
 2. **Fichiers de logo** et typographies réelles : à obtenir du label ou à relever à la phase 1.
-3. **GTGR01** existe-t-il ? GTGR02 est présenté comme le premier vinyle.
-4. **Crédits de GTGR04** : qui a fait l'artwork, et à quelle date est sorti le disque ?
+3. ~~**GTGR01** existe-t-il ?~~ Résolu en Phase 1 : GTGR01 est *Common Speed EP* de LukasDarian, sortie numérique du 22 juillet 2022 (artwork Cbrgraphics, mastering Marine Benabou). GTGR02 reste le premier vinyle.
+4. ~~**Crédits de GTGR04**~~ Résolu en Phase 1 : artwork JeunePenard, mastering Benoit D., sortie le 21 mars 2025, vinyle épuisé.
 5. **Genres par sortie** pour les presets : validation par le label.
 6. **Composition du crew** : Fritzy et Pink Mermaids font-ils encore partie du collectif ?
 7. **Date de Danza To The Grave**, et lieu de la soirée du 7 février 2025.
