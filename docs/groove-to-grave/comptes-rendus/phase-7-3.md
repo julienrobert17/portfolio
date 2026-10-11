@@ -1,6 +1,6 @@
 # Groove To Grave — compte-rendu du bloc 7.2b et de la Phase 7.3 (le site lit Sanity)
 
-11 octobre 2026 · branche `experience/groove-to-grave` · commits `662a6eb` (7.2b), `adbbfbb` et `0027498` (7.3), `HASH_DOCS` (ce compte-rendu) · fusion sur `main` : PR #7 (`3ff1c28`), puis PR #8 pour le correctif de la sauvegarde · production https://portfolio-eight-sable-66.vercel.app/experience/groove-to-grave · Studio https://groove-to-grave.sanity.studio
+11 octobre 2026 · branche `experience/groove-to-grave` · commits `662a6eb` (7.2b), `adbbfbb` et `0027498` (7.3), `57ef652` (ce compte-rendu) · fusion sur `main` : PR #7 (`3ff1c28`), puis PR #8 pour le correctif de la sauvegarde · production https://portfolio-eight-sable-66.vercel.app/experience/groove-to-grave · Studio https://groove-to-grave.sanity.studio
 
 ## Bloc 7.2b
 
