@@ -1,0 +1,2122 @@
+/*
+ * Groove To Grave : feuille de l'expérience, posée sur la racine .g2g, jamais sur :root.
+ * Couleurs : variables --g2g-<token> injectées par tokens.ts (variablesCss). Polices : variables
+ * posées par next/font dans le layout. Aucune classe Tailwind. Échelles (passe de direction
+ * 2.1) : espacements --s1 à --s7, typographie d'affiche, grille de 12 colonnes.
+ */
+.g2g {
+  /* espacements verticaux : 8, 16, 24, 40, 64, 96, 144 */
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 40px;
+  --s5: 64px;
+  --s6: 96px;
+  --s7: 144px;
+  /* grille : 12 colonnes, 1360 px, gouttières 32, marges 48 (16 sur mobile) */
+  --marge: 48px;
+  --gouttiere: 32px;
+  --largeur-max: 1360px;
+  --radius: 3px;
+  --trait: 2px;
+  --trait-fort: 3px;
+  /* désordre : --rot-base posé en ligne par l'élément, divisé par deux sur mobile */
+  --rot-base: 0deg;
+  --rot-facteur: 1;
+  --rot: calc(var(--rot-base) * var(--rot-facteur));
+  --texte: 18px;
+  --meta: 13px;
+  /* empilement, unique pour toute l'expérience (passe de direction 4.1) */
+  --z-mur: 0;
+  --z-contenu: 1;
+  --z-decor: 2;
+  --z-skin: 50;
+  --z-vol: 60;
+  --z-modal: 70;
+  background: var(--g2g-wall);
+  color: var(--g2g-ink);
+  font-family: var(--g2g-font-archivo), Archivo, system-ui, sans-serif;
+  font-size: var(--texte);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .g2g {
+    --marge: 16px;
+    --gouttiere: 16px;
+    --texte: 16px;
+    --rot-facteur: 0.5;
+  }
+}
+
+/* Chaque élément tourné recalcule --rot depuis sa propre --rot-base. */
+.g2g-cassette,
+.g2g-affiche-lien,
+.g2g-flyer__support,
+.g2g-bande-titre {
+  --rot: calc(var(--rot-base) * var(--rot-facteur));
+}
+
+.g2g *,
+.g2g *::before,
+.g2g *::after {
+  box-sizing: border-box;
+}
+
+.g2g a {
+  color: inherit;
+}
+
+.g2g :focus-visible {
+  outline: var(--trait-fort) solid var(--g2g-red);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--g2g-ink);
+  border-radius: var(--radius);
+}
+
+.g2g-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.g2g-skip {
+  position: absolute;
+  left: var(--marge);
+  top: -100px;
+  z-index: var(--z-modal);
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+  padding: var(--s1) var(--s2);
+  font-weight: 700;
+}
+
+.g2g-skip:focus {
+  top: var(--s1);
+}
+
+/* ───────── Typographie ───────── */
+
+.g2g-affiche {
+  font-family: var(--g2g-font-archivo), Archivo, sans-serif;
+  font-stretch: 75%;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.g2g-titre-page {
+  font-size: clamp(64px, 11vw, 168px);
+}
+
+.g2g-titre-section {
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.92;
+}
+
+.g2g-marqueur {
+  font-family: var(--g2g-font-marker), 'Permanent Marker', cursive;
+  font-weight: 400;
+}
+
+.g2g-lcd-texte {
+  font-family: var(--g2g-font-lcd), VT323, monospace;
+}
+
+.g2g-meta {
+  font-size: var(--meta);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.g2g-rouge {
+  color: var(--g2g-redInk);
+}
+
+.g2g h1,
+.g2g h2,
+.g2g h3,
+.g2g p,
+.g2g figure {
+  margin: 0;
+}
+
+.g2g p,
+.g2g-mesure {
+  max-width: 68ch;
+}
+
+.g2g-brouillon {
+  display: inline-block;
+  margin-left: var(--s1);
+  padding: 2px 8px;
+  border: 1px dashed var(--g2g-ink);
+  border-radius: var(--radius);
+  font-size: var(--meta);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  font-stretch: 100%;
+  line-height: 1.4;
+}
+
+/* Bande de papier sous le titre de page, collée au scotch. */
+.g2g-bande-titre {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin-top: var(--s3);
+  padding: 0.12em 0.18em 0.1em;
+  background: var(--g2g-poster);
+  border: var(--trait-fort) solid var(--g2g-ink);
+  transform: rotate(var(--rot));
+}
+
+.g2g-bande-titre--rouge {
+  background: var(--g2g-red);
+}
+
+.g2g-bande-titre--vert {
+  background: var(--g2g-green);
+}
+
+.g2g-bande-titre::before,
+.g2g-bande-titre::after {
+  content: '';
+  position: absolute;
+  z-index: var(--z-decor);
+  top: -12px;
+  width: 72px;
+  height: 22px;
+  background: var(--g2g-chromeLight);
+  border: 1px solid var(--g2g-ink);
+  opacity: 0.92;
+}
+
+.g2g-bande-titre::before {
+  left: 18px;
+  transform: rotate(-7deg);
+}
+
+.g2g-bande-titre::after {
+  right: 18px;
+  transform: rotate(6deg);
+}
+
+.g2g-entete-page {
+  margin-top: var(--s4);
+}
+
+.g2g-entete-page .g2g-meta {
+  margin-bottom: var(--s1);
+}
+
+.g2g-chapeau {
+  margin-top: var(--s3);
+}
+
+/* ───────── Mise en page ───────── */
+
+.g2g-page {
+  width: min(100% - 2 * var(--marge), var(--largeur-max));
+  margin: 0 auto;
+  padding-bottom: var(--s5);
+}
+
+.g2g-grille {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--s3) var(--gouttiere);
+}
+
+.g2g-section {
+  margin-top: var(--s6);
+}
+
+.g2g-section > .g2g-titre-section + * {
+  margin-top: var(--s3);
+}
+
+.g2g-sous-section {
+  margin-top: var(--s5);
+}
+
+.g2g-sous-section > .g2g-titre-section + * {
+  margin-top: var(--s2);
+}
+
+.g2g-prose {
+  display: grid;
+  gap: var(--s2);
+}
+
+.g2g-pile {
+  display: grid;
+  gap: var(--s2);
+}
+
+/* ───────── Boutons et liens-boutons ───────── */
+
+.g2g-bouton,
+.g2g-liens a,
+.g2g-filtres a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-poster);
+  color: var(--g2g-ink);
+  text-decoration: none;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-bouton:hover,
+.g2g-liens a:hover,
+.g2g-filtres a:hover,
+.g2g-bouton:active,
+.g2g-liens a:active,
+.g2g-filtres a:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-bouton--principal {
+  background: var(--g2g-red);
+}
+
+.g2g-liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s2);
+  padding: 0;
+  margin: var(--s3) 0 0;
+  list-style: none;
+}
+
+.g2g-filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  padding: 0;
+  margin: var(--s3) 0 0;
+  list-style: none;
+}
+
+.g2g-filtres a {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--meta);
+}
+
+.g2g-filtres a[aria-current='true'] {
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+}
+
+/* ───────── Skin du lecteur, version statique ───────── */
+
+.g2g-skin {
+  width: min(100% - 2 * var(--marge), var(--largeur-max));
+  margin: var(--s2) auto 0;
+  border: var(--trait-fort) solid var(--g2g-ink);
+  border-radius: 10px;
+  background: var(--g2g-chrome);
+  padding: 10px 12px 12px;
+  color: var(--g2g-ink);
+  position: relative;
+  font-size: 15px;
+}
+
+.g2g-skin__titre {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 2px 8px;
+}
+
+.g2g-skin__mono {
+  display: block;
+  height: 44px;
+  width: auto;
+  color: var(--g2g-ink);
+}
+
+.g2g-skin__nom {
+  font-weight: 800;
+  line-height: 1;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.g2g-skin__nom span {
+  display: block;
+}
+
+.g2g-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--g2g-chromeLight);
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 6px;
+}
+
+.g2g-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.g2g-nav a[aria-current='page'] {
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+}
+
+.g2g-nav svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.g2g-lcd {
+  margin-top: var(--s1);
+  background: var(--g2g-lcd);
+  color: var(--g2g-lcdLit);
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.g2g-lcd__bande {
+  font-size: 22px;
+  line-height: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--g2g-lcdOff);
+  padding-bottom: 6px;
+}
+
+.g2g-lcd__ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.g2g-lcd__compteurs {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+}
+
+.g2g-lcd__compteur {
+  display: grid;
+  gap: 2px;
+}
+
+.g2g-lcd__compteur dt {
+  font-size: 16px;
+  color: var(--g2g-lcdDim);
+}
+
+.g2g-lcd__compteur dd {
+  margin: 0;
+  font-size: 34px;
+  line-height: 0.9;
+}
+
+.g2g-lcd__compteur--temps dd {
+  color: var(--g2g-lcdPeak);
+}
+
+.g2g-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.g2g-presets a {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 20px;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--g2g-lcdDim);
+  border: 1px solid var(--g2g-lcdOff);
+  border-radius: var(--radius);
+}
+
+.g2g-presets a[aria-current='true'] {
+  background: var(--g2g-lcdLit);
+  color: var(--g2g-lcd);
+  border-color: var(--g2g-lcdLit);
+}
+
+.g2g-skin__statique {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.g2g-skin__statique a {
+  font-weight: 700;
+}
+
+/* Sous 768 px, sans lecteur : seulement la barre de titre et la navigation. L'afficheur arrive avec le lecteur. */
+@media (max-width: 767px) {
+  .g2g-skin__lcd,
+  .g2g-skin__statique {
+    display: none;
+  }
+}
+
+/* ───────── Cassette ───────── */
+
+.g2g-cassette {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transform: rotate(var(--rot));
+  transition: transform 150ms ease;
+}
+
+.g2g-cassette svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.g2g-cassette__texte {
+  margin-top: var(--s1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.g2g-cassette__texte strong {
+  display: block;
+}
+
+.g2g-cassette__format {
+  font-size: var(--meta);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.g2g-cassette:hover {
+  transform: rotate(var(--rot)) translateY(-2px);
+}
+
+.g2g-sticker {
+  display: inline-block;
+  padding: 3px 9px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-red);
+  color: var(--g2g-ink);
+  font-size: var(--meta);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  font-stretch: 100%;
+  line-height: 1.4;
+}
+
+.g2g-sticker--vert {
+  /* Texte de 13 px : greenDeep sous poster (5,9:1), green ne tient pas 4,5:1 sous ink. */
+  background: var(--g2g-greenDeep);
+  color: var(--g2g-poster);
+}
+
+.g2g-tuile {
+  position: relative;
+}
+
+/* Le sticker déborde de 6 px sur le mur, jamais sur une carte voisine (gouttière de 16 px au moins) ni sur une zone cliquable. */
+.g2g-tuile .g2g-sticker {
+  position: absolute;
+  z-index: var(--z-decor);
+  right: -6px;
+  top: -10px;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+.g2g-mur {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s4) var(--gouttiere);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 1100px) {
+  .g2g-mur {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .g2g-mur {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s3) var(--gouttiere);
+  }
+
+}
+
+.g2g-mur-compte {
+  margin-top: var(--s3);
+}
+
+.g2g-mur-compte + .g2g-mur {
+  margin-top: var(--s2);
+}
+
+.g2g-une {
+  display: grid;
+  gap: var(--s3) var(--gouttiere);
+  align-items: center;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  margin-top: var(--s3);
+}
+
+@media (max-width: 767px) {
+  .g2g-une {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.g2g-une .g2g-cassette {
+  --rot-base: -2deg;
+}
+
+/* ───────── Page sortie ───────── */
+
+.g2g-bandeau {
+  width: 100vw;
+  margin: var(--s2) 0 0 calc(50% - 50vw);
+  padding: var(--s4) max(var(--marge), calc(50vw - var(--largeur-max) / 2));
+  border-top: var(--trait-fort) solid var(--g2g-ink);
+  border-bottom: var(--trait-fort) solid var(--g2g-ink);
+}
+
+.g2g-bandeau h1 {
+  margin-top: var(--s2);
+  font-size: clamp(40px, 7.5vw, 112px);
+}
+
+.g2g-bandeau__statut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin-top: var(--s2);
+  font-weight: 600;
+}
+
+.g2g-fiche {
+  display: grid;
+  gap: var(--s4) var(--gouttiere);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  margin-top: var(--s4);
+  align-items: start;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .g2g-fiche {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.g2g-pochette {
+  border: var(--trait-fort) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+}
+
+.g2g-pochette img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.g2g-pochette figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1) var(--s2);
+  padding: var(--s1) var(--s2);
+  border-top: var(--trait) solid var(--g2g-ink);
+  font-size: 15px;
+}
+
+.g2g-pistes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--trait) solid var(--g2g-ink);
+}
+
+.g2g-pistes li {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: var(--s2);
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--g2g-ink);
+}
+
+.g2g-pistes li > span:first-child {
+  font-weight: 800;
+}
+
+.g2g-credits {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--s1) var(--s3);
+  margin: 0;
+}
+
+.g2g-credits dt {
+  font-weight: 700;
+}
+
+.g2g-credits dd {
+  margin: 0;
+}
+
+.g2g-voisins {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: var(--s4) var(--gouttiere);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* ───────── Affiches des artistes ───────── */
+
+.g2g-affiches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3) var(--s3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  align-items: flex-start;
+}
+
+.g2g .g2g-affiche-lien {
+  display: inline-block;
+  padding: 10px 16px 12px;
+  border: var(--trait-fort) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+  color: var(--g2g-ink);
+  text-decoration: none;
+  font-size: clamp(32px, 4vw, 56px);
+  transform: rotate(var(--rot));
+}
+
+.g2g .g2g-affiche-lien--rouge {
+  background: var(--g2g-red);
+}
+
+.g2g .g2g-affiche-lien--vert {
+  /* La ligne de 13 px sous le nom impose greenDeep et poster (ink sur green ne fait que 4,07:1). */
+  background: var(--g2g-greenDeep);
+  color: var(--g2g-poster);
+}
+
+.g2g .g2g-affiche-lien--encre {
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+}
+
+.g2g-affiche-lien small {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--g2g-font-archivo), Archivo, sans-serif;
+  font-stretch: 100%;
+  font-weight: 600;
+  font-size: var(--meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+/* ───────── Soirées ───────── */
+
+.g2g-heros {
+  display: grid;
+  gap: var(--s3) var(--gouttiere);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+  margin-top: var(--s3);
+}
+
+@media (max-width: 860px) {
+  .g2g-heros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.g2g-heros__date {
+  font-size: clamp(44px, 6vw, 96px);
+}
+
+.g2g-heros__texte {
+  display: grid;
+  gap: var(--s2);
+}
+
+.g2g-flyers {
+  display: grid;
+  gap: var(--s5) var(--gouttiere);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
+}
+
+.g2g-flyer {
+  display: grid;
+  gap: var(--s2);
+}
+
+.g2g-flyer__support {
+  position: relative;
+  padding: 10px;
+  background: var(--g2g-poster);
+  border: var(--trait) solid var(--g2g-ink);
+  transform: rotate(var(--rot));
+}
+
+.g2g-flyer__support img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.g2g-flyer__support::before,
+.g2g-flyer__support::after {
+  content: '';
+  position: absolute;
+  z-index: var(--z-decor);
+  top: -10px;
+  width: 64px;
+  height: 20px;
+  background: var(--g2g-chromeLight);
+  border: 1px solid var(--g2g-ink);
+  opacity: 0.9;
+}
+
+.g2g-flyer__support::before {
+  left: 24px;
+  transform: rotate(-6deg);
+}
+
+.g2g-flyer__support::after {
+  right: 24px;
+  transform: rotate(5deg);
+}
+
+.g2g-flyer__texte {
+  display: grid;
+  gap: 4px;
+  font-size: 16px;
+}
+
+.g2g-flyer__texte strong {
+  font-size: 20px;
+}
+
+/* Affiche typographique quand aucun visuel n'a été retrouvé : la date en très grand, le lieu dessous. */
+.g2g-affiche-date {
+  display: grid;
+  gap: var(--s1);
+  padding: var(--s3) var(--s2);
+  text-align: center;
+  min-height: 240px;
+  align-content: center;
+}
+
+.g2g-affiche-date .g2g-affiche {
+  font-size: clamp(48px, 9vw, 120px);
+}
+
+.g2g-affiche-date .g2g-affiche--lieu {
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 800;
+}
+
+.g2g-vide {
+  margin-top: var(--s3);
+  padding: var(--s4) var(--s3);
+  border: var(--trait-fort) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+  display: grid;
+  gap: var(--s2);
+  justify-items: start;
+}
+
+.g2g-vide .g2g-marqueur {
+  font-size: clamp(28px, 4vw, 44px);
+  color: var(--g2g-redInk);
+  transform: rotate(-2deg);
+}
+
+/* ───────── Formulaires ───────── */
+
+.g2g-form {
+  display: grid;
+  gap: var(--s1);
+  margin-top: var(--s3);
+  max-width: 480px;
+}
+
+.g2g-form label {
+  font-weight: 700;
+}
+
+.g2g-form input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-poster);
+  font: inherit;
+  color: inherit;
+}
+
+.g2g-form button {
+  justify-self: start;
+  margin-top: var(--s1);
+}
+
+.g2g-message {
+  padding: var(--s2);
+  border: var(--trait) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+  margin-top: var(--s2);
+}
+
+/* ───────── Label, sources ───────── */
+
+.g2g-crew {
+  display: grid;
+  gap: var(--s2) var(--gouttiere);
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.g2g-crew li {
+  padding: var(--s2);
+  border: var(--trait) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+}
+
+.g2g-crew a {
+  text-decoration: none;
+  font-size: 32px;
+}
+
+.g2g-chrono {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--trait) solid var(--g2g-ink);
+}
+
+.g2g-chrono li {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: var(--s2);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--g2g-ink);
+}
+
+@media (max-width: 600px) {
+  .g2g-chrono li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+.g2g-chrono time {
+  font-weight: 700;
+}
+
+.g2g-sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--trait) solid var(--g2g-ink);
+}
+
+.g2g-sources li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s2);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--g2g-ink);
+  align-items: baseline;
+}
+
+.g2g-sources li span {
+  font-size: var(--meta);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ───────── Fin de bande ───────── */
+
+.g2g-fin {
+  margin-top: var(--s7);
+  border-top: var(--trait-fort) solid var(--g2g-ink);
+  background: var(--g2g-poster);
+  padding: var(--s5) 0 var(--s5);
+}
+
+.g2g-fin__int {
+  width: min(100% - 2 * var(--marge), var(--largeur-max));
+  margin: 0 auto;
+  display: grid;
+  gap: var(--s3) var(--gouttiere);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .g2g-fin__int {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.g2g-fin__crane {
+  width: clamp(200px, 18vw, 260px);
+  height: auto;
+  color: var(--g2g-ink);
+}
+
+@media (max-width: 767px) {
+  .g2g-fin__crane {
+    width: 140px;
+  }
+}
+
+.g2g-fin__corps {
+  display: grid;
+  gap: var(--s2);
+}
+
+.g2g-fin__corps p {
+  font-size: 16px;
+}
+
+.g2g-fin__liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.g2g-fin__rembobiner {
+  margin-top: var(--s1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g2g * {
+    transition: none !important;
+  }
+}
+
+/* ═════════ Le lecteur (Phase 3) ═════════ */
+
+/* Avec JavaScript, la racine porte data-js (script en ligne du layout) : les éléments .g2g-js apparaissent, .g2g-sans-js disparaît. */
+.g2g:not([data-js]) .g2g-js {
+  display: none !important;
+}
+
+.g2g[data-js] .g2g-sans-js {
+  display: none !important;
+}
+
+/* Skin desktop : 132 px à 1440 (bords 6, marges 9, rangée 1 de 32, écart 4, rangée 2 de 81), rien de coupé. */
+.g2g-lecteur {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-skin);
+  width: min(100% - 2 * var(--marge), var(--largeur-max));
+  margin: var(--s2) auto 0;
+  border: var(--trait-fort) solid var(--g2g-ink);
+  border-radius: 10px;
+  background: var(--g2g-chrome);
+  padding: 4px 10px 5px;
+  color: var(--g2g-ink);
+  font-size: 15px;
+  display: grid;
+  gap: 4px;
+}
+
+.g2g-lecteur__r1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+}
+
+.g2g-lecteur__nom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  flex: none;
+}
+
+.g2g-lecteur__nom span {
+  display: block;
+}
+
+.g2g-lecteur__mono {
+  display: block;
+  height: 30px;
+  width: auto;
+}
+
+.g2g-lecteur__nav {
+  padding: 2px;
+}
+
+.g2g-lecteur__nav a {
+  min-height: 24px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+/* Le bouton mini ferme la rangée de titre, à droite. */
+.g2g-lecteur .g2g-lecteur__mini {
+  margin-left: auto;
+}
+
+.g2g-lecteur .g2g-lecteur__menu-bouton {
+  display: none;
+}
+
+/* Rangée 2 : transport, fenêtre, afficheur, volume. 79 px : afficheur 63, puis la progression. */
+.g2g-lecteur__r2 {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.g2g-lecteur__centre {
+  display: grid;
+  grid-template-rows: auto 14px;
+  gap: 2px;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.g2g-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.g2g-rond {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 50%;
+  background: var(--g2g-chromeLight);
+  color: var(--g2g-ink);
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-rond svg {
+  width: 18px;
+  height: 18px;
+}
+
+.g2g-rond--grand {
+  width: 52px;
+  height: 52px;
+  background: var(--g2g-red);
+}
+
+.g2g-rond--grand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.g2g-rond--petit {
+  width: 32px;
+  height: 32px;
+}
+
+.g2g-rond--petit svg {
+  width: 16px;
+  height: 16px;
+}
+
+.g2g-rond:hover:not(:disabled),
+.g2g-rond:active:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-rond:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Fenêtre cassette : environ 96 × 60 px, bobines qui tournent au BPM pendant la lecture. */
+.g2g-fenetre {
+  width: 96px;
+  height: 60px;
+  flex: none;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 4px;
+  background: var(--g2g-lcd);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.g2g-fenetre svg {
+  width: 100%;
+  height: auto;
+}
+
+.g2g-fenetre__vide {
+  width: 70%;
+  height: 4px;
+  background: var(--g2g-lcdOff);
+}
+
+.g2g-lecteur__fenetre--mini {
+  width: 48px;
+  height: 30px;
+  padding: 1px;
+}
+
+.g2g-lecteur__fenetre--barre {
+  width: 64px;
+  height: 40px;
+  padding: 1px;
+}
+
+@keyframes g2g-bobine {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+[data-joue] .g2g-bobine {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: g2g-bobine calc(60s / var(--bpm, 124) * 3) linear infinite;
+}
+
+/* Afficheur desktop : rangée du haut (bande, presets à droite) 24 px, rangée du spectre 30 px, rien n'y est coupé. */
+.g2g-lecteur__afficheur {
+  margin-top: 0;
+  padding: 2px 8px;
+  display: grid;
+  grid-template-rows: 24px 30px;
+  gap: 3px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.g2g-lecteur__haut {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+.g2g-bande {
+  font-size: 16px;
+  line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.g2g-bande--statique {
+  text-overflow: ellipsis;
+}
+
+@keyframes g2g-defile {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.g2g-bande__piste {
+  display: inline-flex;
+  width: max-content;
+  animation: g2g-defile var(--duree, 20s) linear infinite;
+}
+
+.g2g-bande:hover .g2g-bande__piste,
+.g2g-lecteur:focus-within .g2g-bande__piste {
+  animation-play-state: paused;
+}
+
+.g2g-lecteur__bas {
+  display: grid;
+  grid-template-columns: minmax(0, 60fr) minmax(0, 40fr);
+  gap: 12px;
+  align-items: end;
+  height: 30px;
+}
+
+/* Spectre : 32 colonnes toujours visibles en segments lcdOff ; le niveau allumé par-dessus, seule sa scaleY change. */
+.g2g-spectre {
+  display: grid;
+  grid-template-columns: repeat(32, minmax(0, 1fr));
+  gap: 2px;
+  height: 30px;
+  align-items: end;
+}
+
+.g2g-spectre__colonne {
+  display: block;
+  position: relative;
+  height: 100%;
+  background: var(--g2g-lcdOff);
+  /* 6 segments dans 30 px : 4 px de segment, 1 px d'interstice. */
+  -webkit-mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
+  mask-image: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 5px);
+}
+
+.g2g-spectre__niveau {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  /* Les deux segments du haut en lcdPeak. */
+  background: linear-gradient(to top, var(--g2g-lcdLit) 0 66.7%, var(--g2g-lcdPeak) 66.7% 100%);
+  will-change: transform;
+}
+
+.g2g-compteurs {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  justify-content: flex-end;
+  align-items: end;
+  height: 30px;
+}
+
+.g2g-compteurs div {
+  display: grid;
+  gap: 1px;
+}
+
+.g2g-compteurs dt {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--g2g-lcdDim);
+  letter-spacing: 0.04em;
+}
+
+.g2g-compteurs dd {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Fin de bande : remplace les compteurs quand le pied de page entre dans l'écran. */
+.g2g-compteurs--fin {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--g2g-lcdPeak);
+  letter-spacing: 0.06em;
+  padding-bottom: 2px;
+}
+
+.g2g-compteurs__temps dd {
+  color: var(--g2g-lcdPeak);
+}
+
+.g2g-compteurs__duree {
+  font-size: 13px;
+  color: var(--g2g-lcdDim);
+}
+
+/* Curseurs dessinés (volume, progression) : piste ink 2 px, partie remplie red, pouce poster 16 px à contour ink. */
+.g2g-curseur {
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  --pc: 0%;
+}
+
+.g2g-curseur::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(to right, var(--g2g-red) var(--pc), var(--g2g-ink) var(--pc));
+}
+
+.g2g-curseur::-moz-range-track {
+  height: 2px;
+  background: var(--g2g-ink);
+}
+
+.g2g-curseur::-moz-range-progress {
+  height: 2px;
+  background: var(--g2g-red);
+}
+
+.g2g-curseur::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--g2g-poster);
+  border: 2px solid var(--g2g-ink);
+}
+
+.g2g-curseur::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--g2g-poster);
+  border: 2px solid var(--g2g-ink);
+}
+
+.g2g-curseur:focus-visible {
+  outline: none;
+}
+
+.g2g-curseur:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid var(--g2g-red);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--g2g-ink);
+}
+
+.g2g-curseur:focus-visible::-moz-range-thumb {
+  outline: 3px solid var(--g2g-red);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--g2g-ink);
+}
+
+.g2g-curseur:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.g2g-progression {
+  display: block;
+  line-height: 0;
+  height: 14px;
+}
+
+.g2g-progression .g2g-curseur {
+  height: 14px;
+}
+
+.g2g-progression .g2g-curseur::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+}
+
+/* Presets dans l'afficheur (référence JetAudio) : VT323 15 px, 24 px de haut, actif en lcdLit et ink, inactifs en lcdDim. */
+.g2g-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.g2g-presets button {
+  flex: 1;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--g2g-lcdOff);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--g2g-lcdDim);
+  font-family: var(--g2g-font-lcd), VT323, monospace;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.g2g-presets button:hover {
+  color: var(--g2g-lcdLit);
+  border-color: var(--g2g-lcdDim);
+}
+
+.g2g-presets button[aria-pressed='true'] {
+  background: var(--g2g-lcdLit);
+  color: var(--g2g-ink);
+  border-color: var(--g2g-lcdLit);
+}
+
+.g2g-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.g2g-volume label {
+  display: block;
+  line-height: 0;
+}
+
+.g2g-volume input {
+  width: 96px;
+}
+
+/* Mode mini : rangée 1 et une ligne fine. */
+.g2g-lecteur__fine {
+  display: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  height: 36px;
+}
+
+.g2g-lecteur__afficheur-mini {
+  margin: 0;
+  padding: 4px 8px;
+  height: 32px;
+  display: grid;
+  align-items: center;
+}
+
+.g2g-lecteur--mini .g2g-lecteur__r2 {
+  display: none;
+}
+
+.g2g-lecteur--mini .g2g-lecteur__fine {
+  display: grid;
+}
+
+/* Barre basse, feuille et menu : mobile seulement. */
+.g2g-barre,
+.g2g-feuille,
+.g2g-menu {
+  display: none;
+}
+
+.g2g-lecteur__statique {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.g2g-lecteur__statique a {
+  font-weight: 700;
+}
+
+.g2g[data-js] .g2g-page {
+  padding-top: var(--s2);
+}
+
+/* Sous 1100 px, les presets n'ont plus la place à côté de la bande : troisième rangée, le skin monte à 155 px. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .g2g-lecteur__afficheur {
+    grid-template-rows: 16px 30px 24px;
+  }
+
+  .g2g-lecteur__haut {
+    display: contents;
+  }
+
+  .g2g-lecteur__haut .g2g-presets {
+    order: 3;
+  }
+}
+
+@media (max-width: 767px) {
+  .g2g-lecteur {
+    width: 100%;
+    margin: 0;
+    border-width: 0 0 var(--trait-fort);
+    border-radius: 0;
+    padding: 0 var(--marge);
+    gap: 0;
+  }
+
+  .g2g-lecteur__r1 {
+    min-height: 56px;
+    gap: 8px;
+  }
+
+  .g2g-lecteur__mono {
+    height: 32px;
+  }
+
+  .g2g[data-js] .g2g-lecteur__nav {
+    display: none;
+  }
+
+  /* Le nom reste dans le nom accessible du lien : masqué visuellement, pas retiré. */
+  .g2g[data-js] .g2g-lecteur__nom > span:not(.g2g-cache) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .g2g:not([data-js]) .g2g-lecteur__r1 {
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+
+  .g2g:not([data-js]) .g2g-lecteur__nav {
+    width: 100%;
+  }
+
+  .g2g[data-js] .g2g-lecteur__menu-bouton {
+    display: inline-flex;
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+  }
+
+  .g2g-lecteur__mini,
+  .g2g-lecteur__r2,
+  .g2g-lecteur__fine {
+    display: none !important;
+  }
+
+  .g2g[data-js] .g2g-barre {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-skin);
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 var(--marge) env(safe-area-inset-bottom);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    background: var(--g2g-chrome);
+    border-top: var(--trait-fort) solid var(--g2g-ink);
+  }
+
+  .g2g-barre__bande {
+    margin: 0;
+    padding: 6px 8px;
+    height: 40px;
+    display: grid;
+    align-items: center;
+  }
+
+  .g2g[data-js] .g2g-page {
+    padding-bottom: calc(var(--s5) + 80px);
+  }
+
+  .g2g[data-js] .g2g-feuille:not([hidden]) {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    gap: var(--s2);
+    padding: var(--s2) var(--marge) calc(var(--s3) + env(safe-area-inset-bottom));
+    background: var(--g2g-chrome);
+    border-top: var(--trait-fort) solid var(--g2g-ink);
+    border-radius: 14px 14px 0 0;
+    max-height: 92dvh;
+    overflow: auto;
+  }
+
+  .g2g-feuille__entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .g2g-feuille__afficheur {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .g2g-feuille .g2g-lecteur__bas,
+  .g2g-feuille .g2g-compteurs {
+    height: auto;
+    min-height: 40px;
+  }
+
+  .g2g-feuille .g2g-spectre {
+    height: 40px;
+  }
+
+  .g2g-feuille .g2g-compteurs dd {
+    font-size: 24px;
+  }
+
+  .g2g-feuille .g2g-compteurs dt {
+    font-size: 12px;
+  }
+
+  .g2g-feuille .g2g-bande {
+    font-size: 20px;
+  }
+
+  .g2g-feuille .g2g-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .g2g-feuille .g2g-presets button {
+    min-height: 44px;
+    font-size: 18px;
+    border: var(--trait) solid var(--g2g-ink);
+    border-radius: var(--radius);
+    background: var(--g2g-poster);
+    color: var(--g2g-ink);
+  }
+
+  .g2g-feuille .g2g-presets button[aria-pressed='true'] {
+    background: var(--g2g-ink);
+    color: var(--g2g-poster);
+    border-color: var(--g2g-ink);
+  }
+
+  .g2g-feuille .g2g-progression {
+    margin-top: 4px;
+  }
+
+  .g2g-feuille .g2g-transport {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .g2g-feuille .g2g-rond {
+    width: 48px;
+    height: 48px;
+  }
+
+  .g2g-feuille .g2g-rond--grand {
+    width: 64px;
+    height: 64px;
+  }
+
+  .g2g-feuille .g2g-volume input {
+    width: 100%;
+  }
+
+  .g2g-feuille .g2g-volume {
+    gap: 12px;
+  }
+
+  .g2g-feuille .g2g-volume label {
+    flex: 1;
+  }
+
+  .g2g-feuille .g2g-volume input {
+    width: 100%;
+  }
+
+  .g2g[data-js] .g2g-menu:not([hidden]) {
+    position: fixed;
+    inset: 56px 0 0;
+    z-index: var(--z-modal);
+    display: grid;
+    align-content: start;
+    padding: var(--s3) var(--marge);
+    background: var(--g2g-wall);
+    overflow: auto;
+  }
+
+  .g2g-menu__nav {
+    display: grid;
+    gap: var(--s1);
+  }
+
+  .g2g-menu__nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 12px 16px;
+    border: var(--trait-fort) solid var(--g2g-ink);
+    background: var(--g2g-poster);
+    text-decoration: none;
+    font-family: var(--g2g-font-archivo), Archivo, sans-serif;
+    font-stretch: 75%;
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+  }
+
+  .g2g-menu__nav a[aria-current='page'] {
+    background: var(--g2g-ink);
+    color: var(--g2g-poster);
+  }
+
+  .g2g-menu__nav svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+html.g2g-verrou {
+  overflow: hidden;
+}
+
+/* Le skin collant ne masque jamais un élément amené au focus ou par une ancre : marge de défilement égale à sa hauteur. */
+html.g2g-document {
+  scroll-padding-top: 148px;
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  html.g2g-document {
+    scroll-padding-top: 172px;
+  }
+}
+
+@media (max-width: 767px) {
+  html.g2g-document {
+    scroll-padding-top: 72px;
+    scroll-padding-bottom: 80px;
+  }
+}
+
+/* Bouton écouter sur une cassette du mur : seconde cible, distincte du lien. */
+.g2g-ecouter {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: 50%;
+  background: var(--g2g-red);
+  color: var(--g2g-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: var(--z-decor);
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-ecouter svg {
+  width: 20px;
+  height: 20px;
+}
+
+.g2g-ecouter:hover,
+.g2g-ecouter:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-tuile[data-joue] .g2g-cassette {
+  transform: rotate(var(--rot)) translateY(-2px);
+}
+
+.g2g-bouton-piste {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 2px 10px 2px 6px;
+  border: var(--trait) solid var(--g2g-ink);
+  border-radius: var(--radius);
+  background: var(--g2g-poster);
+  color: var(--g2g-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.g2g-bouton-piste svg {
+  width: 14px;
+  height: 14px;
+}
+
+.g2g-bouton-piste:hover,
+.g2g-bouton-piste:active {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 0 var(--g2g-ink);
+}
+
+.g2g-bouton-piste[aria-pressed='true'] {
+  background: var(--g2g-red);
+}
+
+.g2g-pistes li {
+  grid-template-columns: 56px minmax(0, 1fr) auto auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-joue] .g2g-bobine,
+  .g2g-bande__piste {
+    animation: none !important;
+  }
+
+  .g2g-bande__piste {
+    width: auto;
+  }
+}
+
+/* ═════════ Le mur (Phase 4) ═════════ */
+
+/* Texture statique générée depuis le shader : fond de repli, sous le canvas quand il est là. */
+.g2g {
+  background-image: url('/experience/groove-to-grave/mur-1920.webp');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+@supports (background-image: url('a.avif')) {
+  .g2g {
+    background-image: url('/experience/groove-to-grave/mur-1920.avif');
+  }
+}
+
+@media (max-width: 767px) {
+  .g2g {
+    /* iOS ignore l'attachement fixe : la texture suit la page et se répète au-delà de 2200 px, repli assumé. */
+    background-image: url('/experience/groove-to-grave/mur-1280.webp');
+    background-size: 100% auto;
+    background-attachment: scroll;
+    background-repeat: repeat-y;
+    background-position: top center;
+  }
+
+  @supports (background-image: url('a.avif')) {
+    .g2g {
+      background-image: url('/experience/groove-to-grave/mur-1280.avif');
+    }
+  }
+}
+
+/* Le canvas, créé côté client dans son hôte sans boîte, reste invisible jusqu'à son premier rendu complet (data-pret), puis fond en 300 ms sur la texture de repli. */
+.g2g-mur-hote {
+  display: contents;
+}
+
+.g2g-mur-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-mur);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.g2g-mur-canvas[data-pret] {
+  opacity: 1;
+}
+
+.g2g-page,
+.g2g-fin {
+  position: relative;
+  z-index: var(--z-contenu);
+}
+
+/* Cassette en vol (insertion) : la tuile clonée, au-dessus du skin, sous le menu et la feuille. */
+.g2g .g2g-insertion {
+  position: fixed;
+  z-index: var(--z-vol);
+  margin: 0;
+  pointer-events: none;
+  transform-origin: top left;
+}
+
+/* Collage à l'arrivée : échelle 1,06 vers 1, la rotation se pose, 220 ms, une fois par élément. */
+@keyframes g2g-collage {
+  from {
+    transform: scale(1.06) rotate(calc(var(--rot) * 1.6));
+    opacity: 0.6;
+  }
+
+  to {
+    transform: scale(1) rotate(var(--rot));
+    opacity: 1;
+  }
+}
+
+[data-collage] > .g2g-cassette,
+[data-collage] > .g2g-flyer__support,
+[data-collage].g2g-affiche-lien {
+  opacity: 0;
+}
+
+[data-collage][data-colle] > .g2g-cassette,
+[data-collage][data-colle] > .g2g-flyer__support,
+[data-collage][data-colle].g2g-affiche-lien {
+  animation: g2g-collage 220ms ease-out both;
+}
+
+.g2g:not([data-js]) [data-collage] > .g2g-cassette,
+.g2g:not([data-js]) [data-collage] > .g2g-flyer__support,
+.g2g:not([data-js]) [data-collage].g2g-affiche-lien {
+  opacity: 1;
+}
+
+.g2g-cassette-dos {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 420px;
+}
+
+.g2g-dos {
+  margin-top: var(--s3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-collage] > .g2g-cassette,
+  [data-collage] > .g2g-flyer__support,
+  [data-collage].g2g-affiche-lien {
+    opacity: 1;
+    animation: none !important;
+  }
+
+  .g2g-mur-canvas {
+    transition: none;
+  }
+}
+
+/* ═════════ Transitions et pages détail (Phase 5) ═════════ */
+
+/* Balayage horizontal : le nouveau contenu se révèle de gauche à droite pendant l'avance rapide (--balayage animée par GSAP). */
+.g2g-page[data-balayage] {
+  clip-path: inset(0 var(--balayage, 0%) 0 0);
+}
+
+/* Pochette en grand sur la page artiste : même cadre que la page sortie. */
+.g2g-fiche > .g2g-pochette {
+  min-width: 0;
+}
+
+.g2g-fiche .g2g-chapeau {
+  margin-top: 0;
+}
+
+.g2g-bandeau h1 + .g2g-bandeau__statut {
+  font-size: 16px;
+}
+
+/* Invité de compilation : la cassette de la compilation et la ligne de son morceau. */
+.g2g-participations {
+  display: grid;
+  gap: var(--s4) var(--gouttiere);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.g2g-participations > li {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+  gap: var(--s3) var(--gouttiere);
+  align-items: start;
+}
+
+.g2g-participations .g2g-pistes {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .g2g-participations > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .g2g-participations .g2g-cassette {
+    max-width: 280px;
+  }
+}
+
+.g2g-entete-page > .g2g-bandeau__statut {
+  margin-top: var(--s2);
+}

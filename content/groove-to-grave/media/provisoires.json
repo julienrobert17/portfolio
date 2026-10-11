@@ -1,0 +1,47 @@
+{
+  "genereLe": "2026-10-10",
+  "extraits": [
+    {
+      "track": "gtgr01-a1",
+      "file": "gtgr01-a1-provisoire.mp3",
+      "bpm": 126,
+      "duration": 45
+    },
+    {
+      "track": "gtgr02-a1",
+      "file": "gtgr02-a1-provisoire.mp3",
+      "bpm": 122,
+      "duration": 45
+    },
+    {
+      "track": "gtgr03-a1",
+      "file": "gtgr03-a1-provisoire.mp3",
+      "bpm": 132,
+      "duration": 45
+    },
+    {
+      "track": "gtgr04-a1",
+      "file": "gtgr04-a1-provisoire.mp3",
+      "bpm": 128,
+      "duration": 45
+    },
+    {
+      "track": "gtgr05-a1",
+      "file": "gtgr05-a1-provisoire.mp3",
+      "bpm": 124,
+      "duration": 45
+    },
+    {
+      "track": "gtgrva01-1",
+      "file": "gtgrva01-1-provisoire.mp3",
+      "bpm": 122,
+      "duration": 45
+    },
+    {
+      "track": "gtgrva02-1",
+      "file": "gtgrva02-1-provisoire.mp3",
+      "bpm": 125,
+      "duration": 45
+    }
+  ]
+}

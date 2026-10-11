@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:guard": "tsx src/lib/panel-edge-guard.test.ts"
+    "test:guard": "tsx src/lib/panel-edge-guard.test.ts",
+    "test:g2g-tokens": "tsx src/components/experience/groove-to-grave/tokens.test.ts"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
