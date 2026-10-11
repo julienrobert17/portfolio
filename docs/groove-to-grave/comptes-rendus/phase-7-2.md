@@ -1,6 +1,6 @@
 # Groove To Grave — compte-rendu du bloc 7.1b et de la Phase 7.2 (Studio Sanity, schémas et import)
 
-11 octobre 2026 · branche `experience/groove-to-grave` · commits `be3ee8c` (7.1b), `bbd31a1` et `53733d6` (7.2), `HASH_DOCS` (ce compte-rendu) · bloc 7.1b fusionné sur `main` par la PR #6 (`7b18b5c`) · Studio : https://groove-to-grave.sanity.studio · projet Sanity `da2plce8`, dataset `production` (public en lecture), organisation « Julien Robert » (`ol81m6xnx`).
+11 octobre 2026 · branche `experience/groove-to-grave` · commits `be3ee8c` (7.1b), `bbd31a1` et `53733d6` (7.2), `bb953c8` (ce compte-rendu) · bloc 7.1b fusionné sur `main` par la PR #6 (`7b18b5c`) · Studio : https://groove-to-grave.sanity.studio · projet Sanity `da2plce8`, dataset `production` (public en lecture), organisation « Julien Robert » (`ol81m6xnx`).
 
 ## Bloc 7.1b — tuile rendue avec les vraies polices
 
