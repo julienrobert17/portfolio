@@ -1,0 +1,36 @@
+# Sauvegarde hebdomadaire du dataset Sanity de Groove To Grave Records : export complet
+# (documents et fichiers) gardé en artefact pendant 28 jours, soit les quatre derniers exports.
+# Jeton en lecture seule dans les secrets du dépôt (SANITY_SAUVEGARDE_TOKEN), identifiant du
+# projet dans SANITY_PROJECT_ID. Lancement manuel possible.
+name: Sauvegarde Sanity (Groove To Grave)
+
+on:
+  schedule:
+    - cron: '30 4 * * 1' # chaque lundi à 4 h 30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Export du dataset
+        env:
+          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_SAUVEGARDE_TOKEN }}
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+        run: |
+          mkdir -p sauvegarde
+          npx --yes sanity@6.18.0 dataset export production "sauvegarde/groove-to-grave-$(date -u +%Y-%m-%d).tar.gz" --project "$SANITY_PROJECT_ID" --no-open
+          ls -la sauvegarde
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sanity-groove-to-grave-${{ github.run_id }}
+          path: sauvegarde/*.tar.gz
+          retention-days: 28
+          if-no-files-found: error
