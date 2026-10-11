@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { PRESETS, estPreset, filtrerSorties, type Preset } from '@/components/experience/groove-to-grave/content'
-import { label } from '@/components/experience/groove-to-grave/content/label'
+import { PRESETS, estPreset } from '@/components/experience/groove-to-grave/content/presets'
+import type { Preset } from '@/components/experience/groove-to-grave/content/types'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, filtrerSorties } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import MurSorties from '@/components/experience/groove-to-grave/sections/mur-sorties'
 import SyncPreset from '@/components/experience/groove-to-grave/sections/sync-preset'
@@ -9,7 +11,7 @@ import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
   title: 'Sorties',
-  description: `Toutes les sorties de ${label.nom} : vinyles 12″, EP numérique et compilations Summer Hits, filtrables par genre.`,
+  description: `Toutes les sorties de ${MARQUE.nom} : vinyles 12″, EP numérique et compilations Summer Hits, filtrables par genre.`,
 }
 
 interface Props {
@@ -24,7 +26,8 @@ interface Props {
 export default async function SortiesPage({ searchParams }: Props) {
   const { genre } = await searchParams
   const preset: Preset = estPreset(genre) ? genre : 'tout'
-  const liste = filtrerSorties(preset)
+  const { sorties } = await chargerContenu()
+  const liste = filtrerSorties(preset, sorties)
   return (
     <section className="g2g-entete-page" aria-labelledby="sorties">
       <SyncPreset preset={preset} />

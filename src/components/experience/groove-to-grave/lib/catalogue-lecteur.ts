@@ -1,5 +1,5 @@
-import { sortiesAvecExtraits } from '../content'
 import { medias } from '../content/medias'
+import type { Sortie } from '../content/types'
 import type { PisteJouable } from '../store/lecteur-store'
 import { couleursCassette } from '../ui/cassette'
 
@@ -8,9 +8,9 @@ import { couleursCassette } from '../ui/cassette'
  * pistes qui ont un extrait (fichier du label ou provisoire) y figurent. Construit côté serveur
  * dans le layout, passé en props au composant client.
  */
-export function catalogueLecteur(): PisteJouable[] {
+export function catalogueLecteur(sorties: Sortie[]): PisteJouable[] {
   const pistes: PisteJouable[] = []
-  for (const s of sortiesAvecExtraits()) {
+  for (const s of sorties) {
     const c = couleursCassette(s.ref)
     for (const t of s.tracks) {
       if (!t.extrait) continue

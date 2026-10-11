@@ -1,0 +1,1505 @@
+{
+  "priseLe": "2026-10-11T15:15:28.189Z",
+  "sorties": [
+    {
+      "_id": "sortie-gtgrva02",
+      "aVerifier": null,
+      "artisteSlug": null,
+      "bandcamp": "https://groovetograve.bandcamp.com/album/summer-hits-vol-2",
+      "boutiques": null,
+      "catalogue": "GTGRVA02",
+      "credits": {
+        "ar": "Julius",
+        "artwork": "LukasDarian",
+        "distribution": "Groove To Grave Records",
+        "mastering": "Gregs"
+      },
+      "dateSortie": "2026-07-17",
+      "genre": "compilation",
+      "genres": [
+        "house",
+        "minimal",
+        "break"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Various Artists",
+      "pistes": [
+        {
+          "artiste": "Lungo",
+          "bonusNumerique": false,
+          "duree": 369,
+          "position": "1",
+          "titre": "I Met A Girl"
+        },
+        {
+          "artiste": "Yotam Nadav",
+          "bonusNumerique": false,
+          "duree": 392,
+          "position": "2",
+          "titre": "If You Funk To"
+        },
+        {
+          "artiste": "Kitchen Plug ft. l'Abominable",
+          "bonusNumerique": false,
+          "duree": 319,
+          "position": "3",
+          "titre": "Texas Megachurch"
+        },
+        {
+          "artiste": "Crâne De Poule",
+          "bonusNumerique": false,
+          "duree": 319,
+          "position": "4",
+          "titre": "Fierté Mal Placée"
+        },
+        {
+          "artiste": "Phyto",
+          "bonusNumerique": false,
+          "duree": 471,
+          "position": "5",
+          "titre": "Cereja"
+        },
+        {
+          "artiste": "LukasDarian",
+          "bonusNumerique": false,
+          "duree": 398,
+          "position": "6",
+          "titre": "7$ Left"
+        },
+        {
+          "artiste": "Gregs",
+          "bonusNumerique": false,
+          "duree": 373,
+          "position": "7",
+          "titre": "Time"
+        },
+        {
+          "artiste": "Atay",
+          "bonusNumerique": false,
+          "duree": 333,
+          "position": "8",
+          "titre": "Source Of Trouble"
+        }
+      ],
+      "ref": "gtgrva02",
+      "sansRepress": false,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "statut": "numerique",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "Summer is here, and it’s time for round two of our digital series with a new VA. Following the spirit of our first edition, this compilation brings together 8 artists we love: familiar faces and new discoveries.\n\nFrom House to Minimal, Deep, Acid, and Breaks, 8 sun-drenched tracks made for long sunny days, warm nights, and everything in between.",
+        "langue": "en"
+      },
+      "titre": "Summer Hits Vol.2"
+    },
+    {
+      "_id": "sortie-gtgr05",
+      "aVerifier": null,
+      "artisteSlug": "merov",
+      "bandcamp": "https://groovetograve.bandcamp.com/album/interdimensional-groove-ep",
+      "boutiques": [
+        {
+          "libelle": "Subwax",
+          "url": "https://subwax.es/product/gtgr05/"
+        },
+        {
+          "libelle": "deejay.de",
+          "url": "https://www.deejay.de/Merov_Interdimensional_Groove_EP_GTGR05_Vinyl__1218764"
+        },
+        {
+          "libelle": "Redeye",
+          "url": "https://www.redeyerecords.co.uk/vinyl/192460-gtgr05-merov-interdimensional-groove-ep"
+        }
+      ],
+      "catalogue": "GTGR05",
+      "credits": {
+        "ar": null,
+        "artwork": "JeunePenard",
+        "distribution": "Subwax",
+        "mastering": "Benoit D. - Perception Mastering"
+      },
+      "dateSortie": "2026-05-13",
+      "genre": "vinyle",
+      "genres": [
+        "house",
+        "electro"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Merov'",
+      "pistes": [
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 469,
+          "position": "A1",
+          "titre": "UFO Catcher"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 363,
+          "position": "A2",
+          "titre": "Swing Interstellaire"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 350,
+          "position": "B1",
+          "titre": "Spirit Spaceship"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 361,
+          "position": "B2",
+          "titre": "Big Band Bang"
+        }
+      ],
+      "ref": "gtgr05",
+      "sansRepress": true,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/interdimensional-groove-ep",
+        "https://www.deejay.de/Groove_To_Grave_Records__L297054",
+        "https://www.redeyerecords.co.uk/vinyl/192460-gtgr05-merov-interdimensional-groove-ep"
+      ],
+      "statut": "disponible",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "The 5th Groove to Grave release is here. Step into our spaceship and head toward Merov’ Galaxy, a universe where the funk, groove, and electro planets collide. This EP invites you to explore a musical cosmos of irresistible rhythms and richly detailed sound design, perfect for electro-funk lovers.\n\nEach track is built around sharp Rhodes and Clavinet keys, laying down cosmic, groove-heavy foundations. At the heart of the tracks, deep textures and bleepy FX create a hypnotic space, while the synths deliver airy, futuristic leads, giving every cut an interstellar dimension.",
+        "langue": "en"
+      },
+      "titre": "Interdimensional Groove EP"
+    },
+    {
+      "_id": "sortie-gtgrva01",
+      "aVerifier": null,
+      "artisteSlug": null,
+      "bandcamp": "https://groovetograve.bandcamp.com/album/summer-hits-vol-1",
+      "boutiques": null,
+      "catalogue": "GTGRVA01",
+      "credits": {
+        "ar": "Julius",
+        "artwork": "LukasDarian",
+        "distribution": "Groove To Grave Records",
+        "mastering": "Gregs"
+      },
+      "dateSortie": "2025-07-04",
+      "genre": "compilation",
+      "genres": [
+        "house",
+        "minimal"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Various Artists",
+      "pistes": [
+        {
+          "artiste": "MAMAAA",
+          "bonusNumerique": false,
+          "duree": 372,
+          "position": "1",
+          "titre": "Wytgh ?"
+        },
+        {
+          "artiste": "Local DJ",
+          "bonusNumerique": false,
+          "duree": 340,
+          "position": "2",
+          "titre": "Glitch"
+        },
+        {
+          "artiste": "Venetia",
+          "bonusNumerique": false,
+          "duree": 346,
+          "position": "3",
+          "titre": "Mirage de Funk"
+        },
+        {
+          "artiste": "Emi Ömar",
+          "bonusNumerique": false,
+          "duree": 375,
+          "position": "4",
+          "titre": "Beat a Stick"
+        },
+        {
+          "artiste": "Gregs",
+          "bonusNumerique": false,
+          "duree": 477,
+          "position": "5",
+          "titre": "Hotline"
+        },
+        {
+          "artiste": "Loupiot",
+          "bonusNumerique": false,
+          "duree": 248,
+          "position": "6",
+          "titre": "Renardo"
+        },
+        {
+          "artiste": "LukasDarian",
+          "bonusNumerique": false,
+          "duree": 396,
+          "position": "7",
+          "titre": "Forevor Luxor"
+        },
+        {
+          "artiste": "Jad Sabbah",
+          "bonusNumerique": false,
+          "duree": 288,
+          "position": "8",
+          "titre": "Libre"
+        }
+      ],
+      "ref": "gtgrva01",
+      "sansRepress": false,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "statut": "numerique",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "Introducing our very first VA : a compilation of 8 tracks by artists we love and who orbit around the label. Alongside our vinyl releases, this digital series, designed as an annual rendezvous, gives us the chance to invite our friends to share a track, just for the love of sound.\n\nHouse, Minimal, Deep, Funk or Downtempo: 8 sun-soaked tracks to set the tone for your summer, your beach days, your befores, your parties, your afters.",
+        "langue": "en"
+      },
+      "titre": "Summer Hits Vol.1"
+    },
+    {
+      "_id": "sortie-gtgr04",
+      "aVerifier": null,
+      "artisteSlug": "emi-omar",
+      "bandcamp": "https://groovetograve.bandcamp.com/album/homo-musicus-ep",
+      "boutiques": [
+        {
+          "libelle": "Yoyaku",
+          "url": "https://yoyaku.io/release/emi-omar-homo-musicus-ep-gtgr04/"
+        },
+        {
+          "libelle": "Redeye",
+          "url": "https://www.redeyerecords.co.uk/vinyl/179884-gtgr04-emi-%C3%B6mar-homo-musicus-ep"
+        }
+      ],
+      "catalogue": "GTGR04",
+      "credits": {
+        "ar": null,
+        "artwork": "JeunePenard",
+        "distribution": "Subwax",
+        "mastering": "Benoit D. - Perception Mastering"
+      },
+      "dateSortie": "2025-03-21",
+      "genre": "vinyle",
+      "genres": [
+        "electro",
+        "house"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Emi Ömar",
+      "pistes": [
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 531,
+          "position": "A1",
+          "titre": "Chut Hello"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 452,
+          "position": "A2",
+          "titre": "Primate Groove"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 402,
+          "position": "B1",
+          "titre": "Grrrr"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 305,
+          "position": "B2",
+          "titre": "Are You Homo Musicus ?"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": true,
+          "duree": 748,
+          "position": "Bonus",
+          "titre": "Lucky Good"
+        }
+      ],
+      "ref": "gtgr04",
+      "sansRepress": true,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/homo-musicus-ep",
+        "https://yoyaku.io/release/emi-omar-homo-musicus-ep-gtgr04/",
+        "https://subwax.es/brands/groove-to-grave-records/"
+      ],
+      "statut": "epuise",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "Emi Ömar kicks off the year on our imprint series with a powerful and evocative EP, designed as a sonic journey through his live performances of 2024.\n\nLeading figure in electro-funk, Emi Ömar delves into uncharted music territories. Known for his sharp prestations, his blend of vocoder, bleepy/funky sounds, and deep/fat grooves captures the raw energy of live electronic music.\n\nThe tracks weave a musical narrative that reflects the vision and technical mastery of a passionate artist. An experience that will resonate with both electronic music enthusiasts and explorers of new soundscapes.",
+        "langue": "en"
+      },
+      "titre": "Homo Musicus EP"
+    },
+    {
+      "_id": "sortie-gtgr03",
+      "aVerifier": null,
+      "artisteSlug": "kitchen-plug",
+      "bandcamp": "https://groovetograve.bandcamp.com/album/cerberus-ep",
+      "boutiques": [
+        {
+          "libelle": "deejay.de",
+          "url": "https://www.deejay.de/Groove_To_Grave_Records__L297054"
+        },
+        {
+          "libelle": "Subwax",
+          "url": "https://subwax.es/brands/groove-to-grave-records/"
+        }
+      ],
+      "catalogue": "GTGR03",
+      "credits": {
+        "ar": null,
+        "artwork": "JeunePenard",
+        "distribution": "Subwax",
+        "mastering": "Benoit D. - Perception Mastering"
+      },
+      "dateSortie": "2024-05-24",
+      "genre": "vinyle",
+      "genres": [
+        "break"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Kitchen Plug",
+      "pistes": [
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 288,
+          "position": "A1",
+          "titre": "Hm That Bass"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 342,
+          "position": "A2",
+          "titre": "Amor Da Fonseca"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 312,
+          "position": "B1",
+          "titre": "Melee"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 374,
+          "position": "B2",
+          "titre": "Melee (Karaba Remix)"
+        }
+      ],
+      "ref": "gtgr03",
+      "sansRepress": true,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/cerberus-ep",
+        "https://www.deejay.de/Groove_To_Grave_Records__L297054"
+      ],
+      "statut": "disponible",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "Groove To Grave Records is back with a second vinyl release, and for this one they are welcoming the Parisian trio Kitchen Plug.\n\nFrom ghetto house to break and minimal these 3 silly boys love to produce tracks with nasty bass, metallic acid and raw drums. For their first solo EP on vinyl, they wanted to add a early 2000’ electro vibe to their ghetto style for a brainless result. Get ready for 4 bangers, including a tremendous remix from Karaba.",
+        "langue": "en"
+      },
+      "titre": "Cerberus EP"
+    },
+    {
+      "_id": "sortie-gtgr02",
+      "aVerifier": [
+        "credits.mastering : lu sur l’étiquette du disque, absent de Bandcamp"
+      ],
+      "artisteSlug": "azbine",
+      "bandcamp": "https://groovetograve.bandcamp.com/album/spacy-taste-ep",
+      "boutiques": [
+        {
+          "libelle": "Yoyaku",
+          "url": "https://www.yoyaku.io/release/gtgr02/"
+        },
+        {
+          "libelle": "Subwax",
+          "url": "https://subwax.es/brands/groove-to-grave-records/"
+        }
+      ],
+      "catalogue": "GTGR02",
+      "credits": {
+        "ar": null,
+        "artwork": "JeunePenard",
+        "distribution": "Subwax",
+        "mastering": "Octavix Studio"
+      },
+      "dateSortie": "2023-07-07",
+      "genre": "vinyle",
+      "genres": [
+        "minimal",
+        "house"
+      ],
+      "genresValides": false,
+      "nomArtiste": "Azbine",
+      "pistes": [
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 283,
+          "position": "A1",
+          "titre": "If This Wall Could Talk"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 333,
+          "position": "A2",
+          "titre": "Boarding Pass"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 305,
+          "position": "B1",
+          "titre": "Spacy Taste"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 322,
+          "position": "B2",
+          "titre": "She Gave Me Flavour"
+        }
+      ],
+      "ref": "gtgr02",
+      "sansRepress": true,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/spacy-taste-ep",
+        "https://www.yoyaku.io/release/gtgr02/",
+        "https://yoyaku.io/artist/azbine/"
+      ],
+      "statut": "epuise",
+      "texte": {
+        "aValiderParLeLabel": false,
+        "corps": "This is the first vinyl release of the parisian label: Groove To Grave.\n\nFor this EP they are welcoming the group Azbine from Lyon in France. Azbine was created by 2 childhood friends in 2018. They take their influences from house and minimal through deeptech and they want to bring a retro has-been touch in their electronic universe. This is their first solo EP.",
+        "langue": "en"
+      },
+      "titre": "Spacy Taste EP"
+    },
+    {
+      "_id": "sortie-gtgr01",
+      "aVerifier": null,
+      "artisteSlug": "lukasdarian",
+      "bandcamp": "https://groovetograve.bandcamp.com/album/common-speed-ep",
+      "boutiques": null,
+      "catalogue": "GTGR01",
+      "credits": {
+        "ar": null,
+        "artwork": "Cbrgraphics",
+        "distribution": null,
+        "mastering": "Marine Benabou - MB Mastering"
+      },
+      "dateSortie": "2022-07-22",
+      "genre": "ep-numerique",
+      "genres": [
+        "minimal",
+        "house"
+      ],
+      "genresValides": false,
+      "nomArtiste": "LukasDarian",
+      "pistes": [
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 380,
+          "position": "A1",
+          "titre": "Don't Fuck with my G's"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 276,
+          "position": "A2",
+          "titre": "The Freak"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 267,
+          "position": "B1",
+          "titre": "Coin Flip"
+        },
+        {
+          "artiste": null,
+          "bonusNumerique": false,
+          "duree": 386,
+          "position": "B2",
+          "titre": "Longer"
+        }
+      ],
+      "ref": "gtgr01",
+      "sansRepress": false,
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/common-speed-ep"
+      ],
+      "statut": "numerique",
+      "texte": null,
+      "titre": "Common Speed EP"
+    }
+  ],
+  "artistes": [
+    {
+      "_id": "artiste-julius",
+      "liens": null,
+      "nom": "Julius",
+      "presentation": {
+        "aValiderParLeLabel": true,
+        "corps": "Crédité à l'A&R des deux compilations Summer Hits. Membre du collectif avec LukasDarian et Gregs.",
+        "langue": "fr"
+      },
+      "role": "A&R",
+      "slug": "julius",
+      "sorties": [
+        "gtgrva01",
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2",
+        "https://www.paris.fr/evenements/groove-to-grave-records-a-la-peniche-marcounet-65178"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-lukasdarian",
+      "liens": [
+        {
+          "libelle": "Common Speed EP sur Bandcamp",
+          "url": "https://groovetograve.bandcamp.com/album/common-speed-ep"
+        }
+      ],
+      "nom": "LukasDarian",
+      "presentation": {
+        "aValiderParLeLabel": true,
+        "corps": "Auteur de « Common Speed EP » (GTGR01, 2022), première référence du label, et de l'artwork des deux compilations Summer Hits, sur lesquelles il signe aussi un titre. Membre du collectif avec Julius et Gregs.",
+        "langue": "fr"
+      },
+      "role": "Visuels et artwork des compilations",
+      "slug": "lukasdarian",
+      "sorties": [
+        "gtgr01",
+        "gtgrva01",
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/common-speed-ep",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-gregs",
+      "liens": null,
+      "nom": "Gregs",
+      "presentation": {
+        "aValiderParLeLabel": true,
+        "corps": "Crédité au mastering des deux compilations Summer Hits, sur lesquelles il signe aussi un titre. Membre du collectif avec Julius et LukasDarian.",
+        "langue": "fr"
+      },
+      "role": "Mastering des compilations",
+      "slug": "gregs",
+      "sorties": [
+        "gtgrva01",
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2",
+        "https://www.paris.fr/evenements/groove-to-grave-records-a-la-peniche-marcounet-65178"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-azbine",
+      "liens": [
+        {
+          "libelle": "Spacy Taste EP sur Bandcamp",
+          "url": "https://groovetograve.bandcamp.com/album/spacy-taste-ep"
+        },
+        {
+          "libelle": "Azbine chez Yoyaku",
+          "url": "https://yoyaku.io/artist/azbine/"
+        }
+      ],
+      "nom": "Azbine",
+      "presentation": {
+        "aValiderParLeLabel": false,
+        "corps": "Azbine was created by 2 childhood friends in 2018. They take their influences from house and minimal through deeptech and they want to bring a retro has-been touch in their electronic universe.",
+        "langue": "en"
+      },
+      "role": null,
+      "slug": "azbine",
+      "sorties": [
+        "gtgr02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/spacy-taste-ep",
+        "https://yoyaku.io/artist/azbine/"
+      ],
+      "ville": "Lyon"
+    },
+    {
+      "_id": "artiste-kitchen-plug",
+      "liens": [
+        {
+          "libelle": "Cerberus EP sur Bandcamp",
+          "url": "https://groovetograve.bandcamp.com/album/cerberus-ep"
+        }
+      ],
+      "nom": "Kitchen Plug",
+      "presentation": {
+        "aValiderParLeLabel": false,
+        "corps": "From ghetto house to break and minimal these 3 silly boys love to produce tracks with nasty bass, metallic acid and raw drums.",
+        "langue": "en"
+      },
+      "role": null,
+      "slug": "kitchen-plug",
+      "sorties": [
+        "gtgr03",
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/cerberus-ep",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": "Paris"
+    },
+    {
+      "_id": "artiste-emi-omar",
+      "liens": [
+        {
+          "libelle": "Homo Musicus EP sur Bandcamp",
+          "url": "https://groovetograve.bandcamp.com/album/homo-musicus-ep"
+        }
+      ],
+      "nom": "Emi Ömar",
+      "presentation": {
+        "aValiderParLeLabel": false,
+        "corps": "Leading figure in electro-funk, Emi Ömar delves into uncharted music territories. Known for his sharp prestations, his blend of vocoder, bleepy/funky sounds, and deep/fat grooves captures the raw energy of live electronic music.",
+        "langue": "en"
+      },
+      "role": null,
+      "slug": "emi-omar",
+      "sorties": [
+        "gtgr04",
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/homo-musicus-ep",
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-merov",
+      "liens": [
+        {
+          "libelle": "Interdimensional Groove EP sur Bandcamp",
+          "url": "https://groovetograve.bandcamp.com/album/interdimensional-groove-ep"
+        }
+      ],
+      "nom": "Merov'",
+      "presentation": {
+        "aValiderParLeLabel": false,
+        "corps": "Step into our spaceship and head toward Merov' Galaxy, a universe where the funk, groove, and electro planets collide. Each track is built around sharp Rhodes and Clavinet keys, laying down cosmic, groove-heavy foundations.",
+        "langue": "en"
+      },
+      "role": null,
+      "slug": "merov",
+      "sorties": [
+        "gtgr05"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/interdimensional-groove-ep"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-karaba",
+      "liens": null,
+      "nom": "Karaba",
+      "presentation": null,
+      "role": null,
+      "slug": "karaba",
+      "sorties": [
+        "gtgr03"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/cerberus-ep"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-mamaaa",
+      "liens": null,
+      "nom": "MAMAAA",
+      "presentation": null,
+      "role": null,
+      "slug": "mamaaa",
+      "sorties": [
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-local-dj",
+      "liens": null,
+      "nom": "Local DJ",
+      "presentation": null,
+      "role": null,
+      "slug": "local-dj",
+      "sorties": [
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-venetia",
+      "liens": null,
+      "nom": "Venetia",
+      "presentation": null,
+      "role": null,
+      "slug": "venetia",
+      "sorties": [
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-loupiot",
+      "liens": null,
+      "nom": "Loupiot",
+      "presentation": null,
+      "role": null,
+      "slug": "loupiot",
+      "sorties": [
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-jad-sabbah",
+      "liens": null,
+      "nom": "Jad Sabbah",
+      "presentation": null,
+      "role": null,
+      "slug": "jad-sabbah",
+      "sorties": [
+        "gtgrva01"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-1"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-lungo",
+      "liens": null,
+      "nom": "Lungo",
+      "presentation": null,
+      "role": null,
+      "slug": "lungo",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-yotam-nadav",
+      "liens": null,
+      "nom": "Yotam Nadav",
+      "presentation": null,
+      "role": null,
+      "slug": "yotam-nadav",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-l-abominable",
+      "liens": null,
+      "nom": "l'Abominable",
+      "presentation": null,
+      "role": null,
+      "slug": "l-abominable",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-crane-de-poule",
+      "liens": null,
+      "nom": "Crâne De Poule",
+      "presentation": null,
+      "role": null,
+      "slug": "crane-de-poule",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-phyto",
+      "liens": null,
+      "nom": "Phyto",
+      "presentation": null,
+      "role": null,
+      "slug": "phyto",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    },
+    {
+      "_id": "artiste-atay",
+      "liens": null,
+      "nom": "Atay",
+      "presentation": null,
+      "role": null,
+      "slug": "atay",
+      "sorties": [
+        "gtgrva02"
+      ],
+      "sources": [
+        "https://groovetograve.bandcamp.com/album/summer-hits-vol-2"
+      ],
+      "ville": null
+    }
+  ],
+  "soirees": [
+    {
+      "_id": "soiree-2026-10-11",
+      "adresse": "37 rue des Cheminots, 75018 Paris",
+      "billetterie": "https://shotgun.live/fr/events/finesse-rekords-x-groove-to-grave",
+      "date": "2026-10-11",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Deux collectifs de la scène parisienne s'associent pour profiter comme il se doit de l'été indien. Direction Plantation, un rooftop végétal avec vue sur Paris, cadre idéal pour passer un dimanche au soleil, accompagné d'une délicieuse sélection House.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Finesse Rekords x Groove To Grave du 2026-10-11 au Plantation Paris, rooftop",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "12 h à 22 h",
+      "lieu": "Plantation Paris, rooftop",
+      "lineup": [
+        "Ode (Sisteuf)",
+        "Margit",
+        "Gregs b2b Julius",
+        "Finesse Rekords",
+        "Check&Mate"
+      ],
+      "nom": "Finesse Rekords x Groove To Grave",
+      "prix": "Entrée libre",
+      "sources": [
+        "https://shotgun.live/fr/events/finesse-rekords-x-groove-to-grave",
+        "https://ra.co/events/2544127",
+        "https://linktr.ee/groovetograve"
+      ],
+      "statut": "a-venir",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2026-01-09",
+      "adresse": "Esplanade Johnny-Hallyday, 75012 Paris",
+      "billetterie": "https://shotgun.live/en/events/groove-to-grave-x-42-marches-iii-titre-a-maj",
+      "date": "2026-01-09",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Quoi de mieux pour lancer l'année 2026 qu'un marathon de 14 heures de son non-stop ? Le vendredi 9 janvier, on revient poser nos skeuds et brancher nos clés au 42marches, l'un des spots les plus intimistes de la capitale.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Groove To Grave Extended du 2026-01-09 au 42 Marches",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "horaires": "minuit à 14 h, nuit et after",
+      "lieu": "42 Marches",
+      "lineup": [
+        "Blinkduus Dischetto (live)",
+        "Menuu b2b Casual Plaza",
+        "Dirty South (La Ruche)",
+        "Seabra",
+        "Axel Raide",
+        "Gregs",
+        "Pink Mermaids"
+      ],
+      "nom": "Groove To Grave Extended",
+      "prix": "12 € à 16 €, after 10 €",
+      "sources": [
+        "https://web.archive.org/web/20260210065539/https://shotgun.live/en/events/groove-to-grave-x-42-marches-iii-titre-a-maj",
+        "https://ra.co/events/2326038"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2025-12-19",
+      "adresse": "7 rue Boursault, 75017 Paris",
+      "billetterie": "https://shotgun.live/en/events/midnight-express-mely-groove-to-grave",
+      "date": "2025-12-19",
+      "description": null,
+      "flyer": {
+        "alt": "Flyer de la soirée Midnight Express du 2025-12-19 au Le Wagon Bleu",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": null,
+      "lieu": "Le Wagon Bleu",
+      "lineup": [
+        "Mely",
+        "Groove To Grave"
+      ],
+      "nom": "Midnight Express",
+      "prix": null,
+      "sources": [
+        "https://shotgun.live/en/venues/groove-to-grave-records",
+        "https://lewagonbleu.fr/"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2025-10-31",
+      "adresse": "14 quai de l'Hôtel-de-Ville, 75004 Paris",
+      "billetterie": "https://shotgun.live/en/events/danza-to-the-grave",
+      "date": "2025-10-31",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Ami noctambule ce message t'es adressé, si tu cherches un before pour ta soirée d'Halloween, t'es tombé au bon endroit. On jette l'ancre à la péniche Marcounet, en plein cœur de Paris. Lieu intimiste, places limitées à bord.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Danza To The Grave du 2025-10-31 au Péniche Marcounet",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "horaires": "22 h à 2 h",
+      "lieu": "Péniche Marcounet",
+      "lineup": [
+        "Groove To Grave",
+        "Danza Autoriza"
+      ],
+      "nom": "Danza To The Grave",
+      "prix": "5 € en ligne, 7 € sur place",
+      "sources": [
+        "https://web.archive.org/web/20251108123248/https://shotgun.live/en/events/danza-to-the-grave",
+        "https://shotgun.live/en/venues/groove-to-grave-records"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2025-07-25",
+      "adresse": "12a rue Ella-Fitzgerald, 75019 Paris",
+      "billetterie": "https://www.jardin21.fr/events/groove-to-grave-x-jardin21-open-air",
+      "date": "2025-07-25",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Au programme : deux fines fleurs de la scène parisienne viennent faire vibrer les platines aux côtés du collectif Groove To Grave. Une soirée sous les étoiles qui s'annonce bien fruitée avec Foxin, Local DJ & des résidents.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Groove To Grave x Jardin21, open air du 2025-07-25 au Jardin21",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "DJ sets de 21 h à 4 h",
+      "lieu": "Jardin21",
+      "lineup": [
+        "Foxin",
+        "Local DJ",
+        "résidents Groove To Grave"
+      ],
+      "nom": "Groove To Grave x Jardin21, open air",
+      "prix": "Entrée libre",
+      "sources": [
+        "https://www.jardin21.fr/events/groove-to-grave-x-jardin21-open-air"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2025-04-19",
+      "adresse": "6-8 place de la Bataille-de-Stalingrad, 75019 Paris",
+      "billetterie": "https://shotgun.live/fr/events/open-air-club-xxl-vinyle-village-the-diggers-temple",
+      "date": "2025-04-19",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Vinyle Village fait son grand retour le samedi 19 avril avec son tout premier marché de vinyles en open-air, suivi d'une soirée sur les trois espaces de la Rotonde Stalingrad.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Vinyle Village, The Diggers Temple du 2025-04-19 au La Rotonde Stalingrad",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "marché de vinyles de 16 h à 22 h, club de 22 h à 6 h",
+      "lieu": "La Rotonde Stalingrad",
+      "lineup": [
+        "Mini-club : Groove To Grave",
+        "Atrium : Poggio, Ines MBK, Alice Caroline",
+        "Refuge : Alyhas, Samuel Tauby, DJ Akillys, Louis VS"
+      ],
+      "nom": "Vinyle Village, The Diggers Temple",
+      "prix": null,
+      "sources": [
+        "https://web.archive.org/web/20250425112700/https://shotgun.live/fr/events/open-air-club-xxl-vinyle-village-the-diggers-temple",
+        "https://wander-app.fr/event/673688-vinyle-village-open-air-club-xxl-the-diggers-temple-la-rotonde-stalingrad"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2025-02-07",
+      "adresse": null,
+      "billetterie": null,
+      "date": "2025-02-07",
+      "description": null,
+      "flyer": null,
+      "horaires": null,
+      "lieu": "Lieu à vérifier",
+      "lineup": [
+        "Emi Ömar b2b Gregs",
+        "Alyhas",
+        "Pink Mermaids"
+      ],
+      "nom": null,
+      "prix": null,
+      "sources": null,
+      "statut": "passee",
+      "verifiee": false,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-11-01",
+      "adresse": "Esplanade Johnny-Hallyday, 75012 Paris",
+      "billetterie": null,
+      "date": "2024-11-01",
+      "description": null,
+      "flyer": null,
+      "horaires": null,
+      "lieu": "42 Marches",
+      "lineup": null,
+      "nom": null,
+      "prix": null,
+      "sources": null,
+      "statut": "annulee",
+      "verifiee": false,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-08-31",
+      "adresse": "6-8 place de la Bataille-de-Stalingrad, 75019 Paris",
+      "billetterie": "https://shotgun.live/events/attrape-rave-w-itineraire-bis-groove-to-grave-kpich-more",
+      "date": "2024-08-31",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Attrape Rave, le grand retour ! Format XXL, 3 espaces (Atrium, Refuge, Miniclub), w/ DJ sets, scénographie, performances.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Attrape Rave, S4 épisode 10 du 2024-08-31 au La Rotonde Stalingrad",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "22 h à 6 h, Groove To Grave au Refuge de 22 h à 5 h",
+      "lieu": "La Rotonde Stalingrad",
+      "lineup": [
+        "Refuge : Groove To Grave",
+        "Atrium : Tomasi, H3 Records, Ashdeuxo",
+        "Miniclub : Kpich, Groove Instant"
+      ],
+      "nom": "Attrape Rave, S4 épisode 10",
+      "prix": "préventes 12 € et 15 €, 18 € sur place, gratuit avant minuit",
+      "sources": [
+        "https://web.archive.org/web/20240919000406/https://shotgun.live/events/attrape-rave-w-itineraire-bis-groove-to-grave-kpich-more"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-07-13",
+      "adresse": "14 quai de l'Hôtel-de-Ville, 75004 Paris",
+      "billetterie": "https://shotgun.live/events/la-peniche-marcounet-invite-groove-to-grave-records",
+      "date": "2024-07-13",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Ce jeune et fougueux label de diggers parisiens vogue en quête d'artistes émergents, propageant joie de vivre et musique au travers de leurs sorties vinyles. Le collectif assume pleinement ses influences groovy avec des riffs puissants, des synthés stellaires et des basslines grasses.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée La Péniche Marcounet invite Groove To Grave Records du 2024-07-13 au Péniche Marcounet",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "22 h à 4 h",
+      "lieu": "Péniche Marcounet",
+      "lineup": [
+        "Julius",
+        "LukasDarian",
+        "Gregs"
+      ],
+      "nom": "La Péniche Marcounet invite Groove To Grave Records",
+      "prix": "Gratuit, sur réservation",
+      "sources": [
+        "https://www.paris.fr/evenements/groove-to-grave-records-a-la-peniche-marcounet-65178",
+        "https://web.archive.org/web/20240805213325/https://shotgun.live/events/la-peniche-marcounet-invite-groove-to-grave-records"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-06-28",
+      "adresse": "59 boulevard Macdonald, 75019 Paris",
+      "billetterie": "https://shotgun.live/events/burnin-ship-3-emi-omar-live-lungo-gregs-pink-mermaids",
+      "date": "2024-06-28",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Burnin' Ship 3 : L'attaque des Caraïbes. La fidèle Péniche Cinema quitte les eaux pluvieuses du printemps pour retrouver les îles paradisiaques et les chaudes nuits d'été des Caraïbes.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Burnin' Ship 3 du 2024-06-28 au Péniche Cinéma, Le Baruda",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "horaires": "23 h à 6 h",
+      "lieu": "Péniche Cinéma, Le Baruda",
+      "lineup": [
+        "Pink Mermaids",
+        "Lungo (RMP Soundsystem)",
+        "Emi Ömar (live)",
+        "Gregs"
+      ],
+      "nom": "Burnin' Ship 3",
+      "prix": "10 € à 15 €",
+      "sources": [
+        "https://web.archive.org/web/20240810225947/https://shotgun.live/events/burnin-ship-3-emi-omar-live-lungo-gregs-pink-mermaids"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-04-13",
+      "adresse": "59 boulevard Macdonald, 75019 Paris",
+      "billetterie": "https://shotgun.live/events/groove-to-grave-kitchen-plug-burnin-ship-2",
+      "date": "2024-04-13",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Burnin' Ship 2 : La revanche des moussaillons. Fiers d'un premier abordage plus que réussi, Groove To Grave Records & Kitchen Plug sont de retour à la Péniche Cinéma pour une nouvelle traversée le samedi 13 avril de 22h à 6h.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Burnin' Ship 2 du 2024-04-13 au Péniche Cinéma, Le Baruda",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian et Antoine Delay"
+      },
+      "horaires": "22 h à 6 h",
+      "lieu": "Péniche Cinéma, Le Baruda",
+      "lineup": [
+        "Pink Mermaids",
+        "Gregs",
+        "Venetia",
+        "Kitchen Plug",
+        "Takirimatia (SOL-R)"
+      ],
+      "nom": "Burnin' Ship 2",
+      "prix": "10 € à 15 €",
+      "sources": [
+        "https://web.archive.org/web/20240522014916/https://shotgun.live/events/groove-to-grave-kitchen-plug-burnin-ship-2"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2024-03-02",
+      "adresse": "Esplanade Johnny-Hallyday, 75012 Paris",
+      "billetterie": "https://shotgun.live/en/events/groove-to-grave-how-i-met-denyl-brook-and-friends",
+      "date": "2024-03-02",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Groove To Grave et How I Met s'associent pour investir le Amex Live Bar le samedi 2 Mars de 23h à 5h. Nouveau lieu de la scène parisienne, pour l'occasion on invite Denyl Brook, fer de lance de la nouvelle vague de House lyonnaise.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Groove To Grave & How I Met : Denyl Brook and friends du 2024-03-02 au Amex Live Bar (42 Marches)",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "horaires": "23 h à 5 h",
+      "lieu": "Amex Live Bar (42 Marches)",
+      "lineup": [
+        "Denyl Brook",
+        "Gregs",
+        "Tatem"
+      ],
+      "nom": "Groove To Grave & How I Met : Denyl Brook and friends",
+      "prix": "10 € à 15 €",
+      "sources": [
+        "https://web.archive.org/web/20250419215012/https://shotgun.live/en/events/groove-to-grave-how-i-met-denyl-brook-and-friends"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2023-11-04",
+      "adresse": "59 boulevard Macdonald, 75019 Paris",
+      "billetterie": "https://shotgun.live/fr/events/groove-to-grave-kitchen-plug-burnin-ship",
+      "date": "2023-11-04",
+      "description": null,
+      "flyer": null,
+      "horaires": null,
+      "lieu": "Péniche Cinéma, Le Baruda",
+      "lineup": [
+        "Groove To Grave",
+        "Kitchen Plug"
+      ],
+      "nom": "Burnin' Ship",
+      "prix": null,
+      "sources": null,
+      "statut": "passee",
+      "verifiee": false,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2023-05-10",
+      "adresse": "101 rue Amelot, 75011 Paris",
+      "billetterie": "https://shotgun.live/fr/events/groove-to-grave-records-panic-room",
+      "date": "2023-05-10",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Rdv le 10 mai de 19h à 2h dans ce haut-lieu de la nuit parisienne pour découvrir un univers électronique éclectique servi par les deux fondateurs du labels LukasDarian & J. Fuego, qui invitent pour l'occasion Angiome du collectif Pleins phares et qui joueront pour la première fois ensemble sous l'alias Pink Mermaids.",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Groove To Grave Records à la Panic Room du 2023-05-10 au Panic Room",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "19 h à 2 h",
+      "lieu": "Panic Room",
+      "lineup": [
+        "LukasDarian",
+        "J. Fuego",
+        "Angiome (Pleins Phares)",
+        "Pink Mermaids"
+      ],
+      "nom": "Groove To Grave Records à la Panic Room",
+      "prix": "Entrée gratuite",
+      "sources": [
+        "https://web.archive.org/web/20230929080723/https://shotgun.live/fr/events/groove-to-grave-records-panic-room"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2023-02-22",
+      "adresse": null,
+      "billetterie": "https://shotgun.live/en/events/groove-to-grave-records-bar-ephemere-l-exode",
+      "date": "2023-02-22",
+      "description": null,
+      "flyer": null,
+      "horaires": null,
+      "lieu": "Bar éphémère L'Exode (ex-45 Tours)",
+      "lineup": [
+        "Le crew au complet"
+      ],
+      "nom": "Groove To Grave Records au bar éphémère L'Exode",
+      "prix": null,
+      "sources": null,
+      "statut": "passee",
+      "verifiee": false,
+      "ville": "Paris"
+    },
+    {
+      "_id": "soiree-2023-01-07",
+      "adresse": "46 rue du Faubourg-Montmartre, 75009 Paris",
+      "billetterie": "https://shotgun.live/en/events/groove-to-grave-records",
+      "date": "2023-01-07",
+      "description": {
+        "aValiderParLeLabel": false,
+        "corps": "Notre label Groove to Grave records organise sa toute première soirée au bar Le LIEBE ! Soirée sur le thème du PLAISIR ; entre house, minimal, techno et autres styles divers et variés pour vous faire danser jusqu'au petit matin !",
+        "langue": "fr"
+      },
+      "flyer": {
+        "alt": "Flyer de la soirée Première soirée, thème Plaisir du 2023-01-07 au Liebe, bar électro",
+        "auteurNonIdentifie": true,
+        "credit": ""
+      },
+      "horaires": "21 h à 6 h",
+      "lieu": "Liebe, bar électro",
+      "lineup": [
+        "Noyz",
+        "LukasDarian",
+        "Fritzy",
+        "Flogo (techno set)",
+        "Guibz"
+      ],
+      "nom": "Première soirée, thème Plaisir",
+      "prix": "Gratuit",
+      "sources": [
+        "https://shotgun.live/en/events/groove-to-grave-records"
+      ],
+      "statut": "passee",
+      "verifiee": true,
+      "ville": "Paris"
+    }
+  ],
+  "textes": {
+    "demo": {
+      "aValiderParLeLabel": true,
+      "corps": "Envoie un lien d'écoute privé (SoundCloud ou équivalent), pas de fichier joint. Deux ou trois titres suffisent. Le délai de réponse reste à préciser avec le label.",
+      "langue": "fr"
+    },
+    "droits": {
+      "aValiderParLeLabel": false,
+      "corps": "Pochettes, flyers, illustrations et textes de sortie appartiennent à Groove To Grave Records et à leurs auteurs : JeunePenard, LukasDarian, Cbrgraphics.",
+      "langue": "fr"
+    },
+    "newsletter": {
+      "aValiderParLeLabel": true,
+      "corps": "Merci. Rien n'est encore enregistré : la newsletter attend que le label choisisse son outil. En attendant, suis le label sur Bandcamp.",
+      "langue": "fr"
+    },
+    "phrase": {
+      "aValiderParLeLabel": true,
+      "corps": "Du sillon à la tombe.",
+      "langue": "fr"
+    },
+    "pourquoi": {
+      "aValiderParLeLabel": true,
+      "corps": "Trois diggers, des vinyles en pressage limité, souvent sans repress, et une compilation chaque été pour inviter les copains. On ne fait pas de la house pour les playlists, on en fait pour les disquaires et les pistes de danse.",
+      "langue": "fr"
+    },
+    "presentation": {
+      "aValiderParLeLabel": false,
+      "corps": "Ce jeune et fougueux label de diggers parisiens vogue en quête d'artistes émergents, propageant joie de vivre et musique au travers de leurs sorties vinyles. Le collectif assume pleinement ses influences groovy avec des riffs puissants, des synthés stellaires et des basslines grasses. Tantôt Breakbeat, parfois Minimal, la House persiste et signe toutefois comme fer-de-lance du crew G2G.",
+      "langue": "fr"
+    },
+    "soireesVide": {
+      "aValiderParLeLabel": true,
+      "corps": "Aucune date annoncée, reste branché.",
+      "langue": "fr"
+    }
+  },
+  "reglages": {
+    "contact": null,
+    "contactDemo": null,
+    "crew": [
+      "julius",
+      "lukasdarian",
+      "gregs"
+    ],
+    "depuis": 2022,
+    "disquaires": [
+      {
+        "libelle": "Subwax",
+        "url": "https://subwax.es/brands/groove-to-grave-records/"
+      },
+      {
+        "libelle": "deejay.de",
+        "url": "https://www.deejay.de/Groove_To_Grave_Records__L297054"
+      },
+      {
+        "libelle": "Redeye",
+        "url": "https://www.redeyerecords.co.uk/vinyl/192460-gtgr05-merov-interdimensional-groove-ep"
+      },
+      {
+        "libelle": "Yoyaku",
+        "url": "https://www.yoyaku.io/release/gtgr02/"
+      }
+    ],
+    "distribution": "Subwax",
+    "newsletter": {
+      "active": false,
+      "fournisseur": null
+    },
+    "nom": "Groove To Grave Records",
+    "reseaux": [
+      {
+        "libelle": "Bandcamp",
+        "url": "https://groovetograve.bandcamp.com/music"
+      },
+      {
+        "libelle": "SoundCloud",
+        "url": "https://soundcloud.com/groovetograve"
+      },
+      {
+        "libelle": "Instagram",
+        "url": "https://www.instagram.com/groovetograve/"
+      },
+      {
+        "libelle": "Linktree",
+        "url": "https://linktr.ee/groovetograve"
+      }
+    ],
+    "ville": "Paris"
+  }
+}

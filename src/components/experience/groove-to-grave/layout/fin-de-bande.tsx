@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { label, textes } from '../content/label'
+import { chargerContenu } from '../sanity/contenu'
 import { routes } from '../lib/routes'
 import BoutonRembobiner from '../ui/bouton-rembobiner'
 import { Crane } from '../ui/logos/logo'
@@ -11,7 +11,8 @@ import SentinelleFin from './sentinelle-fin'
  * avec le son de rembobinage quand le lecteur est là). Sa sentinelle prévient le lecteur quand
  * il entre dans l'écran : l'afficheur passe en FIN DE BANDE.
  */
-export default function FinDeBande() {
+export default async function FinDeBande() {
+  const { label, textes } = await chargerContenu()
   return (
     <footer className="g2g-fin" id="fin-de-bande">
       <SentinelleFin />

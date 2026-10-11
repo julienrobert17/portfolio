@@ -2120,3 +2120,26 @@ html.g2g-document {
 .g2g-entete-page > .g2g-bandeau__statut {
   margin-top: var(--s2);
 }
+
+/* Bandeau du mode brouillon (aperçu depuis le Studio), au-dessus de tout. */
+.g2g-apercu {
+  position: fixed;
+  left: 50%;
+  bottom: var(--s2);
+  transform: translateX(-50%);
+  z-index: var(--z-modal);
+  margin: 0;
+  padding: 6px 14px;
+  background: var(--g2g-ink);
+  color: var(--g2g-poster);
+  font-size: var(--meta);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+}
+
+.g2g-apercu a {
+  color: var(--g2g-red);
+  margin-left: 8px;
+}

@@ -41,3 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# Groove To Grave : Studio Sanity (dépendances, build, jetons et identifiants locaux)
+studio/node_modules/
+studio/dist/
+studio/.sanity/
+studio/.env
+studio/.env.local
+.env.local
+studio/schema.json

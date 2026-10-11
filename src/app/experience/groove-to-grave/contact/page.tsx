@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { label, textes } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import Newsletter from '@/components/experience/groove-to-grave/sections/newsletter'
 import { CassetteVierge } from '@/components/experience/groove-to-grave/ui/cassette'
@@ -8,7 +9,7 @@ import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: `Contacter ${label.nom}, newsletter, envoyer une démo.`,
+  description: `Contacter ${MARQUE.nom}, newsletter, envoyer une démo.`,
 }
 
 interface Props {
@@ -22,6 +23,7 @@ interface Props {
  */
 export default async function ContactPage({ searchParams }: Props) {
   const { newsletter } = await searchParams
+  const { label, textes } = await chargerContenu()
   const instagram = label.reseaux.find((r) => r.label === 'Instagram') ?? label.reseaux[0]
   return (
     <>

@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, type CSSProperties } from 'react'
 import { PRESETS } from '../content/presets'
-import { label } from '../content/label'
 import type { Preset } from '../content/types'
+import { MARQUE } from '../lib/marque'
 import { onTick } from '../lib/ticker'
 import { routes } from '../lib/routes'
 import { moteur } from '../audio/moteur'
@@ -21,6 +21,8 @@ interface LecteurProps {
   catalogue: PisteJouable[]
   /** Prochaine soirée pour la bande, ou l'état « aucune date ». */
   prochaine: string
+  /** Lien Bandcamp du label, pour la barre statique sans JavaScript. */
+  bandcamp?: string
 }
 
 function mmss(s: number): string {
@@ -35,7 +37,7 @@ function mmss(s: number): string {
  * plein écran, barre de lecture en bas de 64 px qui se déplie en feuille. Sans JavaScript, le
  * CSS ne montre que la barre de titre, la navigation et le lien Bandcamp (classes g2g-js).
  */
-export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
+export default function Lecteur({ catalogue, prochaine, bandcamp = MARQUE.bandcamp }: LecteurProps) {
   const etat = useLecteur()
   const pathname = usePathname()
   const router = useRouter()
@@ -279,7 +281,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
       {/* Sans JavaScript : barre statique avec le lien Bandcamp. */}
       <div className="g2g-lecteur__statique g2g-sans-js">
         <span>Le lecteur a besoin de JavaScript.</span>
-        <a href={label.reseaux[0].url} rel="noopener">
+        <a href={bandcamp} rel="noopener">
           Écouter sur Bandcamp
         </a>
       </div>

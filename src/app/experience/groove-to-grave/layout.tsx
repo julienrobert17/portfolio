@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 import type { ReactNode } from 'react'
 import Mur from '@/components/experience/groove-to-grave/canvas/mur'
-import { soireesAVenir } from '@/components/experience/groove-to-grave/content'
-import { label } from '@/components/experience/groove-to-grave/content/label'
 import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-bande'
 import Lecteur from '@/components/experience/groove-to-grave/layout/lecteur'
 import SkipLink from '@/components/experience/groove-to-grave/layout/skip-link'
@@ -10,13 +9,15 @@ import SmoothScroll from '@/components/experience/groove-to-grave/layout/smooth-
 import TransitionPage from '@/components/experience/groove-to-grave/layout/transition-page'
 import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/catalogue-lecteur'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
+import { chargerContenu, soireesAVenir } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/polices'
 import { variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import Collage from '@/components/experience/groove-to-grave/ui/collage'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
 
-const TITRE = label.nom
+const TITRE = MARQUE.nom
 
 /**
  * Origine canonique du site, paramétrable : `G2G_URL_SITE` (sans barre finale) le jour où la
@@ -31,13 +32,16 @@ const ORIGINE = (process.env.G2G_URL_SITE ?? URL_SITE).replace(/\/$/, '')
  * en même temps que la variable d'origine. openGraph n'est pas fusionné entre layout et page par
  * Next, les pages redonnent le leur.
  */
-export const metadata: Metadata = {
-  metadataBase: new URL(ORIGINE),
-  title: { default: TITRE, template: `%s — ${label.nom}` },
-  description: label.presentation.body,
-  alternates: { canonical: `${ORIGINE}${BASE}` },
-  robots: { index: false, follow: false },
-  openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: TITRE, description: label.presentation.body, url: BASE },
+export async function generateMetadata(): Promise<Metadata> {
+  const { label } = await chargerContenu()
+  return {
+    metadataBase: new URL(ORIGINE),
+    title: { default: TITRE, template: `%s — ${MARQUE.nom}` },
+    description: label.presentation.body,
+    alternates: { canonical: `${ORIGINE}${BASE}` },
+    robots: { index: false, follow: false },
+    openGraph: { type: 'website', locale: 'fr_FR', siteName: MARQUE.nom, title: TITRE, description: label.presentation.body, url: BASE },
+  }
 }
 
 /**
@@ -53,15 +57,17 @@ const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','
  * persistant entre toutes les pages ; son moteur audio est un singleton de module. La
  * transition de page (avance rapide du mur, balayage du contenu) vit ici aussi.
  */
-export default function GrooveToGraveLayout({ children }: { children: ReactNode }) {
-  const prochaine = soireesAVenir()[0]
+export default async function GrooveToGraveLayout({ children }: { children: ReactNode }) {
+  const contenu = await chargerContenu()
+  const prochaine = soireesAVenir(contenu.soirees)[0]
+  const brouillon = (await draftMode()).isEnabled
   const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
     <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" id="haut" tabIndex={-1} style={variablesCss()}>
       <script dangerouslySetInnerHTML={{ __html: SCRIPT_JS }} />
       <Mur />
       <SkipLink />
-      <Lecteur catalogue={catalogueLecteur()} prochaine={texteProchaine} />
+      <Lecteur catalogue={catalogueLecteur(contenu.sorties)} prochaine={texteProchaine} bandcamp={contenu.label.reseaux[0]?.url ?? MARQUE.bandcamp} />
       <main id="contenu" className="g2g-page">
         {children}
       </main>
@@ -69,6 +75,11 @@ export default function GrooveToGraveLayout({ children }: { children: ReactNode 
       <Collage />
       <SmoothScroll />
       <TransitionPage />
+      {brouillon ? (
+        <p className="g2g-apercu" role="status">
+          Aperçu des brouillons. <a href="/api/g2g/apercu/fin">Quitter</a>
+        </p>
+      ) : null}
     </div>
   )
 }
