@@ -1,6 +1,6 @@
 import { frFRLocale } from '@sanity/locale-fr-fr'
 import { visionTool } from '@sanity/vision'
-import { defineConfig } from 'sanity'
+import { defineConfig, type PluginOptions } from 'sanity'
 import { structureTool } from 'sanity/structure'
 import { schemaTypes, typesUniques } from './schemas'
 import { structure } from './structure'
@@ -9,14 +9,17 @@ import { structure } from './structure'
  * Studio de Groove To Grave Records (Phase 7.2) : interface en français, sections Sorties,
  * Artistes, Soirées, Textes du label, Réglages. Les types uniques (textes, réglages) ne se
  * créent pas depuis le bouton « Nouveau ». Hébergé sur groove-to-grave.sanity.studio, hors du
- * site et de ses dépendances.
+ * site et de ses dépendances. Vision (requêtes GROQ) n'existe qu'en développement local : le
+ * Studio déployé ne montre que les cinq sections (bloc 7.2b).
  */
+const enDeveloppement = process.env.NODE_ENV !== 'production'
+const outils: PluginOptions[] = [structureTool({ structure }), ...(enDeveloppement ? [visionTool()] : []), frFRLocale()]
 export default defineConfig({
   name: 'groove-to-grave',
   title: 'Groove To Grave Records',
   projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? '',
   dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
-  plugins: [structureTool({ structure }), visionTool(), frFRLocale()],
+  plugins: outils,
   schema: {
     types: schemaTypes,
     templates: (modeles) => modeles.filter((m) => !typesUniques.includes(m.schemaType)),

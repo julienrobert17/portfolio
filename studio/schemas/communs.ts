@@ -26,8 +26,15 @@ export const imageCreditee = defineType({
       name: 'credit',
       title: 'Crédit',
       type: 'string',
-      description: 'Qui a fait l’image (illustrateur, graphiste, photographe). Obligatoire : l’œuvre est affichée telle quelle, jamais recadrée.',
-      validation: (r) => r.required().error('Le crédit est obligatoire.'),
+      description: 'Qui a fait l’image (illustrateur, graphiste, photographe). Obligatoire : l’œuvre est affichée telle quelle, jamais recadrée. Si vous ne savez pas, cochez « auteur non identifié ».',
+      validation: (r) => r.custom((valeur, contexte) => (valeur || (contexte.parent as { auteurNonIdentifie?: boolean } | undefined)?.auteurNonIdentifie ? true : 'Le crédit est obligatoire, ou cochez « auteur non identifié ».')),
+    }),
+    defineField({
+      name: 'auteurNonIdentifie',
+      title: 'Auteur non identifié',
+      type: 'boolean',
+      description: 'Cochez si personne ne sait qui a fait l’image : le site affichera « visuel : auteur non identifié ».',
+      initialValue: false,
     }),
   ],
 })
