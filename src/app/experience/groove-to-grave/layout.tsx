@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
 import type { ReactNode } from 'react'
 import Mur from '@/components/experience/groove-to-grave/canvas/mur'
 import { soireesAVenir } from '@/components/experience/groove-to-grave/content'
@@ -12,36 +11,10 @@ import TransitionPage from '@/components/experience/groove-to-grave/layout/trans
 import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/catalogue-lecteur'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
+import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/polices'
 import { variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import Collage from '@/components/experience/groove-to-grave/ui/collage'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
-
-// Polices auto-hébergées, sous-ensemblées par scripts/g2g-polices.ts (bloc 6.1) : Archivo
-// variable restreinte aux largeurs 75 à 100 % et graisses 400 à 900, les trois au jeu de
-// caractères du site. Seule Archivo est préchargée ; les deux autres arrivent en swap.
-const archivo = localFont({
-  src: '../../../components/experience/groove-to-grave/polices/archivo.woff2',
-  weight: '400 900',
-  variable: '--g2g-font-archivo',
-  display: 'swap',
-  declarations: [{ prop: 'font-stretch', value: '75% 100%' }],
-})
-
-const marker = localFont({
-  src: '../../../components/experience/groove-to-grave/polices/permanent-marker.woff2',
-  weight: '400',
-  variable: '--g2g-font-marker',
-  display: 'swap',
-  preload: false,
-})
-
-const lcd = localFont({
-  src: '../../../components/experience/groove-to-grave/polices/vt323.woff2',
-  weight: '400',
-  variable: '--g2g-font-lcd',
-  display: 'swap',
-  preload: false,
-})
 
 const TITRE = label.nom
 
