@@ -13,6 +13,8 @@
  *   npx tsx scripts/g2g-upsert-projet.ts --ecrire   : contrôles, écriture, contrôles
  *
  * Retour arrière : `npx tsx scripts/g2g-upsert-projet.ts --supprimer` retire cette seule ligne.
+ * Bloc 7.1b : imageUrl pointe vers la capture WebP de la page de rendu (scripts/g2g-tuile.ts) ; le
+ * carrousel pose l'image en background-image, d'où un seul format universel (l'AVIF existe à côté).
  */
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
@@ -24,7 +26,7 @@ const LIGNE = {
   description: "Plateforme du label parisien : on insère les sorties comme des cassettes dans un lecteur persistant, sur un mur d'affiches qui respire au son.",
   tags: ['musique', 'label', 'audio', 'WebGL', 'Next.js'],
   liveUrl: '/experience/groove-to-grave',
-  imageUrl: '/experience/groove-to-grave/tuile.svg',
+  imageUrl: '/experience/groove-to-grave/img/tuile-960.webp',
   featured: true,
   /** Même catégorie que la-coupe : projets perso. */
   category: 'perso',

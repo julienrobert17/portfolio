@@ -130,7 +130,7 @@ async function main() {
     update: {
       title: 'Groove To Grave Records',
       liveUrl: '/experience/groove-to-grave',
-      imageUrl: '/experience/groove-to-grave/tuile.svg',
+      imageUrl: '/experience/groove-to-grave/img/tuile-960.webp',
     },
     create: {
       slug: 'groove-to-grave',
@@ -138,7 +138,7 @@ async function main() {
       description: "Plateforme du label parisien : on insère les sorties comme des cassettes dans un lecteur persistant, sur un mur d'affiches qui respire au son.",
       tags: ['musique', 'label', 'audio', 'WebGL', 'Next.js'],
       liveUrl: '/experience/groove-to-grave',
-      imageUrl: '/experience/groove-to-grave/tuile.svg',
+      imageUrl: '/experience/groove-to-grave/img/tuile-960.webp',
       featured: true,
       category: 'perso',
       publishedAt: new Date('2026-10-11'),

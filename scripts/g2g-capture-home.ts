@@ -52,7 +52,7 @@ async function main(): Promise<void> {
       carte.scrollIntoView({ block: 'center', behavior: 'instant' });
       const r = carte.getBoundingClientRect();
       const fond = carte.querySelector('.project-card-bg');
-      const image = fond && (fond.style.backgroundImage || '').includes('groove-to-grave/tuile.svg') ? 'tuile.svg' : 'absente';
+      const image = fond && (fond.style.backgroundImage || '').includes('groove-to-grave/img/tuile-960.webp') ? 'tuile-960.webp' : 'absente';
       // Le filtre actif de la home : « perso » ou « entreprise ».
       const filtre = Array.from(document.querySelectorAll('button')).find((b) => /entreprise/i.test(b.textContent || '') && b.getAttribute('aria-pressed') === 'true');
       return { trouvee: true, image, accent: getComputedStyle(carte).getPropertyValue('--card-accent').trim(), categorieEntreprise: !!filtre, href: lien.getAttribute('href'), x: r.left, y: r.top, w: r.width, h: r.height };
