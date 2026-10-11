@@ -1,6 +1,6 @@
 # Groove To Grave — compte-rendu des blocs 7.0 et 7.1, et audit de la Phase 7 (autonomie du label)
 
-11 octobre 2026 · branche `experience/groove-to-grave` (commits `62d8745` bloc 7.0, `3b86090` bloc 7.1, `HASH_DOCS` ce compte-rendu) · fusion sur `main` par la PR #5 (`139b88b`) · production https://portfolio-eight-sable-66.vercel.app/experience/groove-to-grave
+11 octobre 2026 · branche `experience/groove-to-grave` (commits `62d8745` bloc 7.0, `3b86090` bloc 7.1, `bb59a3e` ce compte-rendu) · fusion sur `main` par la PR #5 (`139b88b`) · production https://portfolio-eight-sable-66.vercel.app/experience/groove-to-grave
 
 ## Bloc 7.0 — plateforme officielle
 
