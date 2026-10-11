@@ -1,0 +1,12 @@
+{
+  "trouvee": true,
+  "image": "tuile.svg",
+  "accent": "#F14442",
+  "categorieEntreprise": false,
+  "href": "/experience/groove-to-grave",
+  "x": 24,
+  "y": 232,
+  "w": 342,
+  "h": 380,
+  "apresClic": "/experience/groove-to-grave"
+}

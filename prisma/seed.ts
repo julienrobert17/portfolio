@@ -123,23 +123,25 @@ async function main() {
     },
   })
 
-  // Groove To Grave : concept non officiel, en preview (noindex) tant que le label n'a pas donné son accord.
-  // Entrée préparée en Phase 6, écrite en base seulement sur décision explicite (npx prisma db seed).
+  // Groove To Grave Records : plateforme officielle du label (bloc 7.1). Même ligne que
+  // scripts/g2g-upsert-projet.ts, qui est le chemin d'écriture retenu (le seed réécrit tout).
   await prisma.project.upsert({
     where: { slug: 'groove-to-grave' },
     update: {
+      title: 'Groove To Grave Records',
       liveUrl: '/experience/groove-to-grave',
       imageUrl: '/experience/groove-to-grave/tuile.svg',
     },
     create: {
       slug: 'groove-to-grave',
-      title: 'Groove To Grave',
-      description: "Le site concept d'un label house parisien : un mur de cassettes, un lecteur persistant qui ne s'arrête jamais, du sillon à la tombe.",
-      tags: ['Next.js', 'Web Audio', 'WebGL2', 'GSAP'],
+      title: 'Groove To Grave Records',
+      description: "Plateforme du label parisien : on insère les sorties comme des cassettes dans un lecteur persistant, sur un mur d'affiches qui respire au son.",
+      tags: ['musique', 'label', 'audio', 'WebGL', 'Next.js'],
       liveUrl: '/experience/groove-to-grave',
       imageUrl: '/experience/groove-to-grave/tuile.svg',
       featured: true,
-      publishedAt: new Date('2026-10-10'),
+      category: 'perso',
+      publishedAt: new Date('2026-10-11'),
     },
   })
 
