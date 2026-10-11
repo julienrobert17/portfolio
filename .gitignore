@@ -49,3 +49,4 @@ studio/.sanity/
 studio/.env
 studio/.env.local
 .env.local
+studio/schema.json

@@ -1,6 +1,7 @@
 import { frFRLocale } from '@sanity/locale-fr-fr'
 import { visionTool } from '@sanity/vision'
 import { defineConfig, type PluginOptions } from 'sanity'
+import { presentationTool } from 'sanity/presentation'
 import { structureTool } from 'sanity/structure'
 import { schemaTypes, typesUniques } from './schemas'
 import { structure } from './structure'
@@ -13,7 +14,17 @@ import { structure } from './structure'
  * Studio déployé ne montre que les cinq sections (bloc 7.2b).
  */
 const enDeveloppement = process.env.NODE_ENV !== 'production'
-const outils: PluginOptions[] = [structureTool({ structure }), ...(enDeveloppement ? [visionTool()] : []), frFRLocale()]
+/** Site prévisualisé par Presentation (Phase 7.3) : l'origine du portfolio, ou SANITY_STUDIO_APERCU_ORIGINE. */
+const origineApercu = process.env.SANITY_STUDIO_APERCU_ORIGINE ?? 'https://portfolio-eight-sable-66.vercel.app'
+const outils: PluginOptions[] = [
+  structureTool({ structure }),
+  presentationTool({
+    title: 'Aperçu',
+    previewUrl: { origin: origineApercu, preview: '/experience/groove-to-grave', previewMode: { enable: '/api/g2g/apercu' } },
+  }),
+  ...(enDeveloppement ? [visionTool()] : []),
+  frFRLocale(),
+]
 export default defineConfig({
   name: 'groove-to-grave',
   title: 'Groove To Grave Records',

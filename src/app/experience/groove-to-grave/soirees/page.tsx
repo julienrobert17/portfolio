@@ -1,22 +1,23 @@
 import type { Metadata } from 'next'
-import { soireesAVenir, soireesPassees } from '@/components/experience/groove-to-grave/content'
-import { label } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, soireesAVenir, soireesPassees } from '@/components/experience/groove-to-grave/sanity/contenu'
 import HerosSoiree from '@/components/experience/groove-to-grave/sections/heros-soiree'
 import Flyer from '@/components/experience/groove-to-grave/ui/flyer'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
   title: 'Soirées',
-  description: `Les soirées de ${label.nom} à Paris : à venir et archive des flyers.`,
+  description: `Les soirées de ${MARQUE.nom} à Paris : à venir et archive des flyers.`,
 }
 
 /** La page est régénérée chaque heure : une soirée passe en archive le lendemain sans changement de contenu. */
 export const revalidate = 3600
 
 /** La soirée à venir en héros, ou l'état vide, puis l'archive en mur de flyers réels. */
-export default function SoireesPage() {
-  const aVenir = soireesAVenir()
-  const passees = soireesPassees()
+export default async function SoireesPage() {
+  const { soirees } = await chargerContenu()
+  const aVenir = soireesAVenir(soirees)
+  const passees = soireesPassees(soirees)
   return (
     <>
       <section className="g2g-entete-page" aria-labelledby="soirees">

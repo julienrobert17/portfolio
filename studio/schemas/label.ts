@@ -38,6 +38,7 @@ export const reglages = defineType({
         defineField({ name: 'fournisseur', title: 'Fournisseur', type: 'string', description: 'Outil choisi (Mailchimp, Brevo…). Les clés restent dans les variables d’environnement du site.' }),
       ],
     }),
+    defineField({ name: 'crew', title: 'Le crew', type: 'array', of: [defineArrayMember({ type: 'reference', to: [{ type: 'artiste' }] })], description: 'Les membres du collectif, dans l’ordre d’affichage sur la page « Le label ».', validation: (r) => r.unique() }),
     defineField({ name: 'reseaux', title: 'Réseaux', type: 'array', of: [defineArrayMember({ type: 'lien' })], description: 'Bandcamp en premier.' }),
     defineField({ name: 'disquaires', title: 'Disquaires', type: 'array', of: [defineArrayMember({ type: 'lien' })] }),
   ],

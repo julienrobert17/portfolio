@@ -1,7 +1,4 @@
-import { artistes } from '../content/artists'
-import { soirees } from '../content/events'
-import { label } from '../content/label'
-import { sorties } from '../content/releases'
+import type { Contenu } from '../sanity/contenu'
 import { dateLongue } from './format'
 
 export type TypeSource = 'Bandcamp' | 'Disquaires' | 'Billetteries et annonces' | 'Archives'
@@ -31,7 +28,7 @@ function typeDe(url: string): TypeSource {
  * Toutes les sources du contenu, dédoublonnées, avec un titre lisible et le domaine plutôt que
  * l'URL brute, groupées par type pour la page /sources.
  */
-export function sourcesDuSite(): Record<TypeSource, SourceSite[]> {
+export function sourcesDuSite({ sorties, artistes, soirees, label }: Pick<Contenu, 'sorties' | 'artistes' | 'soirees' | 'label'>): Record<TypeSource, SourceSite[]> {
   const vues = new Map<string, SourceSite>()
   const ajouter = (url: string, titre: string) => {
     if (!vues.has(url)) vues.set(url, { type: typeDe(url), titre, url, domaine: domaineDe(url) })
@@ -51,7 +48,6 @@ export function sourcesDuSite(): Record<TypeSource, SourceSite[]> {
     for (const u of ev.sources) ajouter(u, u.includes('web.archive.org') ? `${nom} (capture)` : nom)
   }
   for (const l of [...label.reseaux, ...label.disquaires]) ajouter(l.url, `${label.nom} sur ${l.label}`)
-  for (const u of label.sources) ajouter(u, label.nom)
   const groupes: Record<TypeSource, SourceSite[]> = { Bandcamp: [], Disquaires: [], 'Billetteries et annonces': [], Archives: [] }
   for (const s of vues.values()) groupes[s.type].push(s)
   for (const liste of Object.values(groupes)) liste.sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))

@@ -1,4 +1,4 @@
-import { label, textes } from '../content/label'
+import { chargerContenu } from '../sanity/contenu'
 import { inscrireNewsletter } from './newsletter-action'
 
 interface NewsletterProps {
@@ -14,7 +14,8 @@ interface NewsletterProps {
  * message de confirmation le disent. Fonctionne sans JavaScript (redirection avec l'état dans
  * l'URL, retour sur l'ancre). « Suivre sur Bandcamp » fonctionne.
  */
-export default function Newsletter({ etat, retour }: NewsletterProps) {
+export default async function Newsletter({ etat, retour }: NewsletterProps) {
+  const { label, textes } = await chargerContenu()
   return (
     <section className="g2g-section" aria-labelledby="newsletter">
       <h2 id="newsletter" className="g2g-affiche g2g-titre-section">

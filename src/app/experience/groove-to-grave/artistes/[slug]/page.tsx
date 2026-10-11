@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { artistes, getArtiste, getSortie } from '@/components/experience/groove-to-grave/content'
-import { label } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, getArtiste, getSortie } from '@/components/experience/groove-to-grave/sanity/contenu'
 import type { Piste, Sortie } from '@/components/experience/groove-to-grave/content/types'
 import { duree } from '@/components/experience/groove-to-grave/lib/format'
 import Bandeau from '@/components/experience/groove-to-grave/ui/bandeau'
@@ -14,7 +14,8 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const { artistes } = await chargerContenu()
   return artistes.map((a) => ({ slug: a.slug }))
 }
 
@@ -22,13 +23,13 @@ export const dynamicParams = false
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const a = getArtiste(slug)
-  return a ? { title: a.name, description: `${a.name} sur ${label.nom}${a.city ? `, ${a.city}` : ''}.` } : {}
+  const a = getArtiste((await chargerContenu()).artistes, slug)
+  return a ? { title: a.name, description: `${a.name} sur ${MARQUE.nom}${a.city ? `, ${a.city}` : ''}.` } : {}
 }
 
 /** Sorties d'un artiste sur le label : ses sorties solo d'abord, les plus récentes en tête, puis les compilations où il signe une piste. */
-function sortiesDe(slug: string, refs: string[]): Sortie[] {
-  const liste = refs.map((r) => getSortie(r)).filter((s) => s !== undefined)
+function sortiesDe(toutes: Sortie[], slug: string, refs: string[]): Sortie[] {
+  const liste = refs.map((r) => getSortie(toutes, r)).filter((s) => s !== undefined)
   const rang = (s: Sortie) => (s.artistSlug === slug ? 0 : 1)
   return liste.sort((a, b) => rang(a) - rang(b) || b.releaseDate.localeCompare(a.releaseDate))
 }
@@ -48,9 +49,10 @@ function pistesDe(nom: string, sortie: Sortie): Piste[] {
  */
 export default async function ArtistePage({ params }: Props) {
   const { slug } = await params
-  const a = getArtiste(slug)
+  const contenu = await chargerContenu()
+  const a = getArtiste(contenu.artistes, slug)
   if (!a) notFound()
-  const sorties = sortiesDe(slug, a.releases)
+  const sorties = sortiesDe(contenu.sorties, slug, a.releases)
   const solo = sorties.find((s) => s.artistSlug === slug && aPhoto(s.ref))
   const meta = `${a.role ?? 'Artiste'}${a.city ? ` · ${a.city}` : ''}`
   const presentation = a.presentation ? (

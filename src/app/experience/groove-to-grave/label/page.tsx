@@ -1,19 +1,20 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getArtiste, soirees, sorties } from '@/components/experience/groove-to-grave/content'
-import { label, textes } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, getArtiste } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 export const metadata: Metadata = {
   title: 'Le label',
-  description: `${label.nom} : qui, pourquoi, chronologie des sorties et des soirées, comment proposer une démo.`,
+  description: `${MARQUE.nom} : qui, pourquoi, chronologie des sorties et des soirées, comment proposer une démo.`,
 }
 
 /** Qui (les trois, rôles réels), pourquoi (brouillon), chronologie, démo (brouillon). Les sources ont leur page. */
-export default function LabelPage() {
-  const crew = label.crew.map((s) => getArtiste(s)).filter((a) => a !== undefined)
+export default async function LabelPage() {
+  const { sorties, soirees, artistes, label, textes } = await chargerContenu()
+  const crew = label.crew.map((s) => getArtiste(artistes, s)).filter((a) => a !== undefined)
   const chrono = [
     ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref) })),
     ...soirees.map((s) => ({ date: s.date, texte: `Soirée${s.name ? ` ${s.name}` : ''}, ${s.venue}${s.status === 'annulee' ? ', annulée' : ''}`, href: routes.soirees })),

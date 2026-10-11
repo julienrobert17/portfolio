@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { filtrerSorties, getSortie, sorties } from '@/components/experience/groove-to-grave/content'
-import { label } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, filtrerSorties, getSortie } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { dateLongue, duree } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import Bandeau from '@/components/experience/groove-to-grave/ui/bandeau'
@@ -15,7 +15,8 @@ interface Props {
   params: Promise<{ ref: string }>
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const { sorties } = await chargerContenu()
   return sorties.map((s) => ({ ref: s.ref }))
 }
 
@@ -23,10 +24,10 @@ export const dynamicParams = false
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ref } = await params
-  const s = getSortie(ref)
+  const s = getSortie((await chargerContenu()).sorties, ref)
   if (!s) return {}
-  const description = `${s.catalog}, ${s.artistName}, ${s.title}. ${s.format}, ${dateLongue(s.releaseDate)}, ${label.nom}.`
-  return { title: `${s.artistName} — ${s.title}`, description, openGraph: { type: 'music.album', locale: 'fr_FR', siteName: label.nom, title: `${s.artistName} — ${s.title}`, description, url: routes.sortie(s.ref) } }
+  const description = `${s.catalog}, ${s.artistName}, ${s.title}. ${s.format}, ${dateLongue(s.releaseDate)}, ${MARQUE.nom}.`
+  return { title: `${s.artistName} — ${s.title}`, description, openGraph: { type: 'music.album', locale: 'fr_FR', siteName: MARQUE.nom, title: `${s.artistName} — ${s.title}`, description, url: routes.sortie(s.ref) } }
 }
 
 const STATUTS = { disponible: 'Disponible', epuise: 'Vinyle épuisé', numerique: 'Numérique' } as const
@@ -40,10 +41,12 @@ const STATUTS = { disponible: 'Disponible', epuise: 'Vinyle épuisé', numerique
  */
 export default async function SortiePage({ params }: Props) {
   const { ref } = await params
-  const s = getSortie(ref)
+  const { sorties } = await chargerContenu()
+  const s = getSortie(sorties, ref)
   if (!s) notFound()
-  const serie = filtrerSorties('tout').filter((x) => x.kind !== 'compilation')
-  const compilations = filtrerSorties('tout').filter((x) => x.kind === 'compilation')
+  const toutes = filtrerSorties('tout', sorties)
+  const serie = toutes.filter((x) => x.kind !== 'compilation')
+  const compilations = toutes.filter((x) => x.kind === 'compilation')
   const i = serie.findIndex((x) => x.ref === s.ref)
   const voisins = s.kind === 'compilation' ? [serie[0], serie[1], ...compilations.filter((x) => x.ref !== s.ref).slice(0, 1)] : [serie[i - 1], serie[i + 1], compilations[0]]
   const liste = voisins.filter((v) => v !== undefined)

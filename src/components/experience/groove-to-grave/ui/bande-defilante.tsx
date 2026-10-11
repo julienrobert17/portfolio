@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import { label } from '../content/label'
+import { MARQUE } from '../lib/marque'
 import { bpmCourant, useLecteur } from '../store/lecteur-store'
 
 export const TEXTE_REPOS = 'GROOVE TO GRAVE RECORDS · PARIS · INSÈRE UNE CASSETTE · DU SILLON À LA TOMBE'
@@ -15,7 +15,7 @@ export function texteBande(etat: ReturnType<typeof useLecteur>, prochaine?: stri
   if (!p) return `${fin}${TEXTE_REPOS}${prochaine ? ` · ${prochaine}` : ''}`
   const marque = etat.statut === 'lecture' ? '▶' : etat.statut === 'pause' ? 'Ⅱ' : '■'
   const origine = p.origine === 'provisoire' ? ' · EXTRAIT PROVISOIRE' : ''
-  return `${fin}${marque} ${p.catalog} · ${p.artiste.toUpperCase()} · ${p.position} ${p.titre.toUpperCase()}${origine} · ${p.format.toUpperCase()} · DISPO SUR BANDCAMP · ${label.nom.toUpperCase()} · PARIS${prochaine ? ` · ${prochaine}` : ''}`
+  return `${fin}${marque} ${p.catalog} · ${p.artiste.toUpperCase()} · ${p.position} ${p.titre.toUpperCase()}${origine} · ${p.format.toUpperCase()} · DISPO SUR BANDCAMP · ${MARQUE.nom.toUpperCase()} · PARIS${prochaine ? ` · ${prochaine}` : ''}`
 }
 
 /**

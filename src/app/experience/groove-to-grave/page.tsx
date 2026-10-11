@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { filtrerSorties, soireesAVenir } from '@/components/experience/groove-to-grave/content'
-import { label, textes } from '@/components/experience/groove-to-grave/content/label'
+import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { chargerContenu, filtrerSorties, soireesAVenir } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { BASE, routes } from '@/components/experience/groove-to-grave/lib/routes'
 import HerosSoiree from '@/components/experience/groove-to-grave/sections/heros-soiree'
@@ -9,9 +9,12 @@ import MurSorties from '@/components/experience/groove-to-grave/sections/mur-sor
 import Newsletter from '@/components/experience/groove-to-grave/sections/newsletter'
 import Cassette from '@/components/experience/groove-to-grave/ui/cassette'
 
-export const metadata: Metadata = {
-  title: { absolute: label.nom },
-  openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: label.nom, description: label.presentation.body, url: BASE },
+export async function generateMetadata(): Promise<Metadata> {
+  const { label } = await chargerContenu()
+  return {
+    title: { absolute: MARQUE.nom },
+    openGraph: { type: 'website', locale: 'fr_FR', siteName: MARQUE.nom, title: MARQUE.nom, description: label.presentation.body, url: BASE },
+  }
 }
 
 interface Props {
@@ -21,9 +24,10 @@ interface Props {
 /** Accueil : la dernière sortie en grand, le mur, la prochaine soirée ou l'état vide, la phrase du label, la newsletter. */
 export default async function AccueilPage({ searchParams }: Props) {
   const { newsletter } = await searchParams
-  const mur = filtrerSorties('tout')
+  const { sorties, soirees, label, textes } = await chargerContenu()
+  const mur = filtrerSorties('tout', sorties)
   const derniere = mur[0]
-  const prochaine = soireesAVenir()[0]
+  const prochaine = soireesAVenir(soirees)[0]
   return (
     <>
       <section className="g2g-entete-page" aria-labelledby="une">

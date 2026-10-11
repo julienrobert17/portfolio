@@ -70,11 +70,12 @@ function main(): void {
     }))
   }
 
-  for (const a of artistes) {
+  for (const [i, a] of artistes.entries()) {
     docs.push(nettoyer({
       _id: `artiste-${a.slug}`,
       _type: 'artiste',
       nom: a.name,
+      ordre: i,
       slug: { _type: 'slug', current: a.slug },
       ville: a.city,
       role: a.role,
@@ -130,6 +131,7 @@ function main(): void {
     distribution: label.distribution,
     contact: label.contact ?? undefined,
     newsletter: { active: false },
+    crew: refs(label.crew.map((s) => `artiste-${s}`)),
     reseaux: label.reseaux.map((l, i) => lien(l.label, l.url, i)),
     disquaires: label.disquaires.map((l, i) => lien(l.label, l.url, i)),
   }))

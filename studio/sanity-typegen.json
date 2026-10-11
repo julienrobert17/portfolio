@@ -1,0 +1,6 @@
+{
+  "path": "../src/components/experience/groove-to-grave/sanity/**/*.{ts,tsx}",
+  "schema": "schema.json",
+  "generates": "../src/components/experience/groove-to-grave/sanity/types.generated.ts",
+  "overloadClientMethods": false
+}

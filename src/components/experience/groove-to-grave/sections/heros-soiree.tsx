@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { label, textes } from '../content/label'
+import { chargerContenu } from '../sanity/contenu'
 import type { Soiree } from '../content/types'
 import { dateLongue } from '../lib/format'
 import { routes } from '../lib/routes'
@@ -15,7 +15,8 @@ interface HerosProps {
  * La soirée à venir en héros : son flyer en grand s'il existe, date, lieu, line-up et
  * billetterie à côté. Sans date annoncée, l'état vide soigné (newsletter et Instagram).
  */
-export default function HerosSoiree({ prochaine, lienToutes }: HerosProps) {
+export default async function HerosSoiree({ prochaine, lienToutes }: HerosProps) {
+  const { label, textes } = await chargerContenu()
   if (!prochaine) {
     return (
       <div className="g2g-vide">
@@ -23,7 +24,7 @@ export default function HerosSoiree({ prochaine, lienToutes }: HerosProps) {
         <p>Aucune date n’est annoncée publiquement pour l’instant. Les prochaines sorties et soirées passent d’abord par Instagram et la newsletter.</p>
         <ul className="g2g-liens">
           <li>
-            <a href={label.reseaux[2].url} rel="noopener">
+            <a href={(label.reseaux.find((r) => /instagram/i.test(r.label)) ?? label.reseaux[0])?.url} rel="noopener">
               Instagram du label
             </a>
           </li>
