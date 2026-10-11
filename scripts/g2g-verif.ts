@@ -7,10 +7,15 @@
  *   - insertion : clone monté dans la racine, mêmes classes, police au marqueur, sticker ; l'original reste visible ;
  *   - canvas : aucun voile au chargement, fondu de 300 ms après le premier rendu ;
  *   - lecture sans coupure sur une navigation interne, puis retour et avance du navigateur ;
- *   - transition de page figée à mi-course (balayage du contenu) ; FIN DE BANDE dans l'afficheur au pied de page.
- * Le serveur doit tourner (`next start`) sur l'URL passée en option. Sort une table Markdown et un code de retour.
+ *   - transition de page figée à mi-course (balayage du contenu) ; FIN DE BANDE dans l'afficheur au pied de page ;
+ *   - exécution réelle du lecteur (bloc 7.3b) : AudioContext en `running` après un vrai clic, position de
+ *     l'extrait qui avance, spectre qui change entre deux images, aucune erreur de console ni requête en
+ *     échec sur chaque page ;
+ *   - entrée par navigation côté client depuis la home du portfolio (tuile) : le lecteur doit être là et jouer.
+ * S'exécute contre un serveur local ou contre l'URL de production (`--url https://…`) : à lancer contre la
+ * production à la fin de chaque phase. Sort une table Markdown et un code de retour.
  *
- *   npx tsx scripts/g2g-verif.ts [--url http://localhost:3000]
+ *   npx tsx scripts/g2g-verif.ts [--url http://localhost:3000 | https://portfolio-eight-sable-66.vercel.app]
  */
 import { Devtools } from './g2g-devtools'
 
@@ -40,6 +45,36 @@ const noter = (format: number, page: string, controle: string, ok: boolean, deta
 }
 
 const attendre = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/** Erreurs de console, exceptions et requêtes en échec, par session DevTools (les avertissements du pilote graphique sont ignorés). */
+const erreursParSession = new Map<string, string[]>()
+const BRUIT = /GL Driver Message|GPU stall|WebGL-0x/
+function collecterErreurs(nav: Devtools): () => void {
+  return nav.sur((m, p, sessionId) => {
+    if (!sessionId) return
+    const liste = erreursParSession.get(sessionId) ?? []
+    if (m === 'Runtime.exceptionThrown') {
+      const e = (p as { exceptionDetails: { text: string; exception?: { description?: string } } }).exceptionDetails
+      liste.push(`exception : ${(e.exception?.description ?? e.text).split('\n')[0].slice(0, 160)}`)
+    } else if (m === 'Runtime.consoleAPICalled') {
+      const q = p as { type: string; args: { value?: unknown; description?: string }[] }
+      if (q.type === 'error') liste.push(`console.error : ${q.args.map((a) => String(a.value ?? a.description ?? '')).join(' ').slice(0, 160)}`)
+    } else if (m === 'Log.entryAdded') {
+      const e = (p as { entry: { level: string; text: string; url?: string; source: string } }).entry
+      if (e.level === 'error' && !BRUIT.test(e.text)) liste.push(`${e.source} : ${e.text.slice(0, 120)} ${e.url ?? ''}`.trim())
+    }
+    erreursParSession.set(sessionId, liste)
+  })
+}
+const erreursDe = (s: string) => erreursParSession.get(s) ?? []
+
+/** État réel du lecteur, lisible même sur un build ancien (sans `etatAudio`) ou sans moteur : rien ne doit faire planter le script. */
+const ETAT_LECTEUR = `({ audio: window.__g2g && window.__g2g.etatAudio ? window.__g2g.etatAudio() : 'absent', statut: (document.querySelector('.g2g-lecteur') || { dataset: {} }).dataset.statut || 'absent', position: window.__g2g ? window.__g2g.position() : -1 })`
+interface EtatLecteur {
+  audio: string
+  statut: string
+  position: number
+}
 
 /** Dans la page : quadrilatères des cartes, stickers, scotch et cibles, et test de séparation des axes. */
 const SCRIPT_CHEVAUCHEMENTS = `(() => {
@@ -107,6 +142,8 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
   // Chevauchements.
   const chev = await nav.evaluer<{ cartes: number; decors: number; problemes: string[] }>(s, SCRIPT_CHEVAUCHEMENTS)
   noter(f.largeur, chemin, `chevauchements (${chev.cartes} cartes, ${chev.decors} décors)`, chev.problemes.length === 0, chev.problemes.join(' ; '))
+  const erreurs = erreursDe(s)
+  noter(f.largeur, chemin, 'aucune erreur de console ni requête en échec', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
   await nav.envoyer('Target.closeTarget', { targetId })
 }
 
@@ -136,6 +173,30 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   noter(f.largeur, '/sorties', 'clone : police au marqueur et sticker', /marker|permanent/i.test(clone.police) && clone.sticker === clone.stickerOrigine && !clone.texte, clone.police.slice(0, 40))
   noter(f.largeur, '/sorties', 'cassette d’origine visible pendant le vol', clone.original === 1)
   await attendre(1200)
+  // Exécution réelle du lecteur : le clic synthétique ci-dessus ne vaut pas geste utilisateur pour l'audio,
+  // on rejoue un vrai clic (Input.dispatchMouseEvent) sur le bouton de lecture du skin ou de la barre.
+  await nav.cliquer(s, mobile ? '[data-g2g="lecture-barre"]' : '[data-g2g="lecture"]')
+  await attendre(400)
+  const lecture1 = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
+  if (lecture1.statut !== 'lecture') {
+    await nav.cliquer(s, mobile ? '[data-g2g="lecture-barre"]' : '[data-g2g="lecture"]')
+    await attendre(400)
+  }
+  const selSpectre = mobile ? '.g2g-feuille .g2g-spectre__niveau' : '.g2g-lecteur__afficheur .g2g-spectre__niveau'
+  if (mobile) {
+    await nav.cliquer(s, '[data-g2g="deplier"]')
+    await attendre(500)
+  }
+  const image1 = await nav.evaluer<string>(s, `Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|')`)
+  await attendre(700)
+  const lecture2 = await nav.evaluer<EtatLecteur & { image: string }>(s, `Object.assign(${ETAT_LECTEUR}, { image: Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|') })`)
+  noter(f.largeur, '/sorties', 'lecteur réel : AudioContext en running après un vrai clic', lecture2.audio === 'running', `${lecture1.audio} → ${lecture2.audio}, statut ${lecture2.statut}`)
+  noter(f.largeur, '/sorties', 'lecteur réel : la position de l’extrait avance', lecture2.position > lecture1.position && lecture2.position > 0, `${lecture1.position.toFixed(2)} → ${lecture2.position.toFixed(2)} s`)
+  noter(f.largeur, '/sorties', 'lecteur réel : le spectre change entre deux images', image1 !== lecture2.image && lecture2.image.includes('scaleY(') && !/^(scaleY\(0\)\|?)+$/.test(lecture2.image), `${lecture2.image.split('|').filter((v) => v && v !== 'scaleY(0)').length}/32 colonnes allumées`)
+  if (mobile) {
+    await nav.cliquer(s, '[data-g2g="replier"]')
+    await attendre(300)
+  }
   if (!mobile) {
     const aff = await nav.evaluer<{ skin: number; dedans: boolean; colonnes: number; visibles: number; presets: number; debordements: string[] }>(s, `(() => {
       const aff = document.querySelector('.g2g-lecteur__afficheur').getBoundingClientRect();
@@ -198,6 +259,32 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   await nav.envoyer('Target.closeTarget', { targetId })
 }
 
+/**
+ * Entrée par navigation côté client : la home du portfolio, « Découvrir mes projets », puis la tuile
+ * (Next Link, sans rechargement). Le layout de l'expérience se monte sans que son script en ligne
+ * s'exécute : le lecteur doit quand même être là (data-js) et jouer au premier vrai clic (bloc 7.3b).
+ */
+async function verifierEntreeClient(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
+  const mobile = f.largeur < 600
+  const { s, targetId } = await nav.page(`${URL}/`, f.largeur, f.hauteur, f.echelle)
+  await attendre(1500)
+  const ouvert = await nav.evaluer<boolean>(s, `(() => { const b = Array.from(document.querySelectorAll('a, button')).find((e) => /découvrir mes projets/i.test(e.textContent || '')); if (!b) return false; b.click(); return true })()`)
+  await attendre(2500)
+  const tuile = await nav.evaluer<boolean>(s, `(() => { const l = document.querySelector('article.project-card a[href="/experience/groove-to-grave"]'); if (!l) return false; l.click(); return true })()`)
+  await attendre(5000)
+  const etat = await nav.evaluer<{ chemin: string; dataJs: boolean; statique: string; lecteur: string; ecouter: number; document: boolean }>(s, `({ chemin: location.pathname, dataJs: !!document.getElementById('haut') && document.getElementById('haut').hasAttribute('data-js'), statique: document.querySelector('.g2g-lecteur__statique') ? getComputedStyle(document.querySelector('.g2g-lecteur__statique')).display : 'absent', lecteur: document.querySelector('${mobile ? '.g2g-barre' : '.g2g-lecteur__r2'}') ? getComputedStyle(document.querySelector('${mobile ? '.g2g-barre' : '.g2g-lecteur__r2'}')).display : 'absent', ecouter: document.querySelectorAll('[data-g2g="ecouter"]').length, document: document.documentElement.classList.contains('g2g-document') })`)
+  noter(f.largeur, '/ → tuile', 'navigation côté client depuis la home : lecteur présent, barre statique cachée, boutons écouter', ouvert && tuile && etat.chemin === BASE && etat.dataJs && etat.statique === 'none' && etat.lecteur !== 'none' && etat.lecteur !== 'absent' && etat.ecouter > 0 && etat.document, JSON.stringify(etat))
+  if (etat.ecouter > 0) {
+    await nav.cliquer(s, '[data-g2g="ecouter"]')
+    await attendre(1200)
+    const lecture = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
+    noter(f.largeur, '/ → tuile', 'après navigation côté client, le lecteur joue au premier clic', lecture.audio === 'running' && lecture.statut === 'lecture' && lecture.position > 0, `${lecture.audio}, ${lecture.statut}, ${lecture.position.toFixed(2)} s`)
+  }
+  const erreurs = erreursDe(s)
+  noter(f.largeur, '/ → tuile', 'aucune erreur de console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  await nav.envoyer('Target.closeTarget', { targetId })
+}
+
 /** Canvas : captures à 80, 400 et 1200 ms après le chargement ; le coin au-dessus du skin ne doit jamais s'assombrir. */
 async function verifierCanvas(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
   const { targetId } = await nav.envoyer<{ targetId: string }>('Target.createTarget', { url: 'about:blank' })
@@ -230,11 +317,14 @@ async function verifierCanvas(nav: Devtools, f: (typeof FORMATS)[number]): Promi
 async function main(): Promise<void> {
   const nav = new Devtools()
   await nav.demarrer()
+  const off = collecterErreurs(nav)
   for (const f of FORMATS) {
     for (const p of PAGES) await verifierPage(nav, f, p)
     await verifierLecteur(nav, f)
+    await verifierEntreeClient(nav, f)
     await verifierCanvas(nav, f)
   }
+  off()
   nav.fermer()
   const echecs = resultats.filter((r) => !r.ok)
   process.stdout.write('| Format | Page | Contrôle | Résultat |\n|---|---|---|---|\n')

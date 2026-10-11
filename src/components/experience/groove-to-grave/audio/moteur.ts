@@ -230,6 +230,11 @@ export class Moteur {
     return this.enLecture
   }
 
+  /** État du contexte audio : 'absent' tant qu'aucun geste ne l'a créé, puis celui du navigateur. */
+  get etatAudio(): string {
+    return this.ctx?.state ?? 'absent'
+  }
+
   /** Preset : courbe d'égalisation et normalisation, en 80 ms. Sans son d'interface. */
   appliquerPreset(preset: Preset, immediat = false): void {
     this.preset = preset
@@ -354,6 +359,8 @@ declare global {
       flux: () => MediaStream | null
       mesure: (quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif?: boolean) => void
       position: () => number
+      /** État de l'AudioContext ('absent' avant le premier geste), pour les vérifications en production. */
+      etatAudio: () => string
       /** Fige la transition de page (avance rapide du mur et balayage) à une progression de 0 à 1, null pour la libérer. */
       figerTransition: (p: number | null) => void
     }
@@ -364,7 +371,7 @@ declare global {
 export function moteur(): Moteur {
   if (!instance) {
     instance = new Moteur()
-    if (typeof window !== 'undefined') window.__g2g = { ...window.__g2g, flux: () => instance?.flux() ?? null, mesure: (quoi, actif) => instance?.mesure(quoi, actif), position: () => instance?.position ?? -1, figerTransition: window.__g2g?.figerTransition ?? (() => undefined) }
+    if (typeof window !== 'undefined') window.__g2g = { ...window.__g2g, flux: () => instance?.flux() ?? null, mesure: (quoi, actif) => instance?.mesure(quoi, actif), position: () => instance?.position ?? -1, etatAudio: () => instance?.etatAudio ?? 'absent', figerTransition: window.__g2g?.figerTransition ?? (() => undefined) }
   }
   return instance
 }
