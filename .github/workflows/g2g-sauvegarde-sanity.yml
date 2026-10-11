@@ -26,7 +26,7 @@ jobs:
           SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
         run: |
           mkdir -p sauvegarde
-          npx --yes sanity@6.18.0 dataset export production "sauvegarde/groove-to-grave-$(date -u +%Y-%m-%d).tar.gz" --project "$SANITY_PROJECT_ID" --no-open
+          npx --yes sanity@6.18.0 dataset export production "sauvegarde/groove-to-grave-$(date -u +%Y-%m-%d).tar.gz" -p "$SANITY_PROJECT_ID" --overwrite
           ls -la sauvegarde
       - uses: actions/upload-artifact@v4
         with:
