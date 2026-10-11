@@ -62,9 +62,13 @@ export const textes = {
     body: "Merci. Rien n'est encore enregistré : la newsletter attend que le label choisisse son outil. En attendant, suis le label sur Bandcamp.",
     draft: true,
   },
-  conceptNonOfficiel: {
+  /** Crédit du site, pied de page (bloc 7.0 : plateforme officielle, carte blanche du label). */
+  credits: {
     lang: 'fr',
-    body: 'Site concept, non officiel, réalisé sans commande du label. Pochettes, flyers et textes de sortie appartiennent à Groove To Grave Records et à leurs auteurs.',
-    draft: true,
+    body: 'Site réalisé par Julien Robert pour Groove To Grave Records.',
+  },
+  droits: {
+    lang: 'fr',
+    body: 'Pochettes, flyers, illustrations et textes de sortie appartiennent à Groove To Grave Records et à leurs auteurs : JeunePenard, LukasDarian, Cbrgraphics.',
   },
 } satisfies Record<string, Texte>

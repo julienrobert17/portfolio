@@ -10,7 +10,7 @@ import Newsletter from '@/components/experience/groove-to-grave/sections/newslet
 import Cassette from '@/components/experience/groove-to-grave/ui/cassette'
 
 export const metadata: Metadata = {
-  title: { absolute: `${label.nom} — concept non officiel` },
+  title: { absolute: label.nom },
   openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: label.nom, description: label.presentation.body, url: BASE },
 }
 

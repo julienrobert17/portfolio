@@ -1,9 +1,16 @@
 # Groove To Grave Records — brief de conception
 
-> Expérience portfolio `groove-to-grave` · brief v1.5 · 11 octobre 2026 (v1 : 8 octobre, v1.1 à v1.4 : 10 octobre 2026)
-> Site **concept, non commandé par le label**. Tout le contenu public (noms, titres, crédits, pochettes, flyers) est utilisé tel quel. Une mise en ligne publique avec leurs visuels et leur musique suppose l'accord écrit de Groove To Grave Records ; d'ici là, la route reste en preview et le site affiche la mention « concept non officiel » dans son pied de page.
+> Plateforme officielle de Groove To Grave Records, construite dans le portfolio sous `experience/groove-to-grave` · brief v1.6 · 11 octobre 2026 (v1 : 8 octobre, v1.1 à v1.4 : 10 octobre, v1.5 : 11 octobre 2026)
+> **Statut (bloc 7.0, 11 octobre 2026) : le label a donné carte blanche** pour réaliser sa plateforme officielle et utiliser ses assets (pochettes, flyers, logos, musique). Le site n'est plus un concept : plus de mention « concept non officiel », crédit « Site réalisé par Julien Robert pour Groove To Grave Records » en pied de page, crédits des œuvres conservés (JeunePenard, LukasDarian, Cbrgraphics). Le domaine final n'est pas choisi (sous `/experience/groove-to-grave` dans le portfolio, ou un domaine du label) : le `noindex` reste jusqu'à ce choix et la canonical est paramétrable par `G2G_URL_SITE` (§8, §12). Le label doit pouvoir publier lui-même sorties, soirées et textes : Phase 7 (§9).
 
 Fichier compagnon : `prototype-lecteur.html`, la maquette validée du lecteur. Elle sert de référence pour les **mécaniques** (son, presets, bande défilante, transition) et pour la synthèse des sons et boucles provisoires. Elle ne sert pas de référence de code : ses écarts connus sont listés en fin de document.
+
+**Changements depuis la v1.5** (bloc 7.0, 11 octobre 2026) :
+
+1. Statut : plateforme officielle, carte blanche du label pour les assets ; mentions « concept non officiel » retirées du skin, du pied de page, des métadonnées et de ce brief ; crédit du site en pied de page (§4, §10).
+2. §8 : `noindex` maintenu jusqu'au choix du domaine, canonical paramétrable par la variable d'environnement `G2G_URL_SITE` ; l'exception SEO change de motif.
+3. §9 : accord explicite pour la fusion sur `main` et pour une seule écriture en base (bloc 7.1) ; Phase 7 ajoutée (autonomie éditoriale du label, audit de CMS d'abord).
+4. §12 : question du domaine final ; accord du label obtenu ; autonomie et extractibilité de la plateforme (§6).
 
 **Changements depuis la v1.4** (bloc 6.1, 11 octobre 2026) :
 
@@ -250,7 +257,7 @@ Route : `src/app/experience/groove-to-grave/`. Le lecteur vit dans `layout.tsx` 
 
 **Navigation.** Barre de menu du lecteur, avec icône et libellé texte pour chaque entrée : sorties, artistes, soirées, le label, contact. Ce sont de vrais `<Link>` dans un `<nav aria-label="Navigation principale">`, page courante en `aria-current="page"`. Le logo ramène à l'accueil.
 
-**Pied de page, « fin de bande ».** Gardée par le crâne coiffé d'un vinyle. Crédits du site, mention « concept non officiel », lien vers les sources, liens Bandcamp, SoundCloud, Instagram, Discogs et Linktree. Un bouton « rembobiner » ramène en haut de page avec le son de rembobinage.
+**Pied de page, « fin de bande ».** Gardée par le crâne coiffé d'un vinyle. Crédit « Site réalisé par Julien Robert pour Groove To Grave Records », droits des œuvres (JeunePenard, LukasDarian, Cbrgraphics), lien vers les sources, liens Bandcamp, SoundCloud, Instagram, Discogs et Linktree. Un bouton « rembobiner » ramène en haut de page avec le son de rembobinage.
 
 **Newsletter.** Le formulaire est conçu et passe par une server action qui valide l'adresse, mais **n'enregistre rien** tant qu'aucun fournisseur n'est choisi avec le label. Le message de confirmation le dit honnêtement. Un lien « suivre sur Bandcamp » fonctionne réellement à côté.
 
@@ -347,6 +354,7 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 - **Extraits provisoires** : synthèse en TypeScript pur hors navigateur dans `scripts/g2g-extraits.ts`, qui rejoue les recettes de la maquette (grosse caisse, charley, basse, souffle, égalisation) échantillon par échantillon, une boucle distincte par sortie (BPM, motif de grosse caisse, ligne de basse), de 45 s, avec fondus, écrite en WAV puis encodée en MP3 192 kbps par `ffmpeg`. Pas de Playwright. **Aucune question de droits.** Les vrais extraits n'entrent qu'avec l'accord du label (§7).
 - **Médias réels** : `scripts/g2g-fetch-media.ts` récupère les pochettes publiques (Bandcamp) et les visuels d'événements publics (Shotgun, RA) vers `content/groove-to-grave/media/source/`, avec un `sources.json` qui donne l'URL d'origine, la date et les dimensions. Ce qui échoue est listé pour capture manuelle. Instagram n'est **jamais** aspiré par script. `scripts/g2g-media.ts` résout chaque emplacement selon la priorité du §7 et écrit `content/groove-to-grave/media/rapport.md`.
 - Aucune nouvelle dépendance. Décision de Phase 0 : il n'en faut aucune.
+- **Autonomie et extractibilité** (audit du bloc 7.0, sans rien couper) : tout ce qui est propre à G2G vit dans `src/components/experience/groove-to-grave/` (composants, contenu, styles, polices, tokens), `src/app/experience/groove-to-grave/` (route), `scripts/g2g-*.ts` et `generate-g2g-tuile.ts`, `public/experience/groove-to-grave/`, `content/groove-to-grave/` et `docs/groove-to-grave/`. Attaches au reste du portfolio, à couper le jour d'une application Next indépendante : le hook `@/lib/use-reduced-motion` (3 imports, à copier dans `lib/`) ; le layout racine du portfolio (`src/app/layout.tsx` : `<html lang>`, `globals.css`, polices Geist, curseur, en-tête et pied conditionnels masqués par `IMMERSIVE_PREFIXES` de `src/lib/routes.ts`) à remplacer par un layout racine propre ; le préfixe `BASE` de `lib/routes.ts` et les chemins publics en dur (`content/extraits.ts` généré, `ui/photo.tsx`, `styles/g2g.css`, `store/lecteur-store.ts` pour la Media Session, les scripts) à ramener à la racine ; les chemins relatifs de `next/font/local` dans le layout ; les dépendances à déclarer dans un `package.json` propre (`gsap`, `lenis`, `sharp`, `tsx`, config ESLint et `tsconfig` avec l'alias `@/*`) ; le script `test:g2g-tokens` ; la variable `G2G_URL_SITE`. Restent côté portfolio seulement : l'entrée `accents.ts`, l'entrée de `seed.ts`, `scripts/g2g-upsert-projet.ts` et la tuile. Aucune dépendance à Prisma ni à la base.
 
 ---
 
@@ -373,7 +381,7 @@ Le site est conçu pour recevoir, sans changement de code, les fichiers que Groo
 **Performance**
 
 - Lighthouse ≥ 95 sur les quatre axes, desktop et mobile, sur l'accueil, `/sorties`, `/sorties/gtgr05` et `/soirees`. Audits **séquentiels**. C'est le critère bloquant. **Mesure de référence** (bloc 6.1) : la preview Vercel, mobile simulé, cinq passages par page l'un après l'autre, médiane retenue ; la mesure sur le build local reste indicative.
-- **Exception assumée du critère SEO** : le site est en `noindex` tant que le label n'a pas donné son accord (§1), ce qui fait échouer l'audit `is-crawlable` et plafonne le SEO vers 66 ; tout le reste de l'axe passe. Le jour de la mise en ligne publique, retirer la ligne `robots: { index: false, follow: false },` de `src/app/experience/groove-to-grave/layout.tsx` et le SEO revient à 100.
+- **Exception assumée du critère SEO** : le site reste en `noindex` tant que le domaine final n'est pas choisi (§12), pour ne pas indexer une adresse qui changera ; l'audit `is-crawlable` échoue et plafonne le SEO vers 66, tout le reste de l'axe passe. Avec la décision : poser `G2G_URL_SITE` (origine canonique, sans barre finale) sur Vercel, retirer la ligne `robots: { index: false, follow: false },` de `src/app/experience/groove-to-grave/layout.tsx`, et le SEO revient à 100.
 - LCP < 2,5 s en mobile simulé, CLS < 0,02, TBT < 150 ms.
 - Le WebGL s'initialise après le LCP, pendant un temps libre du navigateur, et le shader se compile en parallèle sans bloquer le fil principal. DPR plafonné à 1,5 (1 sur mobile), pause quand l'onglet est caché.
 - Aucun extrait audio chargé avant un geste. Trois fichiers de police au maximum, seul Archivo est préchargé.
@@ -431,7 +439,9 @@ Chaque phase suit la même méthode :
 
 **Phase 5 — Transitions et pages détail.** Avance rapide, pages sortie, artiste et label, contact et newsletter (sans enregistrement), fin de bande. Planche.
 
-**Phase 6 — Finition et audits.** Passe d'accessibilité (clavier complet, VoiceOver avec le directeur artistique, mouvement réduit), audits de performance séquentiels, corrections, checklist Safari remise au directeur artistique. Tuile dans le carrousel de la home : la ligne Prisma est **préparée mais pas écrite** (`prisma/seed.ts` et `scripts/g2g-upsert-projet.ts`, upsert de la seule entrée `groove-to-grave`, non exécuté) ; l'écriture en base, partagée avec la prod, comme la fusion de la branche sur `main`, attendent l'accord écrit du label.
+**Phase 6 — Finition et audits.** Passe d'accessibilité (clavier complet, VoiceOver avec le directeur artistique, mouvement réduit), audits de performance séquentiels, corrections, checklist Safari remise au directeur artistique. Tuile dans le carrousel de la home : la ligne Prisma est préparée (`scripts/g2g-upsert-projet.ts`, upsert de la seule entrée `groove-to-grave`). **Bloc 7.1** : accord explicite donné le 11 octobre 2026 pour la fusion sur `main` puis une seule écriture en base, dans cet ordre, avec contrôles avant et après (compte des lignes, aucun autre `updatedAt` modifié, commande de retour arrière).
+
+**Phase 7 — Autonomie éditoriale du label.** Étape 1 : audit comparatif de CMS (Sanity, Keystatic et Keystatic Cloud, Payload, autre) sans installation ni écriture, sur les éditeurs non techniques, les modèles et validations, le pipeline médias, la publication, le coût, la portabilité, la performance et l'effort ; décision du directeur artistique. Étapes suivantes selon la décision.
 
 ---
 
@@ -449,8 +459,9 @@ Cochée le 10 octobre 2026 (Phase 6), une preuve par ligne ; les lignes qui dép
 - [ ] VoiceOver correct sur le lecteur : à passer par le directeur artistique.
 - [ ] Planches finales 1440 et 390 validées par le directeur artistique ; checklist Safari macOS et iPhone passée par lui.
 - [x] `tsc`, lint et build propres ; aucune nouvelle dépendance non validée ; aucune écriture en base. Preuve : passés avant chaque push ; `git diff main -- package.json` ne touche que le script `test:g2g-tokens` ; aucun import Prisma sous `groove-to-grave` ; l'entrée de `seed.ts` n'est pas exécutée.
-- [x] Mention « concept non officiel » dans le pied de page ; vrais extraits et mise en ligne publique bloqués tant que l'accord du label n'est pas obtenu. Preuve : tampon dans le skin et texte du pied de page (`layout/fin-de-bande.tsx`), `robots: { index: false }` dans le layout, extraits provisoires synthétisés (`origine: 'provisoire'`, « extrait provisoire » dans la bande).
-- [ ] Accord écrit du label pour les visuels, la musique et la mise en ligne publique.
+- [x] Crédit « Site réalisé par Julien Robert pour Groove To Grave Records » et droits des œuvres en pied de page (`layout/fin-de-bande.tsx`) ; plus aucune mention « concept non officiel » (bloc 7.0). Les extraits restent provisoires (`origine: 'provisoire'`) tant que le label n'a pas fourni les siens.
+- [x] Accord du label : carte blanche donnée le 11 octobre 2026 pour la plateforme officielle et l'usage des assets.
+- [ ] Domaine final choisi, `G2G_URL_SITE` posée, `noindex` retiré.
 
 ---
 
@@ -475,7 +486,9 @@ Cochée le 10 octobre 2026 (Phase 6), une preuve par ligne ; les lignes qui dép
 
 ## 12. Questions ouvertes
 
-1. **Accord du label** : pour la mise en ligne publique, les visuels et les vrais extraits. Qui les contacte, et quand ?
+1. ~~**Accord du label**~~ Obtenu le 11 octobre 2026 : carte blanche pour la plateforme officielle et les assets. Restent à recevoir les fichiers eux-mêmes (logos, extraits, textes validés).
+11. **Domaine final** : la plateforme reste-t-elle sous `/experience/groove-to-grave` dans le portfolio, ou part-elle sur un domaine du label (projet Vercel séparé) ? Le `noindex` et la canonical (`G2G_URL_SITE`) en dépendent ; l'extractibilité est préparée (§6, audit du bloc 7.0).
+12. **Autonomie éditoriale** : quel outil pour que le label publie lui-même sorties, soirées et textes ? Audit en Phase 7, étape 1.
 2. **Fichiers de logo** : à obtenir du label pour remplacer les tracés provisoires `PLACEHOLDER-TRACE` (§2.2). Typographies : confirmées en passe d'identité (§3.2).
 3. ~~**GTGR01** existe-t-il ?~~ Résolu en Phase 1 : GTGR01 est *Common Speed EP* de LukasDarian, sortie numérique du 22 juillet 2022 (artwork Cbrgraphics, mastering Marine Benabou). GTGR02 reste le premier vinyle.
 4. ~~**Crédits de GTGR04**~~ Résolu en Phase 1 : artwork JeunePenard, mastering Benoit D., sortie le 21 mars 2025, vinyle épuisé.

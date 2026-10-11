@@ -376,19 +376,6 @@
   display: block;
 }
 
-.g2g-skin__concept {
-  margin-left: auto;
-  white-space: nowrap;
-  font-size: var(--meta);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border: var(--trait) solid var(--g2g-ink);
-  border-radius: var(--radius);
-  background: var(--g2g-poster);
-}
-
 .g2g-nav {
   display: flex;
   flex-wrap: wrap;
@@ -519,7 +506,6 @@
 
 /* Sous 768 px, sans lecteur : seulement la barre de titre et la navigation. L'afficheur arrive avec le lecteur. */
 @media (max-width: 767px) {
-  .g2g-skin__concept,
   .g2g-skin__lcd,
   .g2g-skin__statique {
     display: none;
@@ -1168,29 +1154,13 @@
   font-size: 14px;
 }
 
-.g2g-lecteur__concept {
+/* Le bouton mini ferme la rangée de titre, à droite. */
+.g2g-lecteur .g2g-lecteur__mini {
   margin-left: auto;
 }
 
 .g2g-lecteur .g2g-lecteur__menu-bouton {
   display: none;
-}
-
-/* Tampon « concept non officiel » : redInk sur poster, contour pointillé, −2°, ni rayon ni ombre. */
-.g2g-tampon {
-  display: inline-block;
-  padding: 3px 10px;
-  border: 2px dotted var(--g2g-redInk);
-  color: var(--g2g-redInk);
-  background: var(--g2g-poster);
-  font-size: var(--meta);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transform: rotate(-2deg);
-  cursor: default;
-  user-select: none;
-  white-space: nowrap;
 }
 
 /* Rangée 2 : transport, fenêtre, afficheur, volume. 79 px : afficheur 63, puis la progression. */
@@ -1686,7 +1656,6 @@
   }
 
   .g2g-lecteur__mini,
-  .g2g-lecteur__concept,
   .g2g-lecteur__r2,
   .g2g-lecteur__fine {
     display: none !important;

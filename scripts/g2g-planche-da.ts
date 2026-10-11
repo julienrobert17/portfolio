@@ -153,7 +153,7 @@ async function main(): Promise<void> {
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${LARGEUR}" height="${hauteurTotale}" viewBox="0 0 ${LARGEUR} ${hauteurTotale}"><rect width="${LARGEUR}" height="${hauteurTotale}" fill="${FOND}"/>`
   svg += texte(MARGE, 70, 'Groove To Grave Records — relevé DA', 56, { gras: true })
-  svg += texte(MARGE, 112, `Planche du ${DATE} · site concept non officiel · œuvres affichées intactes, créditées, jamais recadrées · pochettes : couleur dominante (coque) et accent (bande) extraits par scripts/g2g-couleurs.ts`, 22, { couleur: '#3d3a33' })
+  svg += texte(MARGE, 112, `Planche du ${DATE} · plateforme officielle du label · œuvres affichées intactes, créditées, jamais recadrées · pochettes : couleur dominante (coque) et accent (bande) extraits par scripts/g2g-couleurs.ts`, 22, { couleur: '#3d3a33' })
   svg += `<g transform="translate(0 ${entete})">${s1.svg}</g>`
   svg += `<g transform="translate(0 ${entete + s1.hauteur})">${s2.svg}</g>`
   const yM = entete + s1.hauteur + s2.hauteur

@@ -184,7 +184,7 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
         {annonce}
       </div>
 
-      {/* Rangée 1 : monogramme et nom, navigation, mention, mini. Barre du haut sur mobile. */}
+      {/* Rangée 1 : monogramme et nom, navigation, mini. Barre du haut sur mobile. */}
       <div className="g2g-lecteur__r1">
         <Link href={routes.accueil} className="g2g-lecteur__nom">
           <Monogramme className="g2g-lecteur__mono" />
@@ -197,7 +197,6 @@ export default function Lecteur({ catalogue, prochaine }: LecteurProps) {
         <nav aria-label="Navigation principale" className="g2g-nav g2g-lecteur__nav" id="g2g-navigation">
           <NavLiens />
         </nav>
-        <span className="g2g-tampon g2g-lecteur__concept">concept non officiel</span>
         <button type="button" className="g2g-rond g2g-rond--petit g2g-js g2g-lecteur__mini" data-g2g="mini" aria-pressed={etat.mini} aria-label={etat.mini ? 'Agrandir le lecteur' : 'Passer en mode mini'} onClick={() => definirMini(!etat.mini)}>
           <Icone nom={etat.mini ? 'agrandir' : 'mini'} />
         </button>

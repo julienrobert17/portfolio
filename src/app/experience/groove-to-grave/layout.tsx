@@ -43,18 +43,26 @@ const lcd = localFont({
   preload: false,
 })
 
-const TITRE = `${label.nom} — concept non officiel`
+const TITRE = label.nom
 
 /**
- * Métadonnées communes. La route reste en preview tant que le label n'a pas donné son accord :
- * pas d'indexation. openGraph n'est pas fusionné entre layout et page par Next, les pages
- * redonnent le leur.
+ * Origine canonique du site, paramétrable : `G2G_URL_SITE` (sans barre finale) le jour où la
+ * plateforme part sur le domaine du label ; sinon l'URL du portfolio (bloc 7.0).
+ */
+const ORIGINE = (process.env.G2G_URL_SITE ?? URL_SITE).replace(/\/$/, '')
+
+/**
+ * Métadonnées communes. Plateforme officielle du label depuis le bloc 7.0 (carte blanche), mais
+ * le domaine final n'est pas choisi (sous le portfolio ou domaine du label) : le `noindex` reste
+ * jusqu'à ce choix, pour ne pas indexer une adresse qui changera ; à retirer avec la décision,
+ * en même temps que la variable d'origine. openGraph n'est pas fusionné entre layout et page par
+ * Next, les pages redonnent le leur.
  */
 export const metadata: Metadata = {
-  metadataBase: new URL(URL_SITE),
+  metadataBase: new URL(ORIGINE),
   title: { default: TITRE, template: `%s — ${label.nom}` },
   description: label.presentation.body,
-  alternates: { canonical: BASE },
+  alternates: { canonical: `${ORIGINE}${BASE}` },
   robots: { index: false, follow: false },
   openGraph: { type: 'website', locale: 'fr_FR', siteName: label.nom, title: TITRE, description: label.presentation.body, url: BASE },
 }
