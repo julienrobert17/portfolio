@@ -488,7 +488,7 @@ Cochée le 10 octobre 2026 (Phase 6), une preuve par ligne ; les lignes qui dép
 
 1. ~~**Accord du label**~~ Obtenu le 11 octobre 2026 : carte blanche pour la plateforme officielle et les assets. Restent à recevoir les fichiers eux-mêmes (logos, extraits, textes validés).
 11. **Domaine final** : la plateforme reste-t-elle sous `/experience/groove-to-grave` dans le portfolio, ou part-elle sur un domaine du label (projet Vercel séparé) ? Le `noindex` et la canonical (`G2G_URL_SITE`) en dépendent ; l'extractibilité est préparée (§6, audit du bloc 7.0).
-12. **Autonomie éditoriale** : quel outil pour que le label publie lui-même sorties, soirées et textes ? Audit en Phase 7, étape 1.
+12. **Autonomie éditoriale** : quel outil pour que le label publie lui-même sorties, soirées et textes ? Audit fait en Phase 7, étape 1 (`comptes-rendus/phase-7-audit.md`) : recommandation Sanity en offre Free avec Studio hébergé à part et pipeline médias en Action GitHub ; décision attendue.
 2. **Fichiers de logo** : à obtenir du label pour remplacer les tracés provisoires `PLACEHOLDER-TRACE` (§2.2). Typographies : confirmées en passe d'identité (§3.2).
 3. ~~**GTGR01** existe-t-il ?~~ Résolu en Phase 1 : GTGR01 est *Common Speed EP* de LukasDarian, sortie numérique du 22 juillet 2022 (artwork Cbrgraphics, mastering Marine Benabou). GTGR02 reste le premier vinyle.
 4. ~~**Crédits de GTGR04**~~ Résolu en Phase 1 : artwork JeunePenard, mastering Benoit D., sortie le 21 mars 2025, vinyle épuisé.
