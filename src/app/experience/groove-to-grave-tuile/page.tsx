@@ -3,6 +3,7 @@ import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/po
 import { couleurs as tokens, variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import { CassetteSvg } from '@/components/experience/groove-to-grave/ui/cassette-svg'
 import { couleursCassette } from '@/components/experience/groove-to-grave/ui/cassette'
+import { chargerContenu, getSortie } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { Monogramme } from '@/components/experience/groove-to-grave/ui/logos/logo'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
 
@@ -19,8 +20,9 @@ export const metadata: Metadata = {
  * charger Permanent Marker une fois chargé comme image (bloc 7.1b). Hors du layout de
  * l'expérience : pas de lecteur ni de pied de page.
  */
-export default function TuilePage() {
-  const c = couleursCassette('gtgr05')
+export default async function TuilePage() {
+  const { sorties } = await chargerContenu()
+  const c = couleursCassette(getSortie(sorties, 'gtgr05')?.couleurs)
   return (
     <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" style={{ ...variablesCss(), minHeight: 0, overflow: 'hidden' }}>
       <div

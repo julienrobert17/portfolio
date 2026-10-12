@@ -1,0 +1,69 @@
+# Pipeline médias de Groove To Grave Records (Phase 7.4) : pour chaque fichier déposé dans le
+# Studio Sanity (pochette, flyer, portrait, extrait audio brut), produit les dérivés du site (AVIF
+# et WebP sans recadrage, couleurs de cassette, extrait de 60 s à −14 LUFS, BPM) et les écrit dans
+# les champs en lecture seule des documents (scripts/g2g-pipeline-sanity.ts). Le webhook Sanity de
+# publication déclenche ensuite la revalidation du site comme pour toute publication.
+#
+# Déclenchement : toutes les 15 minutes (le script ne fait rien quand aucune empreinte n'a changé),
+# à la demande, ou par `repository_dispatch` (type `g2g-medias`) si un relais est branché un jour.
+# Jeton d'écriture Sanity (rôle editor) dans le secret SANITY_PIPELINE_TOKEN ; sans lui, le job
+# s'arrête en avertissant, sans échouer.
+name: Pipeline médias (Groove To Grave)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [g2g-medias]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: g2g-pipeline-medias
+  cancel-in-progress: false
+
+jobs:
+  medias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Jeton présent ?
+        id: jeton
+        env:
+          SANITY_PIPELINE_TOKEN: ${{ secrets.SANITY_PIPELINE_TOKEN }}
+        run: |
+          if [ -z "$SANITY_PIPELINE_TOKEN" ]; then
+            echo "::warning::Secret SANITY_PIPELINE_TOKEN absent : pipeline non exécuté (créer un jeton de rôle editor avec « npx sanity tokens create » dans studio/, puis l'ajouter aux secrets du dépôt)."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.jeton.outputs.present == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.jeton.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - name: Dépendances
+        if: steps.jeton.outputs.present == 'true'
+        run: npm ci --ignore-scripts
+      - name: ffmpeg
+        if: steps.jeton.outputs.present == 'true'
+        run: ffmpeg -version | head -1 && ffprobe -version | head -1
+      - name: Pipeline
+        if: steps.jeton.outputs.present == 'true'
+        env:
+          SANITY_PIPELINE_TOKEN: ${{ secrets.SANITY_PIPELINE_TOKEN }}
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+          SANITY_DATASET: production
+        run: npx tsx scripts/g2g-pipeline-sanity.ts --rapport rapport-pipeline.md
+      - uses: actions/upload-artifact@v4
+        if: steps.jeton.outputs.present == 'true'
+        with:
+          name: rapport-pipeline-${{ github.run_id }}
+          path: rapport-pipeline.md
+          retention-days: 7
+          if-no-files-found: ignore

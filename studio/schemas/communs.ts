@@ -90,6 +90,7 @@ export const traitement = defineType({
     }),
     defineField({ name: 'raison', title: 'Raison du refus', type: 'string', description: 'Pourquoi un fichier n’a pas été accepté (par exemple un extrait d’un morceau pas encore sorti).' }),
     defineField({ name: 'misAJour', title: 'Dernier traitement', type: 'datetime' }),
+    defineField({ name: 'empreinte', title: 'Empreinte des fichiers traités', type: 'string', hidden: true, description: 'Référence des fichiers d’origine au dernier traitement : le pipeline retraite quand elle change.' }),
   ],
 })
 
@@ -105,10 +106,15 @@ export const couleursExtraites = defineType({
     defineField({ name: 'contrasteInkDominante', title: 'Contraste du texte sombre sur la dominante', type: 'number' }),
     defineField({ name: 'contrasteInkAccent', title: 'Contraste du texte sombre sur l’accent', type: 'number' }),
     defineField({ name: 'contrastePosterDominante', title: 'Contraste du texte clair sur la dominante', type: 'number' }),
+    defineField({ name: 'contrastePosterAccent', title: 'Contraste du texte clair sur l’accent', type: 'number' }),
   ],
 })
 
-/** Images dérivées (AVIF et WebP sans recadrage) produites par le pipeline, lecture seule. */
+/**
+ * Images dérivées (AVIF et WebP sans recadrage, une série de largeurs pour le srcset du site,
+ * chaque fichier sous 300 kB) produites par le pipeline, lecture seule. `avif` et `webp` sont
+ * la plus grande largeur ; `tailles` la série complète.
+ */
 export const imagesDerivees = defineType({
   name: 'imagesDerivees',
   title: 'Images optimisées',
@@ -119,6 +125,24 @@ export const imagesDerivees = defineType({
     defineField({ name: 'webp', title: 'WebP', type: 'file', options: { accept: 'image/webp' } }),
     defineField({ name: 'largeur', title: 'Largeur', type: 'number' }),
     defineField({ name: 'hauteur', title: 'Hauteur', type: 'number' }),
+    defineField({
+      name: 'tailles',
+      title: 'Toutes les largeurs',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'taille',
+          fields: [
+            defineField({ name: 'largeur', title: 'Largeur', type: 'number' }),
+            defineField({ name: 'hauteur', title: 'Hauteur', type: 'number' }),
+            defineField({ name: 'avif', title: 'AVIF', type: 'file', options: { accept: 'image/avif' } }),
+            defineField({ name: 'webp', title: 'WebP', type: 'file', options: { accept: 'image/webp' } }),
+          ],
+          preview: { select: { largeur: 'largeur', hauteur: 'hauteur' }, prepare: ({ largeur, hauteur }: { largeur?: number; hauteur?: number }) => ({ title: `${largeur ?? '?'} × ${hauteur ?? '?'} px` }) },
+        },
+      ],
+    }),
   ],
 })
 

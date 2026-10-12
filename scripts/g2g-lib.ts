@@ -10,14 +10,8 @@ import { join } from 'node:path'
 import sharp from 'sharp'
 
 export const RACINE = process.cwd()
-export const CONTENU = join(RACINE, 'content/groove-to-grave')
-export const MEDIA = join(CONTENU, 'media')
-export const SOURCE = join(MEDIA, 'source')
-export const LABEL = join(MEDIA, 'label')
 export const PUBLIC = join(RACINE, 'public/experience/groove-to-grave')
 export const PUBLIC_IMG = join(PUBLIC, 'img')
-export const PUBLIC_AUDIO = join(PUBLIC, 'audio')
-export const CONTENU_TS = join(RACINE, 'src/components/experience/groove-to-grave/content')
 /** Originaux et WAV intermédiaires, hors dépôt (.next est ignoré). */
 export const CACHE = join(RACINE, '.next/cache/groove-to-grave')
 
@@ -29,41 +23,8 @@ export const LARGEURS = [320, 480, 640, 960, 1200, 1600]
 const POIDS_MAX = 300 * 1024
 const QUALITE = { dense: { webp: 62, avif: 38 }, pleine: { webp: 74, avif: 44 } }
 
-export interface EntreeSource {
-  id: string
-  kind: 'pochette' | 'flyer' | 'photo'
-  file: string
-  url: string
-  page?: string
-  fetchedAt: string
-  width: number
-  height: number
-  bytes: number
-  credit?: string
-}
-
-export interface SourcesJson {
-  releveLe: string
-  entrees: EntreeSource[]
-  /** Visuels non récupérés, à capturer à la main. */
-  echecs: { id: string; url: string; raison: string }[]
-}
-
-export interface ManifesteLabel {
-  audio: { file: string; track: string; start?: number; duration?: number; unreleased?: boolean }[]
-  images: { file: string; id: string; credit?: string }[]
-}
-
 export function lireJson<T>(chemin: string, defaut: T): T {
   return existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as T) : defaut
-}
-
-export function lireSources(): SourcesJson {
-  return lireJson<SourcesJson>(join(CONTENU, 'sources.json'), { releveLe: '', entrees: [], echecs: [] })
-}
-
-export function lireManifeste(): ManifesteLabel {
-  return lireJson<ManifesteLabel>(join(LABEL, 'manifest.json'), { audio: [], images: [] })
 }
 
 export function dossier(chemin: string): string {
@@ -77,14 +38,27 @@ export interface ImageExportee {
   largeurs: number[]
 }
 
+/** Une largeur dérivée d'une image : les deux formats en mémoire. */
+export interface TailleDerivee {
+  largeur: number
+  hauteur: number
+  webp: Buffer
+  avif: Buffer
+}
+
+export interface ImageDerivee {
+  width: number
+  height: number
+  tailles: TailleDerivee[]
+}
+
 /**
- * Écrit `<id>-<largeur>.avif|webp` pour chaque largeur de LARGEURS que la source
- * permet, ratio conservé, sans recadrage ni correction, chacune sous 300 kB : la
- * qualité descend tant qu'il faut, et une largeur dont un format ne tient pas
- * arrête la série. Retourne les dimensions de la plus grande largeur gardée.
+ * Dérive une image en AVIF et WebP pour chaque largeur de LARGEURS que la source permet, ratio
+ * conservé, sans recadrage ni correction, chaque fichier sous 300 kB : la qualité descend tant
+ * qu'il faut, et une largeur dont un format ne tient pas arrête la série. En mémoire : le
+ * pipeline Sanity (Phase 7.4) téléverse les résultats, `exporterImage` les écrit sur disque.
  */
-export async function exporterImage(source: Buffer, id: string): Promise<ImageExportee> {
-  dossier(PUBLIC_IMG)
+export async function deriverImage(source: Buffer, id: string): Promise<ImageDerivee> {
   const meta = await sharp(source).rotate().metadata()
   const largeurSource = meta.width ?? 0
   const hauteurSource = meta.height ?? 0
@@ -93,9 +67,9 @@ export async function exporterImage(source: Buffer, id: string): Promise<ImageEx
   const largeurs = LARGEURS.filter((l) => l <= largeurSource)
   if (!largeurs.length) largeurs.push(largeurSource)
   const base = await sharp(source).rotate().toColourspace('srgb').png({ compressionLevel: 1 }).toBuffer()
-  const ecrire = async (largeur: number): Promise<boolean> => {
+  const deriver = async (largeur: number): Promise<TailleDerivee | null> => {
     const reduit = largeur === largeurSource ? base : await sharp(base).resize(largeur).png({ compressionLevel: 1 }).toBuffer()
-    const sorties: Array<[string, Buffer]> = []
+    const sorties: Partial<Record<'webp' | 'avif', Buffer>> = {}
     for (const format of ['webp', 'avif'] as const) {
       let qualite = QUALITE[largeur <= 640 ? 'dense' : 'pleine'][format]
       let sortie = await sharp(reduit)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
@@ -103,53 +77,37 @@ export async function exporterImage(source: Buffer, id: string): Promise<ImageEx
         qualite -= 6
         sortie = await sharp(reduit)[format]({ quality: qualite, effort: format === 'webp' ? 5 : 6 }).toBuffer()
       }
-      if (sortie.length <= POIDS_MAX) sorties.push([format, sortie])
+      if (sortie.length <= POIDS_MAX) sorties[format] = sortie
     }
-    if (sorties.length < 2) return false
-    for (const [format, sortie] of sorties) writeFileSync(join(PUBLIC_IMG, `${id}-${largeur}.${format}`), sortie)
-    return true
+    if (!sorties.webp || !sorties.avif) return null
+    return { largeur, hauteur: Math.round((largeur * hauteurSource) / largeurSource), webp: sorties.webp, avif: sorties.avif }
   }
-  const gardees: number[] = []
+  const tailles: TailleDerivee[] = []
   for (const largeur of largeurs) {
-    if (!(await ecrire(largeur))) break
-    gardees.push(largeur)
+    const t = await deriver(largeur)
+    if (!t) break
+    tailles.push(t)
   }
-  if (!gardees.length) throw new Error(`${id} : aucune largeur ne tient sous 300 kB`)
-  const width = gardees[gardees.length - 1]
-  return { width, height: Math.round((width * hauteurSource) / largeurSource), largeurs: gardees }
+  if (!tailles.length) throw new Error(`${id} : aucune largeur ne tient sous 300 kB`)
+  const grande = tailles[tailles.length - 1]
+  return { width: grande.largeur, height: grande.hauteur, tailles }
 }
 
-/** Télécharge une URL en Buffer, avec un User-Agent de navigateur ; erreur sur statut non 2xx. */
-export async function telecharger(url: string): Promise<Buffer> {
-  const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', accept: '*/*' } })
-  if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return Buffer.from(await r.arrayBuffer())
+/**
+ * Écrit `<id>-<largeur>.avif|webp` dans public/experience/groove-to-grave/img/ (dérivation par
+ * `deriverImage`). Retourne les dimensions de la plus grande largeur gardée.
+ */
+export async function exporterImage(source: Buffer, id: string): Promise<ImageExportee> {
+  dossier(PUBLIC_IMG)
+  const d = await deriverImage(source, id)
+  for (const t of d.tailles) {
+    writeFileSync(join(PUBLIC_IMG, `${id}-${t.largeur}.webp`), t.webp)
+    writeFileSync(join(PUBLIC_IMG, `${id}-${t.largeur}.avif`), t.avif)
+  }
+  return { width: d.width, height: d.height, largeurs: d.tailles.map((t) => t.largeur) }
 }
 
 /** Écrit un WAV PCM 16 bits à partir d'échantillons mono ou stéréo entrelacés dans [-1, 1]. */
-export function ecrireWav(chemin: string, echantillons: Float32Array, sampleRate: number, canaux = 1): void {
-  const octetsDonnees = echantillons.length * 2
-  const buf = Buffer.alloc(44 + octetsDonnees)
-  buf.write('RIFF', 0)
-  buf.writeUInt32LE(36 + octetsDonnees, 4)
-  buf.write('WAVE', 8)
-  buf.write('fmt ', 12)
-  buf.writeUInt32LE(16, 16)
-  buf.writeUInt16LE(1, 20)
-  buf.writeUInt16LE(canaux, 22)
-  buf.writeUInt32LE(sampleRate, 24)
-  buf.writeUInt32LE(sampleRate * canaux * 2, 28)
-  buf.writeUInt16LE(canaux * 2, 32)
-  buf.writeUInt16LE(16, 34)
-  buf.write('data', 36)
-  buf.writeUInt32LE(octetsDonnees, 40)
-  for (let i = 0; i < echantillons.length; i++) {
-    const v = Math.max(-1, Math.min(1, echantillons[i]))
-    buf.writeInt16LE(Math.round(v * 32767), 44 + i * 2)
-  }
-  writeFileSync(chemin, buf)
-}
-
 export function ffmpegDisponible(): boolean {
   try {
     execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' })
@@ -199,6 +157,56 @@ export function dureeAudio(chemin: string): number {
   return Math.round(parseFloat(sortie) * 10) / 10
 }
 
+/**
+ * Estimation du tempo d'un fichier audio, en BPM : décodage mono à 11 025 Hz par ffmpeg, enveloppe
+ * d'attaques (variation positive d'énergie par trames de 256 échantillons, environ 43 par seconde),
+ * autocorrélation de l'enveloppe entre 70 et 180 BPM, le retard le plus corrélé l'emporte, avec une
+ * préférence pour la plage 100 à 150 BPM quand un multiple ou un sous-multiple est aussi fort
+ * (musiques de club du label). Suffisant pour la vitesse des bobines ; ce n'est pas une mesure
+ * de référence.
+ */
+export function estimerBpm(chemin: string): number {
+  const TAUX = 11025
+  const TRAME = 256
+  const brut = execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-i', chemin, '-ac', '1', '-ar', String(TAUX), '-f', 'f32le', '-'], { maxBuffer: 256 * 1024 * 1024 })
+  const pcm = new Float32Array(brut.buffer, brut.byteOffset, Math.floor(brut.byteLength / 4))
+  const nTrames = Math.floor(pcm.length / TRAME)
+  const energie = new Float32Array(nTrames)
+  for (let t = 0; t < nTrames; t++) {
+    let e = 0
+    for (let i = t * TRAME; i < (t + 1) * TRAME; i++) e += pcm[i] * pcm[i]
+    energie[t] = Math.sqrt(e / TRAME)
+  }
+  const attaques = new Float32Array(nTrames)
+  for (let t = 1; t < nTrames; t++) attaques[t] = Math.max(0, energie[t] - energie[t - 1])
+  const parSeconde = TAUX / TRAME
+  const retardMin = Math.floor((60 / 180) * parSeconde)
+  const retardMax = Math.ceil((60 / 70) * parSeconde)
+  const scores = new Map<number, number>()
+  for (let retard = retardMin; retard <= retardMax; retard++) {
+    let somme = 0
+    for (let t = retard; t < nTrames; t++) somme += attaques[t] * attaques[t - retard]
+    scores.set(retard, somme / (nTrames - retard))
+  }
+  let meilleur = retardMin
+  let max = -1
+  for (const [retard, score] of scores) {
+    const bpm = (60 * parSeconde) / retard
+    const bonus = bpm >= 100 && bpm <= 150 ? 1.15 : 1
+    if (score * bonus > max) {
+      max = score * bonus
+      meilleur = retard
+    }
+  }
+  // Le retard est entier (une trame = 23 ms, soit 3 % à 126 BPM) : interpolation parabolique du pic entre ses voisins.
+  const y0 = scores.get(meilleur - 1) ?? 0
+  const y1 = scores.get(meilleur) ?? 0
+  const y2 = scores.get(meilleur + 1) ?? 0
+  const denominateur = y0 - 2 * y1 + y2
+  const decalage = denominateur === 0 ? 0 : Math.max(-0.5, Math.min(0.5, (0.5 * (y0 - y2)) / denominateur))
+  return Math.round((60 * parSeconde) / (meilleur + decalage))
+}
+
 // ─── Couleurs ───
 
 export function hex(r: number, g: number, b: number): string {
@@ -227,14 +235,87 @@ export function contraste(a: string, b: string): number {
 }
 
 /** Écrit un module TypeScript généré, avec en-tête d'avertissement. */
-export function ecrireModule(nom: string, type: string, importType: string, constante: string, valeur: unknown, commentaire: string): void {
-  const code = `import type { ${type} } from './types'
+
+/** Couleurs d'une pochette pour la cassette et les contrastes vérifiés (même forme que content/types.ts). */
+export interface CouleursExtraites {
+  dominant: string
+  accent: string
+  contrasteInk: { dominant: number; accent: number }
+  contrastePoster: { dominant: number; accent: number }
+}
+
+function hsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+  const R = r / 255
+  const G = g / 255
+  const B = b / 255
+  const max = Math.max(R, G, B)
+  const min = Math.min(R, G, B)
+  const l = (max + min) / 2
+  const d = max - min
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1))
+  let h = 0
+  if (d !== 0) {
+    if (max === R) h = ((G - B) / d) % 6
+    else if (max === G) h = (B - R) / d + 2
+    else h = (R - G) / d + 4
+    h = (h * 60 + 360) % 360
+  }
+  return { h, s, l }
+}
+
+const distance = (a: [number, number, number], b: [number, number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
 /**
- * ${commentaire}
- * GÉNÉRÉ par ${importType}, ne pas éditer.
+ * Dominante et accent lus dans le disque inscrit de l'image (rayon 48 %), jamais dans les
+ * coins : les pochettes vinyle publiées par le label sont l'étiquette ronde sur fond noir,
+ * et ce fond n'est pas l'œuvre. Les pixels sont réduits à 4 bits par canal sur une vignette
+ * de 96 px ; la dominante est le seau le plus peuplé, l'accent le seau le plus saturé et
+ * assez éloigné de la dominante, pondéré par sa surface. Une image presque monochrome donne
+ * un accent dérivé de la dominante (plus clair ou plus sombre). Source : chemin ou Buffer.
  */
-export const ${constante}: Record<string, ${type}> = ${JSON.stringify(valeur, null, 2)}
-`
-  writeFileSync(join(CONTENU_TS, nom), code)
+export async function extraireCouleurs(source: string | Buffer): Promise<CouleursExtraites> {
+  const TAILLE = 96
+  const { data, info } = await sharp(source).rotate().resize(TAILLE, TAILLE, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+  const centre = (TAILLE - 1) / 2
+  const rayon = TAILLE * 0.48
+  const seaux = new Map<string, { n: number; r: number; g: number; b: number }>()
+  for (let y = 0; y < TAILLE; y++) {
+    for (let x = 0; x < TAILLE; x++) {
+      if (Math.hypot(x - centre, y - centre) > rayon) continue
+      const i = (y * TAILLE + x) * info.channels
+      const cle = `${data[i] >> 4}-${data[i + 1] >> 4}-${data[i + 2] >> 4}`
+      const s = seaux.get(cle) ?? { n: 0, r: 0, g: 0, b: 0 }
+      s.n++
+      s.r += data[i]
+      s.g += data[i + 1]
+      s.b += data[i + 2]
+      seaux.set(cle, s)
+    }
+  }
+  const moyenne = (s: { n: number; r: number; g: number; b: number }): [number, number, number] => [s.r / s.n, s.g / s.n, s.b / s.n]
+  let plusPeuple = { n: 0, r: 0, g: 0, b: 0 }
+  for (const s of seaux.values()) if (s.n > plusPeuple.n) plusPeuple = s
+  const domRgb = moyenne(plusPeuple)
+  const dom = hex(...domRgb)
+  let meilleur: { score: number; c: string } | null = null
+  for (const s of seaux.values()) {
+    const c = moyenne(s)
+    const { s: sat, l } = hsl(c[0], c[1], c[2])
+    const dist = distance(c, domRgb)
+    if (dist < 70 || l < 0.12 || l > 0.9) continue
+    const score = Math.sqrt(s.n) * (0.25 + sat) * Math.min(1, dist / 140)
+    if (!meilleur || score > meilleur.score) meilleur = { score, c: hex(...c) }
+  }
+  let accent = meilleur?.c
+  if (!accent) {
+    const [r, g, b] = rgb(dom)
+    const { l } = hsl(r, g, b)
+    accent = l > 0.5 ? hex(r * 0.6, g * 0.6, b * 0.6) : hex(r + (255 - r) * 0.5, g + (255 - g) * 0.5, b + (255 - b) * 0.5)
+  }
+  return {
+    dominant: dom,
+    accent,
+    contrasteInk: { dominant: contraste(INK, dom), accent: contraste(INK, accent) },
+    contrastePoster: { dominant: contraste(POSTER, dom), accent: contraste(POSTER, accent) },
+  }
 }

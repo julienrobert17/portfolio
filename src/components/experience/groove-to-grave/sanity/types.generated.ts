@@ -15,6 +15,25 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type Avif = {
+  asset?: SanityFileAssetReference;
+  media?: unknown; // Unable to locate the referenced type "taille.avif.media" in schema
+  _type: "file";
+};
+
+export type Webp = {
+  asset?: SanityFileAssetReference;
+  media?: unknown; // Unable to locate the referenced type "taille.webp.media" in schema
+  _type: "file";
+};
+
 export type ArtisteReference = {
   _ref: string;
   _type: "reference";
@@ -101,13 +120,6 @@ export type Soiree = {
   verifiee?: boolean;
 };
 
-export type SanityFileAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
-};
-
 export type ImagesDerivees = {
   _type: "imagesDerivees";
   avif?: {
@@ -122,6 +134,14 @@ export type ImagesDerivees = {
   };
   largeur?: number;
   hauteur?: number;
+  tailles?: Array<{
+    largeur?: number;
+    hauteur?: number;
+    avif?: Avif;
+    webp?: Webp;
+    _type: "taille";
+    _key: string;
+  }>;
 };
 
 export type Traitement = {
@@ -129,6 +149,7 @@ export type Traitement = {
   etat?: "en-attente" | "en-cours" | "pret" | "refuse";
   raison?: string;
   misAJour?: string;
+  empreinte?: string;
 };
 
 export type SanityImageAssetReference = {
@@ -199,6 +220,7 @@ export type CouleursExtraites = {
   contrasteInkDominante?: number;
   contrasteInkAccent?: number;
   contrastePosterDominante?: number;
+  contrastePosterAccent?: number;
 };
 
 export type SortieReference = {
@@ -219,6 +241,8 @@ export type Artiste = {
   ville?: string;
   role?: string;
   portrait?: ImageCreditee;
+  traitement?: Traitement;
+  portraitOptimise?: ImagesDerivees;
   presentation?: Texte;
   sorties?: Array<
     {
@@ -257,7 +281,10 @@ export type Piste = {
     media?: unknown;
     _type: "file";
   };
+  extraitDuree?: number;
+  sonie?: number;
   bpm?: number;
+  extraitProvisoire?: boolean;
   traitement?: Traitement;
 };
 
@@ -381,12 +408,14 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | SanityFileAssetReference
+  | Avif
+  | Webp
   | ArtisteReference
   | Reglages
   | Textes
   | Texte
   | Soiree
-  | SanityFileAssetReference
   | ImagesDerivees
   | Traitement
   | SanityImageAssetReference
@@ -411,7 +440,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/components/experience/groove-to-grave/sanity/requetes.ts
 // Variable: REQUETE_SORTIES
-// Query: *[_type == "sortie"] | order(dateSortie desc) {  _id,  catalogue,  "ref": slug.current,  titre,  genre,  "artisteSlug": artiste->slug.current,  nomArtiste,  dateSortie,  statut,  sansRepress,  genres,  genresValides,  texte { langue, corps, aValiderParLeLabel },  credits { artwork, mastering, distribution, ar },  aVerifier,  bandcamp,  boutiques[] { libelle, url },  sources,  pistes[] { position, titre, artiste, duree, bonusNumerique }}
+// Query: *[_type == "sortie"] | order(dateSortie desc) {  _id,  catalogue,  "ref": slug.current,  titre,  genre,  "artisteSlug": artiste->slug.current,  nomArtiste,  dateSortie,  statut,  sansRepress,  genres,  genresValides,  texte { langue, corps, aValiderParLeLabel },  credits { artwork, mastering, distribution, ar },  aVerifier,  bandcamp,  boutiques[] { libelle, url },  sources,  pistes[] { position, titre, artiste, duree, bonusNumerique, "extrait": extraitTraite.asset->url, extraitDuree, bpm, extraitProvisoire },  pochette { alt, credit, auteurNonIdentifie },  "pochetteOptimisee": pochetteOptimisee { largeur, hauteur, tailles[] { largeur, hauteur, "avif": avif.asset->url, "webp": webp.asset->url } },  couleurs { dominante, accent, contrasteInkDominante, contrasteInkAccent, contrastePosterDominante, contrastePosterAccent }}
 export type REQUETE_SORTIES_RESULT = Array<{
   _id: string;
   catalogue: string | null;
@@ -449,12 +478,39 @@ export type REQUETE_SORTIES_RESULT = Array<{
     artiste: string | null;
     duree: number | null;
     bonusNumerique: boolean | null;
+    extrait: string | null;
+    extraitDuree: number | null;
+    bpm: number | null;
+    extraitProvisoire: boolean | null;
   }> | null;
+  pochette: {
+    alt: string | null;
+    credit: string | null;
+    auteurNonIdentifie: boolean | null;
+  } | null;
+  pochetteOptimisee: {
+    largeur: number | null;
+    hauteur: number | null;
+    tailles: Array<{
+      largeur: number | null;
+      hauteur: number | null;
+      avif: string | null;
+      webp: string | null;
+    }> | null;
+  } | null;
+  couleurs: {
+    dominante: string | null;
+    accent: string | null;
+    contrasteInkDominante: number | null;
+    contrasteInkAccent: number | null;
+    contrastePosterDominante: number | null;
+    contrastePosterAccent: number | null;
+  } | null;
 }>;
 
 // Source: ../src/components/experience/groove-to-grave/sanity/requetes.ts
 // Variable: REQUETE_ARTISTES
-// Query: *[_type == "artiste"] | order(ordre asc, nom asc) {  _id,  nom,  "slug": slug.current,  ville,  role,  presentation { langue, corps, aValiderParLeLabel },  "sorties": sorties[]->slug.current,  liens[] { libelle, url },  sources}
+// Query: *[_type == "artiste"] | order(ordre asc, nom asc) {  _id,  nom,  "slug": slug.current,  ville,  role,  presentation { langue, corps, aValiderParLeLabel },  "sorties": sorties[]->slug.current,  liens[] { libelle, url },  sources,  portrait { alt, credit, auteurNonIdentifie },  "portraitOptimise": portraitOptimise { largeur, hauteur, tailles[] { largeur, hauteur, "avif": avif.asset->url, "webp": webp.asset->url } }}
 export type REQUETE_ARTISTES_RESULT = Array<{
   _id: string;
   nom: string | null;
@@ -472,11 +528,26 @@ export type REQUETE_ARTISTES_RESULT = Array<{
     url: string | null;
   }> | null;
   sources: Array<string> | null;
+  portrait: {
+    alt: string | null;
+    credit: string | null;
+    auteurNonIdentifie: boolean | null;
+  } | null;
+  portraitOptimise: {
+    largeur: number | null;
+    hauteur: number | null;
+    tailles: Array<{
+      largeur: number | null;
+      hauteur: number | null;
+      avif: string | null;
+      webp: string | null;
+    }> | null;
+  } | null;
 }>;
 
 // Source: ../src/components/experience/groove-to-grave/sanity/requetes.ts
 // Variable: REQUETE_SOIREES
-// Query: *[_type == "soiree"] | order(date desc) {  _id,  date,  nom,  lieu,  adresse,  ville,  horaires,  lineup,  statut,  prix,  billetterie,  flyer { alt, credit, auteurNonIdentifie },  description { langue, corps, aValiderParLeLabel },  sources,  verifiee}
+// Query: *[_type == "soiree"] | order(date desc) {  _id,  date,  nom,  lieu,  adresse,  ville,  horaires,  lineup,  statut,  prix,  billetterie,  flyer { alt, credit, auteurNonIdentifie },  "flyerOptimise": flyerOptimise { largeur, hauteur, tailles[] { largeur, hauteur, "avif": avif.asset->url, "webp": webp.asset->url } },  description { langue, corps, aValiderParLeLabel },  sources,  verifiee}
 export type REQUETE_SOIREES_RESULT = Array<{
   _id: string;
   date: string | null;
@@ -493,6 +564,16 @@ export type REQUETE_SOIREES_RESULT = Array<{
     alt: string | null;
     credit: string | null;
     auteurNonIdentifie: boolean | null;
+  } | null;
+  flyerOptimise: {
+    largeur: number | null;
+    hauteur: number | null;
+    tailles: Array<{
+      largeur: number | null;
+      hauteur: number | null;
+      avif: string | null;
+      webp: string | null;
+    }> | null;
   } | null;
   description: {
     langue: "en" | "fr" | null;

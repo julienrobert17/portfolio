@@ -1,11 +1,14 @@
 import { defineQuery } from 'next-sanity'
 
 /**
- * Requêtes GROQ du site (Phase 7.3) : le texte et la structure viennent de Sanity, les images et
- * les extraits gardent leurs chemins sous public/experience/groove-to-grave/, retrouvés par la
- * clé stable de chaque document (référence de sortie, date ISO de soirée, slug d'artiste). Les
- * types de résultat sont générés par `sanity typegen` (types.generated.ts).
+ * Requêtes GROQ du site (Phases 7.3 et 7.4) : texte, structure et médias viennent de Sanity. Les
+ * images optimisées (AVIF et WebP par largeur), les couleurs de cassette et les extraits traités
+ * sont les champs en lecture seule remplis par le pipeline (scripts/g2g-pipeline-sanity.ts),
+ * servis depuis le CDN Sanity. Les types de résultat sont générés par `sanity typegen`
+ * (types.generated.ts).
  */
+const IMAGE_OPTIMISEE = `{ largeur, hauteur, tailles[] { largeur, hauteur, "avif": avif.asset->url, "webp": webp.asset->url } }`
+
 export const REQUETE_SORTIES = defineQuery(`*[_type == "sortie"] | order(dateSortie desc) {
   _id,
   catalogue,
@@ -25,7 +28,10 @@ export const REQUETE_SORTIES = defineQuery(`*[_type == "sortie"] | order(dateSor
   bandcamp,
   boutiques[] { libelle, url },
   sources,
-  pistes[] { position, titre, artiste, duree, bonusNumerique }
+  pistes[] { position, titre, artiste, duree, bonusNumerique, "extrait": extraitTraite.asset->url, extraitDuree, bpm, extraitProvisoire },
+  pochette { alt, credit, auteurNonIdentifie },
+  "pochetteOptimisee": pochetteOptimisee ${IMAGE_OPTIMISEE},
+  couleurs { dominante, accent, contrasteInkDominante, contrasteInkAccent, contrastePosterDominante, contrastePosterAccent }
 }`)
 
 export const REQUETE_ARTISTES = defineQuery(`*[_type == "artiste"] | order(ordre asc, nom asc) {
@@ -37,7 +43,9 @@ export const REQUETE_ARTISTES = defineQuery(`*[_type == "artiste"] | order(ordre
   presentation { langue, corps, aValiderParLeLabel },
   "sorties": sorties[]->slug.current,
   liens[] { libelle, url },
-  sources
+  sources,
+  portrait { alt, credit, auteurNonIdentifie },
+  "portraitOptimise": portraitOptimise ${IMAGE_OPTIMISEE}
 }`)
 
 export const REQUETE_SOIREES = defineQuery(`*[_type == "soiree"] | order(date desc) {
@@ -53,6 +61,7 @@ export const REQUETE_SOIREES = defineQuery(`*[_type == "soiree"] | order(date de
   prix,
   billetterie,
   flyer { alt, credit, auteurNonIdentifie },
+  "flyerOptimise": flyerOptimise ${IMAGE_OPTIMISEE},
   description { langue, corps, aValiderParLeLabel },
   sources,
   verifiee

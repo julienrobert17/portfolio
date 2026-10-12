@@ -14,14 +14,14 @@ export interface PisteJouable {
   src: string
   duration: number
   bpm: number
-  origine: 'label' | 'public' | 'provisoire'
+  origine: 'label' | 'provisoire'
   genres: string[]
   bandcamp: string
   /** Couleurs de la cassette dans la fenêtre du lecteur. */
   coque: string
   bande: string
   texteBande: string
-  /** Identifiant de pochette pour la Media Session, s'il y a une image. */
+  /** URL de la vignette de pochette (WebP 320 px) pour la Media Session, s'il y a une image. */
   pochette?: string
 }
 
@@ -143,7 +143,7 @@ function mediaSession(piste: PisteJouable): void {
     title: `${piste.titre} (${piste.position})`,
     artist: piste.artiste,
     album: `${piste.catalog} · Groove To Grave Records`,
-    artwork: piste.pochette ? [{ src: `/experience/groove-to-grave/img/${piste.pochette}-320.webp`, sizes: '320x320', type: 'image/webp' }] : [],
+    artwork: piste.pochette ? [{ src: piste.pochette, sizes: '320x320', type: 'image/webp' }] : [],
   })
   ms.setActionHandler('play', () => reprendre())
   ms.setActionHandler('pause', () => pause())

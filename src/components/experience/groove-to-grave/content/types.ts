@@ -23,17 +23,36 @@ export interface Texte {
   draft?: true
 }
 
-/** Origine d'un média, dans l'ordre de priorité du brief (§7). */
-export type OrigineMedia = 'label' | 'public' | 'provisoire'
+/** Origine d'un extrait : fichier du label traité par le pipeline, ou boucle synthétique provisoire. */
+export type OrigineMedia = 'label' | 'provisoire'
 
-/** Extrait audio d'une piste, servi depuis public/experience/groove-to-grave/audio/. */
+/** Extrait audio d'une piste (60 s, −14 LUFS), servi depuis le CDN Sanity (pipeline de la Phase 7.4). */
 export interface Extrait {
   src: string
   /** Durée réelle du fichier, en secondes. */
   duration: number
   origine: OrigineMedia
-  /** BPM de la boucle provisoire, sert à la vitesse des bobines et de la bande. */
+  /** BPM estimé par le pipeline (ou celui de la boucle provisoire) : vitesse des bobines et de la bande. */
   bpm?: number
+}
+
+/** Une largeur d'une image optimisée : AVIF et WebP sans recadrage, chaque fichier sous 300 kB. */
+export interface TailleImage {
+  largeur: number
+  hauteur: number
+  avif: string
+  webp: string
+}
+
+/** Image optimisée par le pipeline (pochette, flyer, portrait), servie depuis le CDN Sanity. */
+export interface ImageSite {
+  largeur: number
+  hauteur: number
+  /** Largeurs croissantes, pour le srcset. */
+  tailles: TailleImage[]
+  /** Texte alternatif saisi par le label (obligatoire dans le Studio). */
+  alt?: string
+  credit?: string
 }
 
 export interface Piste {
@@ -86,11 +105,11 @@ export interface Sortie extends Provenance {
   text?: Texte
   credits: Credits
   links: { bandcamp: string; [shop: string]: string }
-  /** Identifiant de l'image Bandcamp (`https://f4.bcbits.com/img/a<id>_0.jpg`) pour le script de médias. */
-  bandcampArtId: number
-  /** BPM provisoire de la boucle synthétisée (pas celui du morceau réel). */
-  bpmProvisoire: number
   tracks: Piste[]
+  /** Pochette optimisée par le pipeline, absente tant qu'il n'a pas tourné. */
+  pochette?: ImageSite
+  /** Couleurs de cassette extraites de la pochette, absentes tant que le pipeline n'a pas tourné. */
+  couleurs?: Couleurs
 }
 
 export interface Lien {
@@ -110,6 +129,7 @@ export interface Artiste extends Provenance {
   /** Refs des sorties sur le label (solo ou piste de compilation). */
   releases: string[]
   links: Lien[]
+  portrait?: ImageSite
 }
 
 export type StatutSoiree = 'passee' | 'a-venir' | 'annulee' | 'reportee'
@@ -128,23 +148,10 @@ export interface Soiree extends Provenance {
   price?: string
   description?: Texte
   ticketing?: string
-  /** URL publiques du visuel : image directe, ou page dont le script lit `og:image`. Jamais Instagram. */
-  visuels?: string[]
+  /** Flyer optimisé par le pipeline, jamais recadré. */
+  flyer?: ImageSite
   /** Crédit du visuel quand il est connu. */
   flyerCredit?: string
-}
-
-/** Image traitée par scripts/g2g-media.ts, servie depuis public/experience/groove-to-grave/img/. */
-export interface ImageMedia {
-  /** Clé : ref de sortie (pochette), date ISO (flyer) ou slug d'artiste. */
-  id: string
-  origine: OrigineMedia
-  width: number
-  height: number
-  /** Largeurs générées, `<id>-<largeur>.avif|webp`. */
-  largeurs: number[]
-  credit?: string
-  sourceUrl?: string
 }
 
 export interface Couleurs {

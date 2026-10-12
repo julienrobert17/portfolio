@@ -1,11 +1,9 @@
 import type { CSSProperties } from 'react'
-import { medias } from '../content/medias'
-
-const DOSSIER = '/experience/groove-to-grave/img'
+import type { ImageSite } from '../content/types'
 
 interface PhotoProps {
-  /** Identifiant de media (ref de sortie, date de soirée, slug d'artiste). */
-  id: string
+  image: ImageSite
+  /** Texte alternatif de repli ; celui saisi par le label dans le Studio l'emporte. */
   alt: string
   /** Attribut sizes du srcset ; par défaut la largeur de la fenêtre. */
   sizes?: string
@@ -15,25 +13,23 @@ interface PhotoProps {
 }
 
 /**
- * Image statique en AVIF et WebP générée par scripts/g2g-media.ts, sans optimiseur à la
- * volée ni recadrage : l'œuvre est servie telle quelle, ratio conservé. Rien n'est rendu
- * si le media n'existe pas (la page décide d'un repli texte).
+ * Image optimisée par le pipeline (AVIF et WebP par largeur, jamais recadrée ni retouchée, servie
+ * depuis le CDN Sanity) : l'œuvre est servie telle quelle, ratio conservé. La page décide d'un
+ * repli (cassette, affiche) quand l'image n'existe pas.
  */
-export default function Photo({ id, alt, sizes = '100vw', priority, className, style }: PhotoProps) {
-  const m = medias[id]
-  if (!m) return null
-  const srcset = (format: 'avif' | 'webp') => m.largeurs.map((l) => `${DOSSIER}/${id}-${l}.${format} ${l}w`).join(', ')
-  const plusGrande = m.largeurs[m.largeurs.length - 1]
+export default function Photo({ image, alt, sizes = '100vw', priority, className, style }: PhotoProps) {
+  const srcset = (format: 'avif' | 'webp') => image.tailles.map((t) => `${t[format]} ${t.largeur}w`).join(', ')
+  const grande = image.tailles[image.tailles.length - 1]
   return (
     <picture className={className} style={style}>
       <source type="image/avif" srcSet={srcset('avif')} sizes={sizes} />
       <source type="image/webp" srcSet={srcset('webp')} sizes={sizes} />
-      <img src={`${DOSSIER}/${id}-${plusGrande}.webp`} width={m.width} height={m.height} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : undefined} />
+      <img src={grande.webp} width={image.largeur} height={image.hauteur} alt={image.alt ?? alt} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : undefined} />
     </picture>
   )
 }
 
-/** Vrai si une image a été générée pour cet identifiant. */
-export function aPhoto(id: string): boolean {
-  return Boolean(medias[id])
+/** Plus petite largeur WebP d'une image (vignette de la Media Session), ou rien. */
+export function vignette(image: ImageSite | undefined): string | undefined {
+  return image?.tailles[0]?.webp
 }

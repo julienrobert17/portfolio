@@ -7,7 +7,7 @@ import { duree } from '@/components/experience/groove-to-grave/lib/format'
 import Bandeau from '@/components/experience/groove-to-grave/ui/bandeau'
 import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
 import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
-import Photo, { aPhoto } from '@/components/experience/groove-to-grave/ui/photo'
+import Photo from '@/components/experience/groove-to-grave/ui/photo'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
 interface Props {
@@ -53,7 +53,8 @@ export default async function ArtistePage({ params }: Props) {
   const a = getArtiste(contenu.artistes, slug)
   if (!a) notFound()
   const sorties = sortiesDe(contenu.sorties, slug, a.releases)
-  const solo = sorties.find((s) => s.artistSlug === slug && aPhoto(s.ref))
+  const solo = sorties.find((s) => s.artistSlug === slug && s.pochette)
+  const pochetteSolo = solo?.pochette
   const meta = `${a.role ?? 'Artiste'}${a.city ? ` · ${a.city}` : ''}`
   const presentation = a.presentation ? (
     <p className="g2g-chapeau" lang={a.presentation.lang}>
@@ -73,10 +74,10 @@ export default async function ArtistePage({ params }: Props) {
     </ul>
   ) : null
 
-  if (solo) {
+  if (solo && pochetteSolo) {
     return (
       <article>
-        <Bandeau sortieRef={solo.ref}>
+        <Bandeau couleurs={solo.couleurs}>
           <p className="g2g-meta">{meta}</p>
           <h1 className="g2g-affiche">{a.name}</h1>
           <p className="g2g-bandeau__statut">
@@ -87,7 +88,7 @@ export default async function ArtistePage({ params }: Props) {
         </Bandeau>
         <div className="g2g-fiche">
           <figure className="g2g-pochette">
-            <Photo id={solo.ref} alt={`Pochette de ${solo.title}`} sizes="(max-width: 860px) 100vw, 560px" priority />
+            <Photo image={pochetteSolo} alt={`Pochette de ${solo.title}`} sizes="(max-width: 860px) 100vw, 560px" priority />
             <figcaption>
               <span>
                 {solo.catalog} · {solo.title} · artwork : {solo.credits.artwork ?? 'à vérifier'}. Œuvre affichée intacte.

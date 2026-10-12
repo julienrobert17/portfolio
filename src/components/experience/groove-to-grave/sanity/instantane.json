@@ -1,5 +1,5 @@
 {
-  "priseLe": "2026-10-11T15:15:28.189Z",
+  "priseLe": "2026-10-12T09:10:31.805Z",
   "sorties": [
     {
       "_id": "sortie-gtgrva02",
@@ -8,6 +8,14 @@
       "bandcamp": "https://groovetograve.bandcamp.com/album/summer-hits-vol-2",
       "boutiques": null,
       "catalogue": "GTGRVA02",
+      "couleurs": {
+        "accent": "#67a387",
+        "contrasteInkAccent": 6.44,
+        "contrasteInkDominante": 4.07,
+        "contrastePosterAccent": 2.55,
+        "contrastePosterDominante": 4.04,
+        "dominante": "#268459"
+      },
       "credits": {
         "ar": "Julius",
         "artwork": "LukasDarian",
@@ -27,60 +35,139 @@
         {
           "artiste": "Lungo",
           "bonusNumerique": false,
+          "bpm": 125,
           "duree": 369,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/219687bb825321395886d3146d28f8fea91b9025.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "1",
           "titre": "I Met A Girl"
         },
         {
           "artiste": "Yotam Nadav",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 392,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "2",
           "titre": "If You Funk To"
         },
         {
           "artiste": "Kitchen Plug ft. l'Abominable",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 319,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "3",
           "titre": "Texas Megachurch"
         },
         {
           "artiste": "Crâne De Poule",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 319,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "4",
           "titre": "Fierté Mal Placée"
         },
         {
           "artiste": "Phyto",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 471,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "5",
           "titre": "Cereja"
         },
         {
           "artiste": "LukasDarian",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 398,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "6",
           "titre": "7$ Left"
         },
         {
           "artiste": "Gregs",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 373,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "7",
           "titre": "Time"
         },
         {
           "artiste": "Atay",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 333,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "8",
           "titre": "Source Of Trouble"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Summer Hits Vol.2 par Various Artists",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/7a78b27325d4552750ae2b379e0a2051b2f9629d.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/357c5afa1ced57c896cc8335a24abaabfb9f8c40.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/3d5a68a01bb68d3e48ac6262d6f79033b4e6cb91.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/07dd876579f9636836355be903c1948454d61465.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/69aad1b3cffa9f524c4161814d0e4a622b3e3a44.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/08258464c47633e82ebd8d9a5b95dd09e9671740.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/96cd68d6fe633780c3cc4b6490a750a6e201087b.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/9c77570f01b4743c1c3a053ca2bf5ac6e4252897.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/13fd2dc24be22a51ffd7f06265fb3f7bdab470ea.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/e5a85bf1822556182d17f5d71e48f92e73ed36dd.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/81321d72f1501c659b137a16271e2847a66c0940.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/089efe35a339570b8978bf0df16d9cac70e50871.webp"
+          }
+        ]
+      },
       "ref": "gtgrva02",
       "sansRepress": false,
       "sources": [
@@ -114,6 +201,14 @@
         }
       ],
       "catalogue": "GTGR05",
+      "couleurs": {
+        "accent": "#535c79",
+        "contrasteInkAccent": 2.85,
+        "contrasteInkDominante": 1.03,
+        "contrastePosterAccent": 5.76,
+        "contrastePosterDominante": 16.02,
+        "dominante": "#041527"
+      },
       "credits": {
         "ar": null,
         "artwork": "JeunePenard",
@@ -132,32 +227,95 @@
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": 124,
           "duree": 469,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/0def9cd21b6c503fc3637b2d6cf414540ab88bcb.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "A1",
           "titre": "UFO Catcher"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 363,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "A2",
           "titre": "Swing Interstellaire"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 350,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B1",
           "titre": "Spirit Spaceship"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 361,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B2",
           "titre": "Big Band Bang"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Interdimensional Groove EP par Merov'",
+        "auteurNonIdentifie": null,
+        "credit": "JeunePenard"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/617901ab3391ad35b86ff1ff96db48597125fefa.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/421910690fab29e93c36a2817a4e4faee0120e5d.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/f1ddebb6b9df7a500cadbcf8c37adaa73a1da35a.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6734f56abf656ecca27e240de8cbc379fb3956c1.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/deea1d1462aa91d07927d2eefc8a497f73dc4b41.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/866d6185dab2e6f509165f904a0043f511db70fa.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/0d706db2d8e64d6817fc7958058a0e21073186c6.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/e1e86841fc688aa99f95d263ba58a8eacf8fc634.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/9c85d59cb4a623e2cf5925a9fac50e48448bf582.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/af6a6531167a6770285a7e288e9a5a935140813a.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/0c7ea442606dafd525a069fb728bdbe0c8e7a1ee.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/9f1a87a66635cc334b07569ba43cb02e3721490f.webp"
+          }
+        ]
+      },
       "ref": "gtgr05",
       "sansRepress": true,
       "sources": [
@@ -180,6 +338,14 @@
       "bandcamp": "https://groovetograve.bandcamp.com/album/summer-hits-vol-1",
       "boutiques": null,
       "catalogue": "GTGRVA01",
+      "couleurs": {
+        "accent": "#f5b5ab",
+        "contrasteInkAccent": 10.86,
+        "contrasteInkDominante": 5.08,
+        "contrastePosterAccent": 1.51,
+        "contrastePosterDominante": 3.24,
+        "dominante": "#f14442"
+      },
       "credits": {
         "ar": "Julius",
         "artwork": "LukasDarian",
@@ -198,60 +364,139 @@
         {
           "artiste": "MAMAAA",
           "bonusNumerique": false,
+          "bpm": 122,
           "duree": 372,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/51d30ad5142369cc8e308a142c780eafca9816ef.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "1",
           "titre": "Wytgh ?"
         },
         {
           "artiste": "Local DJ",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 340,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "2",
           "titre": "Glitch"
         },
         {
           "artiste": "Venetia",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 346,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "3",
           "titre": "Mirage de Funk"
         },
         {
           "artiste": "Emi Ömar",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 375,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "4",
           "titre": "Beat a Stick"
         },
         {
           "artiste": "Gregs",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 477,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "5",
           "titre": "Hotline"
         },
         {
           "artiste": "Loupiot",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 248,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "6",
           "titre": "Renardo"
         },
         {
           "artiste": "LukasDarian",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 396,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "7",
           "titre": "Forevor Luxor"
         },
         {
           "artiste": "Jad Sabbah",
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 288,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "8",
           "titre": "Libre"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Summer Hits Vol.1 par Various Artists",
+        "auteurNonIdentifie": null,
+        "credit": "LukasDarian"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/e0df246f2c680da85e57cd8065f6423e13d05d1e.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/0e21f1560336448b14b06ab638fb5b719779027c.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/8c88db214cf662bff791241b54d7eea4313479d3.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/73f885d85bcf4c6b7a04c349bb8f48a13cb7edc3.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/1e31fd2721351b1034e31a3ba9cb3c5c44b311b4.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/d36559b8b288203a6c44a9876809ec231396399f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/962c88ba1825cec47cf97742f6119e7f53322fd9.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/99f63ec7528db29f843f9432cc0eeacbedac82e6.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/3fe621eb65b8891c46fe9a3cf1d415d69160d5fd.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6849ff3e5617b25db0cf2a64a1068c4838af0d57.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/65ebb996a09b39208cd04e0838c4704408cdd2a7.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1f5781672bdef55d28b58ab58a884607e0b016ea.webp"
+          }
+        ]
+      },
       "ref": "gtgrva01",
       "sansRepress": false,
       "sources": [
@@ -281,6 +526,14 @@
         }
       ],
       "catalogue": "GTGR04",
+      "couleurs": {
+        "accent": "#075846",
+        "contrasteInkAccent": 2.24,
+        "contrasteInkDominante": 5.44,
+        "contrastePosterAccent": 7.34,
+        "contrastePosterDominante": 3.02,
+        "dominante": "#51995a"
+      },
       "credits": {
         "ar": null,
         "artwork": "JeunePenard",
@@ -299,39 +552,106 @@
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": 128,
           "duree": 531,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/1643131ffb1ac867f3a9caa6e1c89e8879816d0e.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "A1",
           "titre": "Chut Hello"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 452,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "A2",
           "titre": "Primate Groove"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 402,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B1",
           "titre": "Grrrr"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 305,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B2",
           "titre": "Are You Homo Musicus ?"
         },
         {
           "artiste": null,
           "bonusNumerique": true,
+          "bpm": null,
           "duree": 748,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "Bonus",
           "titre": "Lucky Good"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Homo Musicus EP par Emi Ömar",
+        "auteurNonIdentifie": null,
+        "credit": "JeunePenard"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/bccca34c24dacf850cd939254cf49de5f2db1110.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/8912bdd60f24c66e47216ce8118aa5b902672308.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/e795c3549611104b61b124eac7471f35f15d7d16.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c9e8472bed6108adbfb91673f2b0a428bb4f442a.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/0ae4cbdb50e1f908ff3ec5eee5650f1c77eb9012.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/84f0a367acb3997706091478edf3ef68203ac3b4.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/46387226d1d36b099803cfbf019b3d510386fd11.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/192e7cf3ba74b4236c5ddde413f3e1c3794de2c0.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/e8f5a028489ddab2ce390f310bddbcbc13db6b8a.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/b6d15e0a90c924dfbbd8f3962a87761226d2b934.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/b82d862cf1516254c64f7a09d5acf1f3932e4b4c.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/0a091e45742d0290cb320a1b11f0e1e540e7b2d7.webp"
+          }
+        ]
+      },
       "ref": "gtgr04",
       "sansRepress": true,
       "sources": [
@@ -363,6 +683,14 @@
         }
       ],
       "catalogue": "GTGR03",
+      "couleurs": {
+        "accent": "#f1d8ad",
+        "contrasteInkAccent": 13.64,
+        "contrasteInkDominante": 3.29,
+        "contrastePosterAccent": 1.21,
+        "contrastePosterDominante": 5,
+        "dominante": "#a64943"
+      },
       "credits": {
         "ar": null,
         "artwork": "JeunePenard",
@@ -380,32 +708,95 @@
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": 132,
           "duree": 288,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/19b9c85d0caaa9c23b072c880ab14178923e936c.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "A1",
           "titre": "Hm That Bass"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 342,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "A2",
           "titre": "Amor Da Fonseca"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 312,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B1",
           "titre": "Melee"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 374,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B2",
           "titre": "Melee (Karaba Remix)"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Cerberus EP par Kitchen Plug",
+        "auteurNonIdentifie": null,
+        "credit": "JeunePenard"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/02970efdbf1f021fa65b0e3a6f6cd37cd95f5cca.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1cbe0b49e10c5f2b595c0c83e709237194239d4f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/558c3538857a30868d9f58b899025052d9668a90.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/4e5e1a9dbf8b093f6abc41572e76c1d7d8f0801f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/9a46cbda6b69f19588d22911b1100b65fcccda5c.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/9cc0d4299a9aacc0effc7677f63aac85a39620b8.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/15ad895b671affac3be2e4c0e22cd256577d3446.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/342ac687d6b5ea133faa788b0b6c88199ab11e37.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/2692f6578c9e4eb65c2632373a0db6b8be7dada9.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/45be165ae8cb997cf043aae2481f297dc3fb0ac7.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/ef3815adaaee98c1cb45704af5b9c6be82047197.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/cb8b9046774a827c558ad09560a07941c8d0500a.webp"
+          }
+        ]
+      },
       "ref": "gtgr03",
       "sansRepress": true,
       "sources": [
@@ -438,6 +829,14 @@
         }
       ],
       "catalogue": "GTGR02",
+      "couleurs": {
+        "accent": "#e5dbdb",
+        "contrasteInkAccent": 13.93,
+        "contrasteInkDominante": 2.9,
+        "contrastePosterAccent": 1.18,
+        "contrastePosterDominante": 5.67,
+        "dominante": "#545d7a"
+      },
       "credits": {
         "ar": null,
         "artwork": "JeunePenard",
@@ -456,32 +855,95 @@
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": 122,
           "duree": 283,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/190dec2d997d06c76b48885b494350f3b46f20c5.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "A1",
           "titre": "If This Wall Could Talk"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 333,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "A2",
           "titre": "Boarding Pass"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 305,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B1",
           "titre": "Spacy Taste"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 322,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B2",
           "titre": "She Gave Me Flavour"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Spacy Taste EP par Azbine",
+        "auteurNonIdentifie": null,
+        "credit": "JeunePenard"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/e90c64491606bf3129f1fe0c089e8767d6ee81ec.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/5bd42fd41783ea3f66c201b44b5d6c0c9c9bab85.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/2ca520a6b59716f3e7fb533304a0220a22295a0e.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/de21ecc73d10a345b82fe86214972bafe0898160.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/4c0a1e29f40e5bb97d1e103fde8b97c6200885c2.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/77f5e23f3bb53301868dd0176aceec0aa29d2dc3.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/e75c5d7c88b96de06c79da9d8aa0f03a0954afe5.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/ff16d8bc0a3e14dd6bfe1fadcf488f90ddbdd63c.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/d2f871e3bff8312088e98b0140a971c327462576.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c4a08f5de46b784adf89dcc33d4eaa4c4a61116d.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/b2e79eee993062d511212b2c69ff56c604dfcf24.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/3e581471fcd8de765cb0e742d377d740d4d70219.webp"
+          }
+        ]
+      },
       "ref": "gtgr02",
       "sansRepress": true,
       "sources": [
@@ -504,6 +966,14 @@
       "bandcamp": "https://groovetograve.bandcamp.com/album/common-speed-ep",
       "boutiques": null,
       "catalogue": "GTGR01",
+      "couleurs": {
+        "accent": "#e84d1a",
+        "contrasteInkAccent": 4.95,
+        "contrasteInkDominante": 6.28,
+        "contrastePosterAccent": 3.32,
+        "contrastePosterDominante": 2.62,
+        "dominante": "#009ee2"
+      },
       "credits": {
         "ar": null,
         "artwork": "Cbrgraphics",
@@ -522,32 +992,95 @@
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": 126,
           "duree": 380,
+          "extrait": "https://cdn.sanity.io/files/da2plce8/production/14bee76c41a0816272c8ae9d4f83f45d1245fc4d.mp3",
+          "extraitDuree": 45,
+          "extraitProvisoire": true,
           "position": "A1",
           "titre": "Don't Fuck with my G's"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 276,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "A2",
           "titre": "The Freak"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 267,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B1",
           "titre": "Coin Flip"
         },
         {
           "artiste": null,
           "bonusNumerique": false,
+          "bpm": null,
           "duree": 386,
+          "extrait": null,
+          "extraitDuree": null,
+          "extraitProvisoire": null,
           "position": "B2",
           "titre": "Longer"
         }
       ],
+      "pochette": {
+        "alt": "Pochette de Common Speed EP par LukasDarian",
+        "auteurNonIdentifie": null,
+        "credit": "Cbrgraphics"
+      },
+      "pochetteOptimisee": {
+        "hauteur": 1600,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/db759abb89bd9c5c26ab0dd704b4664428b09ec8.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/dd7c4918ab9e446feab3b38c370774620cdc5e05.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/89037d8de7ff15730edd9760e2f1827a235eede9.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/bf9d244e1ca0d9f4ffa84798a07d83487e7559a4.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/7534ed56722858240d32aeebba61764bd20040fe.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/2368ce200fd2224b0c2d63230945aabf3422920d.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/bdc18ea5f59b0041765ecc359088b3d72783cb86.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/2b8299b79c0b0294466f9cffe895af6004fca388.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/a800f99344961abe944ed5f2cb50d51cf3dce264.avif",
+            "hauteur": 1200,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6ea52677ef1cadc048e2d8faab80cd938f2b8287.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/85dae8f92a915a366432cd893500335f5f0f173f.avif",
+            "hauteur": 1600,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6ff2826bcadad87bf90b75ec0d8c0856ce8b53fe.webp"
+          }
+        ]
+      },
       "ref": "gtgr01",
       "sansRepress": false,
       "sources": [
@@ -563,6 +1096,8 @@
       "_id": "artiste-julius",
       "liens": null,
       "nom": "Julius",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": true,
         "corps": "Crédité à l'A&R des deux compilations Summer Hits. Membre du collectif avec LukasDarian et Gregs.",
@@ -590,6 +1125,8 @@
         }
       ],
       "nom": "LukasDarian",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": true,
         "corps": "Auteur de « Common Speed EP » (GTGR01, 2022), première référence du label, et de l'artwork des deux compilations Summer Hits, sur lesquelles il signe aussi un titre. Membre du collectif avec Julius et Gregs.",
@@ -613,6 +1150,8 @@
       "_id": "artiste-gregs",
       "liens": null,
       "nom": "Gregs",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": true,
         "corps": "Crédité au mastering des deux compilations Summer Hits, sur lesquelles il signe aussi un titre. Membre du collectif avec Julius et LukasDarian.",
@@ -644,6 +1183,8 @@
         }
       ],
       "nom": "Azbine",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": false,
         "corps": "Azbine was created by 2 childhood friends in 2018. They take their influences from house and minimal through deeptech and they want to bring a retro has-been touch in their electronic universe.",
@@ -669,6 +1210,8 @@
         }
       ],
       "nom": "Kitchen Plug",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": false,
         "corps": "From ghetto house to break and minimal these 3 silly boys love to produce tracks with nasty bass, metallic acid and raw drums.",
@@ -695,6 +1238,8 @@
         }
       ],
       "nom": "Emi Ömar",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": false,
         "corps": "Leading figure in electro-funk, Emi Ömar delves into uncharted music territories. Known for his sharp prestations, his blend of vocoder, bleepy/funky sounds, and deep/fat grooves captures the raw energy of live electronic music.",
@@ -721,6 +1266,8 @@
         }
       ],
       "nom": "Merov'",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": {
         "aValiderParLeLabel": false,
         "corps": "Step into our spaceship and head toward Merov' Galaxy, a universe where the funk, groove, and electro planets collide. Each track is built around sharp Rhodes and Clavinet keys, laying down cosmic, groove-heavy foundations.",
@@ -740,6 +1287,8 @@
       "_id": "artiste-karaba",
       "liens": null,
       "nom": "Karaba",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "karaba",
@@ -755,6 +1304,8 @@
       "_id": "artiste-mamaaa",
       "liens": null,
       "nom": "MAMAAA",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "mamaaa",
@@ -770,6 +1321,8 @@
       "_id": "artiste-local-dj",
       "liens": null,
       "nom": "Local DJ",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "local-dj",
@@ -785,6 +1338,8 @@
       "_id": "artiste-venetia",
       "liens": null,
       "nom": "Venetia",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "venetia",
@@ -800,6 +1355,8 @@
       "_id": "artiste-loupiot",
       "liens": null,
       "nom": "Loupiot",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "loupiot",
@@ -815,6 +1372,8 @@
       "_id": "artiste-jad-sabbah",
       "liens": null,
       "nom": "Jad Sabbah",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "jad-sabbah",
@@ -830,6 +1389,8 @@
       "_id": "artiste-lungo",
       "liens": null,
       "nom": "Lungo",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "lungo",
@@ -845,6 +1406,8 @@
       "_id": "artiste-yotam-nadav",
       "liens": null,
       "nom": "Yotam Nadav",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "yotam-nadav",
@@ -860,6 +1423,8 @@
       "_id": "artiste-l-abominable",
       "liens": null,
       "nom": "l'Abominable",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "l-abominable",
@@ -875,6 +1440,8 @@
       "_id": "artiste-crane-de-poule",
       "liens": null,
       "nom": "Crâne De Poule",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "crane-de-poule",
@@ -890,6 +1457,8 @@
       "_id": "artiste-phyto",
       "liens": null,
       "nom": "Phyto",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "phyto",
@@ -905,6 +1474,8 @@
       "_id": "artiste-atay",
       "liens": null,
       "nom": "Atay",
+      "portrait": null,
+      "portraitOptimise": null,
       "presentation": null,
       "role": null,
       "slug": "atay",
@@ -932,6 +1503,36 @@
         "alt": "Flyer de la soirée Finesse Rekords x Groove To Grave du 2026-10-11 au Plantation Paris, rooftop",
         "auteurNonIdentifie": true,
         "credit": ""
+      },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/25434dc8933c2950651097911c83ef6bc04d2dc2.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1ddc6ad86c990a26195d5f33255e3c26901f9a7f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/5f3f91bfe755de69bb6a2c1e81f32f4ba33aedf7.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/e23024efd3b0dd526447a680f6ae5652e6feb5a1.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/2e91c0bfc8e8fd3a5ff2a8017077a425b2508413.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c37f06a3ed202e98ca0b28d14110eaaad287490b.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/1c908db4b6ec7b760d1df4f07784ea53b149897c.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/ae3f3c9a8b81f55a919cf72e597db33a74073b8b.webp"
+          }
+        ]
       },
       "horaires": "12 h à 22 h",
       "lieu": "Plantation Paris, rooftop",
@@ -968,6 +1569,36 @@
         "auteurNonIdentifie": null,
         "credit": "LukasDarian"
       },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/7d35e69a701523f1ac146f467c8c58c0787634b0.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/67aa90c6261f07c214410569ca91731e57e7c6e2.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/98dec8992bf1deebdc055ed09ef07088bbb2467d.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/b7509c2930fb235ad866347f566b698d8f8b194f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/2aeeb6ae3ec7a5a5cde34bccd0fdc8834abde4c4.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/99c0543787d99f4e90f55adc2883b165721c3913.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/f7ac078187e5488d06e9a745b9a2799356797250.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/174d559483a81588d6dfb5286f4d7f1b8712df45.webp"
+          }
+        ]
+      },
       "horaires": "minuit à 14 h, nuit et after",
       "lieu": "42 Marches",
       "lineup": [
@@ -1000,6 +1631,48 @@
         "auteurNonIdentifie": true,
         "credit": ""
       },
+      "flyerOptimise": {
+        "hauteur": 900,
+        "largeur": 1600,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/ed2d17994c1694d69cb82915761a3397940be012.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/0f2b1f496c95d06f069a55bfcc3794815749d52f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/3eb951803f9b4082956591965133269ee15956c9.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/bee9b945e12cbaed14875f690ee27a3ab4b0b924.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/491a4f3b8d45fad46366bc740d0ea766b9e738db.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/18728265c9b596f267fd60263a9747f706606ec8.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/da850ea5424bb7f8c278838402f70fa53a8a0c0e.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/8a0bbd0e930b4da52587fcd038789e3d11537a1e.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/75f8aa203f19bd7d946c1734afdd818423eef013.avif",
+            "hauteur": 675,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/bab6592f896496d8bcc8bbe7e4a344b81ed25017.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/4e1f932296bbb9931c0b84b9874c35224b646586.avif",
+            "hauteur": 900,
+            "largeur": 1600,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/ac5ecf117bdd4b993ed37c5866e5d998e15699da.webp"
+          }
+        ]
+      },
       "horaires": null,
       "lieu": "Le Wagon Bleu",
       "lineup": [
@@ -1030,6 +1703,36 @@
         "alt": "Flyer de la soirée Danza To The Grave du 2025-10-31 au Péniche Marcounet",
         "auteurNonIdentifie": null,
         "credit": "LukasDarian"
+      },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/5cd235d9733facf4fb6a9e85ce3c880698583dca.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/e6be663e804cc162570b6482571c4f48356adaa7.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/62df2220236fe73ab973ba898063adbff034075d.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/ec291b1f60036a95b0ecc7015d0a477ab2ddf304.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/508ef68e6d67b1599a4158f7560223f1fedf1523.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/94716875e18cc45b713dbc247c7419da0785012f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/6f1d65c77d23965ec04983479ca777f25c06f0fb.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/3ca24127a87fd9ce80f506d19b66d2e16ab859c9.webp"
+          }
+        ]
       },
       "horaires": "22 h à 2 h",
       "lieu": "Péniche Marcounet",
@@ -1062,6 +1765,36 @@
         "auteurNonIdentifie": true,
         "credit": ""
       },
+      "flyerOptimise": {
+        "hauteur": 960,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/d9ce85ceabb7277998555a612db7bac167fc56c6.avif",
+            "hauteur": 320,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/d84b0c455ea2aba70be06be00c32f97332c779fe.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/9287ae8802d619b8f5c2ab733cd8703439c6d7bf.avif",
+            "hauteur": 480,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/871b49746d272af5e016fd36e236b78cd241875f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/b9466875b5f039560204fac0114b23502cf625f5.avif",
+            "hauteur": 640,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/39b1a69fc724e06aa90a6de47b9e11ec58b4e182.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/17b7f481034f9ad40da03282b83e7e1be549ed11.avif",
+            "hauteur": 960,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/7238ef872e9b4663b701814159d85969689c5f95.webp"
+          }
+        ]
+      },
       "horaires": "DJ sets de 21 h à 4 h",
       "lieu": "Jardin21",
       "lineup": [
@@ -1093,6 +1826,36 @@
         "auteurNonIdentifie": true,
         "credit": ""
       },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/60fe7a48e6d15776d54648eb510c93c1515a082f.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/220a3c3df62d6055630939561ff472c2497a3c92.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/77caed138eaad57b17ce9d953743a5b14575aba3.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/35ca61ba96d432ce172571b17eb18fa5a42b7bfc.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/98d97c3a26ea1acc9ee578c35563a556705ea22f.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/f98c630d65cd21ca30b383d3bde97ba3c08f440b.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/c6b37e07495add09ffff503acc6e21cc33a1003a.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/5f2988128ebda32b3f16eed1c5ab407c905fcec7.webp"
+          }
+        ]
+      },
       "horaires": "marché de vinyles de 16 h à 22 h, club de 22 h à 6 h",
       "lieu": "La Rotonde Stalingrad",
       "lineup": [
@@ -1117,6 +1880,7 @@
       "date": "2025-02-07",
       "description": null,
       "flyer": null,
+      "flyerOptimise": null,
       "horaires": null,
       "lieu": "Lieu à vérifier",
       "lineup": [
@@ -1138,6 +1902,7 @@
       "date": "2024-11-01",
       "description": null,
       "flyer": null,
+      "flyerOptimise": null,
       "horaires": null,
       "lieu": "42 Marches",
       "lineup": null,
@@ -1162,6 +1927,36 @@
         "alt": "Flyer de la soirée Attrape Rave, S4 épisode 10 du 2024-08-31 au La Rotonde Stalingrad",
         "auteurNonIdentifie": true,
         "credit": ""
+      },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/50b92a35f2349ba4eb3d9becf0785a67c2703bb7.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/d06aefcd0f715d6543bc4431b7786577ac33980c.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/05f897468cdd4ad5c7b065674121c4bf2ac6b8fd.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/17f69cdef9bab2c93f1eac73764fcd8564292d37.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/4c43d65a93c7f963ce7221676dd8f5bdc417561b.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c3cb661ea9815ee30a37b70a021099c3504e8220.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/fec88cfd7d36f2387a262465eb8f1ac409b63d9f.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/88c0cf348cb3ce690c784aedce056bd1fb0d48ac.webp"
+          }
+        ]
       },
       "horaires": "22 h à 6 h, Groove To Grave au Refuge de 22 h à 5 h",
       "lieu": "La Rotonde Stalingrad",
@@ -1193,6 +1988,36 @@
         "alt": "Flyer de la soirée La Péniche Marcounet invite Groove To Grave Records du 2024-07-13 au Péniche Marcounet",
         "auteurNonIdentifie": true,
         "credit": ""
+      },
+      "flyerOptimise": {
+        "hauteur": 541,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/6635795208c844c4604cbb2c3d4567cb626ce8e7.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6c57bef3496b7876a3bd6cd0413946e6efedb6f7.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/43b9993854b0db9f77b1c0cbe373538dc3d878e7.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/bc77d9c7d0edc86f82d3f8006abf29675c10af6e.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/45bc28a566b7f1a8c77b033c1162342a5405da33.avif",
+            "hauteur": 361,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c0819c160a2d743e5d700d7c64696cee2ac839ef.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/dd8e871b88a3753438070841573dcd39625a53b8.avif",
+            "hauteur": 541,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/6e994c53ac0046d55d7ccfd459b3974f6e6f5eab.webp"
+          }
+        ]
       },
       "horaires": "22 h à 4 h",
       "lieu": "Péniche Marcounet",
@@ -1226,6 +2051,36 @@
         "auteurNonIdentifie": null,
         "credit": "LukasDarian"
       },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/64cdde931b9f7670cc780a97a5ee894e59bbbc99.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/49116638ee6a217b9c2cee7cbcecfb27c5ee3c32.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/22fb069bc59e327f371704581d5d014c968506e9.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/b4487688bd80508e644c26e0c7de9dd3034dfb3f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/230586d98e595c63b9a18f5837a6203bce9a8713.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/c54da5478a1b18c1e9f318790e0185dc2868a311.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/41653a6d98da17f4d690b808fa270a98a4684348.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/f7ce30f63f3931b4a71d5ef31563f23621bb7020.webp"
+          }
+        ]
+      },
       "horaires": "23 h à 6 h",
       "lieu": "Péniche Cinéma, Le Baruda",
       "lineup": [
@@ -1257,6 +2112,42 @@
         "alt": "Flyer de la soirée Burnin' Ship 2 du 2024-04-13 au Péniche Cinéma, Le Baruda",
         "auteurNonIdentifie": null,
         "credit": "LukasDarian et Antoine Delay"
+      },
+      "flyerOptimise": {
+        "hauteur": 628,
+        "largeur": 1200,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/04def5b64e3db4ca6281e7f245582f8329306c7f.avif",
+            "hauteur": 167,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/81b3adc7ab1a0b80adb27f629412a900c5ad909d.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/327ee3d0dbfdab9c6378397abad70472a81a4b7e.avif",
+            "hauteur": 251,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/676c02aacac6a46465b7bf834f7615b4ef0b5202.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/621b8a3e787f5ec00e09620ab9732172fc440fc2.avif",
+            "hauteur": 335,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/97530373b47f93a26d8fd39bc3f70a4e402cf724.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/32e262069304a297bd8c3c8c179cf0652a91d22e.avif",
+            "hauteur": 502,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/86bb7ed51a332be97e23ac022df7cc341cd9ce21.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/f1ae8e2a3cc53bd0cf274e5b4fda7e37cf3d9ba6.avif",
+            "hauteur": 628,
+            "largeur": 1200,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1894c6575bb0bb18cbe5732da1b86d4c8c686cb1.webp"
+          }
+        ]
       },
       "horaires": "22 h à 6 h",
       "lieu": "Péniche Cinéma, Le Baruda",
@@ -1291,6 +2182,36 @@
         "auteurNonIdentifie": null,
         "credit": "LukasDarian"
       },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/c623c60f5ff34faaa47d2a8bff17d30b80e50503.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1196f53da4ef1abf0b318b25547c2e6633c1068f.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/3d5871722db32aad9d9da6b963cfad4011f1d87a.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/375acd741ed2c63c33f9d82506d578363a78fec6.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/290046bc14f9bc2ec589c6589b712d4e7145edc1.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/f76de41c81298d8923a41fe23f1ca814b654dc63.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/52ee8ed5d6d8778d03c3f2d61614e842a793f2ef.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/d53d4efcb68a1865e1055a6c6b18d52eac6f12ef.webp"
+          }
+        ]
+      },
       "horaires": "23 h à 5 h",
       "lieu": "Amex Live Bar (42 Marches)",
       "lineup": [
@@ -1314,6 +2235,7 @@
       "date": "2023-11-04",
       "description": null,
       "flyer": null,
+      "flyerOptimise": null,
       "horaires": null,
       "lieu": "Péniche Cinéma, Le Baruda",
       "lineup": [
@@ -1342,6 +2264,36 @@
         "auteurNonIdentifie": true,
         "credit": ""
       },
+      "flyerOptimise": {
+        "hauteur": 540,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/55c7e439c8df572a468b92c576d55edeb91e7451.avif",
+            "hauteur": 180,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/f8250f086c14e05b7ba3f555bc4aab69abeaf29e.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/b21e8072be74ab10a91654106a300e5c5cc1d2bd.avif",
+            "hauteur": 270,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/dd2f1eaa55e7e42333c77fd2b549644bca008035.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/560006d53face972ae65383439962a1586fe243e.avif",
+            "hauteur": 360,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/1bee0941f05fa7932f0f82674c1647dcb644306d.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/fab455c9fd41ff8d953109ba0e005d454d977ac6.avif",
+            "hauteur": 540,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/3128cc3905229b912d0cb67c20df9f74253ffd81.webp"
+          }
+        ]
+      },
       "horaires": "19 h à 2 h",
       "lieu": "Panic Room",
       "lineup": [
@@ -1366,6 +2318,7 @@
       "date": "2023-02-22",
       "description": null,
       "flyer": null,
+      "flyerOptimise": null,
       "horaires": null,
       "lieu": "Bar éphémère L'Exode (ex-45 Tours)",
       "lineup": [
@@ -1392,6 +2345,36 @@
         "alt": "Flyer de la soirée Première soirée, thème Plaisir du 2023-01-07 au Liebe, bar électro",
         "auteurNonIdentifie": true,
         "credit": ""
+      },
+      "flyerOptimise": {
+        "hauteur": 504,
+        "largeur": 960,
+        "tailles": [
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/066eec0c132824642e5286274777af5022b7faaf.avif",
+            "hauteur": 168,
+            "largeur": 320,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/e13118785dfa55b92048ad65fa431063a10f1e44.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/0a51c2da7503511f41f1cbca0fa3c8189e432f3e.avif",
+            "hauteur": 252,
+            "largeur": 480,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/f1b387d427f62de28b482c9f35d69fb708eebcbc.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/b5f045319e09ff10e7dcb69f05fcb62ec0105405.avif",
+            "hauteur": 336,
+            "largeur": 640,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/d447cd56fd88eb977fb73bab56140c0f3fe40438.webp"
+          },
+          {
+            "avif": "https://cdn.sanity.io/files/da2plce8/production/326e874ed0b3dba507fa8d776ba4312b3e6fa398.avif",
+            "hauteur": 504,
+            "largeur": 960,
+            "webp": "https://cdn.sanity.io/files/da2plce8/production/47e2a23ae40f117e546d58b25025c3e2065b8bf1.webp"
+          }
+        ]
       },
       "horaires": "21 h à 6 h",
       "lieu": "Liebe, bar électro",

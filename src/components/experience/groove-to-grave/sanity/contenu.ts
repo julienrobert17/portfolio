@@ -1,6 +1,5 @@
 import 'server-only'
 import { draftMode } from 'next/headers'
-import { extraits } from '../content/extraits'
 import type { Artiste, Genre, Preset, Soiree, Sortie } from '../content/types'
 import { adapterArtistes, adapterLabel, adapterSoirees, adapterSorties, type Label, type Textes, adapterTextes } from './adaptateur'
 import { client, jetonPresent } from './client'
@@ -110,6 +109,3 @@ export function getSortie(liste: Sortie[], ref: string): Sortie | undefined {
 export function getArtiste(liste: Artiste[], slug: string): Artiste | undefined {
   return liste.find((a) => a.slug === slug)
 }
-
-/** Vrai si une piste a un extrait (les extraits restent générés localement en 7.3). */
-export const aExtrait = (id: string): boolean => Boolean(extraits[id])

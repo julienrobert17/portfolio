@@ -1,14 +1,15 @@
 import Link from 'next/link'
-import { extraits } from '../content/extraits'
-import { medias } from '../content/medias'
 import type { PisteJouable } from '../store/lecteur-store'
-import { couleurs } from '../content/couleurs'
-import type { Sortie } from '../content/types'
+import type { Couleurs, Sortie } from '../content/types'
 import { styleRotation } from '../lib/desordre'
 import { routes } from '../lib/routes'
 import { couleurs as tokens } from '../tokens'
 import BoutonEcouter, { TuileJouable } from './cassette-jouable'
 import { CassetteSvg } from './cassette-svg'
+import { vignette } from './photo'
+
+/** BPM par défaut quand le pipeline n'en a pas estimé (vitesse des bobines). */
+const BPM_DEFAUT = 124
 
 export { CassetteSvg } from './cassette-svg'
 
@@ -17,9 +18,8 @@ function encreSur(contrasteInk: number): string {
   return contrasteInk >= 3 ? tokens.ink : tokens.poster
 }
 
-/** Couleurs de cassette d'une sortie, ou un repli neutre si la pochette n'a pas été traitée. */
-export function couleursCassette(ref: string) {
-  const c = couleurs[ref]
+/** Couleurs de cassette d'une sortie (extraites de la pochette par le pipeline), ou un repli neutre si la pochette n'a pas été traitée. */
+export function couleursCassette(c: Couleurs | undefined) {
   if (!c) return { coque: tokens.chrome, bande: tokens.ink, texteBande: tokens.poster }
   return { coque: c.dominant, bande: c.accent, texteBande: encreSur(c.contrasteInk.accent) }
 }
@@ -37,11 +37,11 @@ interface CassetteProps {
 }
 
 /** Première piste jouable d'une sortie, sérialisée pour le lecteur ; null sans extrait. */
-export function pisteJouable(sortie: Sortie, piste = sortie.tracks.find((t) => extraits[t.id])): PisteJouable | null {
+export function pisteJouable(sortie: Sortie, piste = sortie.tracks.find((t) => t.extrait)): PisteJouable | null {
   if (!piste) return null
-  const extrait = extraits[piste.id]
+  const extrait = piste.extrait
   if (!extrait) return null
-  const c = couleursCassette(sortie.ref)
+  const c = couleursCassette(sortie.couleurs)
   return {
     id: piste.id,
     sortieRef: sortie.ref,
@@ -52,14 +52,14 @@ export function pisteJouable(sortie: Sortie, piste = sortie.tracks.find((t) => e
     format: sortie.format,
     src: extrait.src,
     duration: extrait.duration,
-    bpm: extrait.bpm ?? sortie.bpmProvisoire,
+    bpm: extrait.bpm ?? BPM_DEFAUT,
     origine: extrait.origine,
     genres: sortie.genres,
     bandcamp: sortie.links.bandcamp,
     coque: c.coque,
     bande: c.bande,
     texteBande: c.texteBande,
-    pochette: medias[sortie.ref] ? sortie.ref : undefined,
+    pochette: vignette(sortie.pochette),
   }
 }
 
@@ -69,7 +69,7 @@ export function pisteJouable(sortie: Sortie, piste = sortie.tracks.find((t) => e
  * bouton rond « écouter », rendu seulement si JavaScript est actif et qu'un extrait existe.
  */
 export default function Cassette({ sortie, amplitude = 4 }: CassetteProps) {
-  const c = couleursCassette(sortie.ref)
+  const c = couleursCassette(sortie.couleurs)
   const statut = sortie.status === 'epuise' ? 'épuisé' : sortie.noRepress ? 'no repress' : null
   const piste = pisteJouable(sortie)
   return (

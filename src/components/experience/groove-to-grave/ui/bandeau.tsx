@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { couleurs } from '../content/couleurs'
+import type { Couleurs } from '../content/types'
 import { contraste, melanger, couleurs as tokens } from '../tokens'
 
 const MINIMUM = 4.5
@@ -10,8 +10,7 @@ const MINIMUM = 4.5
  * dominante est rapprochée de ce texte opposé par pas de 5 % jusqu'à y arriver : la pochette,
  * elle, reste intacte, seul l'aplat du bandeau bouge (GTGRVA02, vert à 4,1:1 sous ink).
  */
-export function couleursBandeau(ref: string | undefined): { fond: string; texte: string } {
-  const c = ref ? couleurs[ref] : undefined
+export function couleursBandeau(c: Couleurs | undefined): { fond: string; texte: string } {
   if (!c) return { fond: tokens.chrome, texte: tokens.ink }
   const surInk = contraste(c.dominant, tokens.ink)
   const surPoster = contraste(c.dominant, tokens.poster)
@@ -23,8 +22,8 @@ export function couleursBandeau(ref: string | undefined): { fond: string; texte:
 }
 
 interface BandeauProps {
-  /** Référence de la sortie dont la pochette donne la couleur ; sans référence, chrome et ink. */
-  sortieRef?: string
+  /** Couleurs de la sortie dont la pochette donne la dominante ; sans couleurs, chrome et ink. */
+  couleurs?: Couleurs
   children: ReactNode
 }
 
@@ -32,8 +31,8 @@ interface BandeauProps {
  * Bandeau de tête pleine largeur dans la dominante d'une pochette (pages sortie et artiste) :
  * mention, titre d'affiche, ligne de statut avec son sticker, fournis par la page.
  */
-export default function Bandeau({ sortieRef, children }: BandeauProps) {
-  const { fond, texte } = couleursBandeau(sortieRef)
+export default function Bandeau({ couleurs, children }: BandeauProps) {
+  const { fond, texte } = couleursBandeau(couleurs)
   return (
     <header className="g2g-bandeau" style={{ background: fond, color: texte }}>
       {children}

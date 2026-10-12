@@ -1,4 +1,0 @@
-# Originaux publics récupérés par scripts/g2g-fetch-media.ts : hors dépôt, comme ceux du label.
-# Relancer le script les retélécharge à l'identique depuis les URL de ../../sources.json.
-*
-!.gitignore

@@ -9,7 +9,7 @@ import Bandeau from '@/components/experience/groove-to-grave/ui/bandeau'
 import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
 import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
 import CassetteDos from '@/components/experience/groove-to-grave/ui/cassette-dos'
-import Photo, { aPhoto } from '@/components/experience/groove-to-grave/ui/photo'
+import Photo from '@/components/experience/groove-to-grave/ui/photo'
 
 interface Props {
   params: Promise<{ ref: string }>
@@ -55,7 +55,7 @@ export default async function SortiePage({ params }: Props) {
   const sticker = s.status === 'epuise' ? { texte: 'épuisé', classe: 'g2g-sticker' } : s.noRepress ? { texte: 'no repress', classe: 'g2g-sticker g2g-sticker--vert' } : null
   return (
     <article>
-      <Bandeau sortieRef={s.ref}>
+      <Bandeau couleurs={s.couleurs}>
         <p className="g2g-meta">
           {s.catalog} · {s.format} · <time dateTime={s.releaseDate}>{dateLongue(s.releaseDate)}</time>
         </p>
@@ -78,9 +78,9 @@ export default async function SortiePage({ params }: Props) {
       </Bandeau>
       <div className="g2g-fiche">
         <div>
-          {aPhoto(s.ref) ? (
+          {s.pochette ? (
             <figure className="g2g-pochette">
-              <Photo id={s.ref} alt={`Pochette de ${s.title} par ${s.artistName}`} sizes="(max-width: 860px) 100vw, 560px" priority />
+              <Photo image={s.pochette} alt={`Pochette de ${s.title} par ${s.artistName}`} sizes="(max-width: 860px) 100vw, 560px" priority />
               <figcaption>
                 <span>Artwork : {s.credits.artwork ?? 'à vérifier'}. Œuvre affichée intacte.</span>
               </figcaption>
