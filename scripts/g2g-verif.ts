@@ -8,10 +8,11 @@
  *   - canvas : aucun voile au chargement, fondu de 300 ms après le premier rendu ;
  *   - lecture sans coupure sur une navigation interne, puis retour et avance du navigateur ;
  *   - transition de page figée à mi-course (balayage du contenu) ; FIN DE BANDE dans l'afficheur au pied de page ;
- *   - exécution réelle du lecteur (bloc 7.3b) : AudioContext en `running` après un vrai clic, position de
- *     l'extrait qui avance, spectre qui change entre deux images, aucune erreur de console ni requête en
- *     échec sur chaque page ;
- *   - entrée par navigation côté client depuis la home du portfolio (tuile) : le lecteur doit être là et jouer.
+ *   - exécution réelle du lecteur (bloc 7.3b) par quatre chemins d'arrivée, aux deux formats : URL directe,
+ *     tuile depuis la home du portfolio, lien interne entre deux pages, retour puis avance du navigateur ;
+ *     pour chacun : lecteur monté, AudioContext en `running` au premier vrai clic, position de l'extrait qui
+ *     avance, spectre qui change entre deux images, aucune erreur de console ;
+ *   - aucune erreur de console, exception ni requête en échec sur chaque page.
  * S'exécute contre un serveur local ou contre l'URL de production (`--url https://…`) : à lancer contre la
  * production à la fin de chaque phase. Sort une table Markdown et un code de retour.
  *
@@ -74,6 +75,62 @@ interface EtatLecteur {
   audio: string
   statut: string
   position: number
+}
+
+/** Chrome headless suspend requestAnimationFrame sur un onglet inactif : un screencast tient les images (GSAP, ticker, spectre). */
+async function animer(nav: Devtools, s: string, targetId: string): Promise<() => Promise<void>> {
+  const off = nav.sur((m, p, sessionId) => {
+    if (m === 'Page.screencastFrame' && sessionId === s) void nav.envoyer('Page.screencastFrameAck', { sessionId: (p as { sessionId: number }).sessionId }, s)
+  })
+  await nav.envoyer('Page.startScreencast', { format: 'jpeg', quality: 30, maxWidth: 320, maxHeight: 320, everyNthFrame: 1 }, s)
+  await nav.envoyer('Target.activateTarget', { targetId })
+  await nav.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true }, s)
+  return async () => {
+    await nav.envoyer('Page.stopScreencast', {}, s)
+    off()
+  }
+}
+
+/**
+ * Exécution réelle du lecteur sur la page courante, quel que soit le chemin d'arrivée (bloc 7.3b) :
+ * lecteur monté (data-js posé par React, commandes rendues, barre statique du noscript non rendue,
+ * boutons écouter), AudioContext en `running` au premier vrai clic (Input.dispatchMouseEvent sur le
+ * bouton écouter de la première cassette), position de l'extrait qui avance, spectre qui change entre
+ * deux images. Laisse le lecteur en lecture.
+ */
+async function controlerLecteurReel(nav: Devtools, s: string, f: (typeof FORMATS)[number], chemin: string): Promise<void> {
+  const mobile = f.largeur < 600
+  const commandes = mobile ? '.g2g-barre' : '.g2g-lecteur__r2'
+  const monte = await nav.evaluer<{ chemin: string; dataJs: boolean; statiqueRendue: boolean; commandes: boolean; ecouter: number; document: boolean }>(s, `(() => { const h = document.getElementById('haut'); const st = document.querySelector('.g2g-lecteur__statique'); const cmd = document.querySelector('${commandes}'); return { chemin: location.pathname, dataJs: !!h && h.hasAttribute('data-js'), statiqueRendue: !!st && st.getClientRects().length > 0, commandes: !!cmd && cmd.getClientRects().length > 0, ecouter: document.querySelectorAll('[data-g2g="ecouter"]').length, document: document.documentElement.classList.contains('g2g-document') } })()`)
+  noter(f.largeur, chemin, 'lecteur monté : data-js, commandes rendues, barre statique non rendue, boutons écouter', monte.dataJs && !monte.statiqueRendue && monte.commandes && monte.ecouter > 0 && monte.document, JSON.stringify(monte))
+  if (monte.ecouter === 0) return
+  const avant = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
+  await nav.evaluer(s, `document.querySelector('[data-g2g="ecouter"]').scrollIntoView({ block: 'center', behavior: 'instant' })`)
+  await attendre(400)
+  await nav.cliquer(s, '[data-g2g="ecouter"]')
+  await attendre(1200)
+  const lecture1 = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
+  noter(f.largeur, chemin, 'premier vrai clic : AudioContext en running, lecteur en lecture', lecture1.audio === 'running' && lecture1.statut === 'lecture', `${avant.audio} → ${lecture1.audio}, statut ${lecture1.statut}`)
+  const selSpectre = mobile ? '.g2g-feuille .g2g-spectre__niveau' : '.g2g-lecteur__afficheur .g2g-spectre__niveau'
+  if (mobile) {
+    await nav.cliquer(s, '[data-g2g="deplier"]')
+    await attendre(500)
+  }
+  const image1 = await nav.evaluer<string>(s, `Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|')`)
+  await attendre(700)
+  const lecture2 = await nav.evaluer<EtatLecteur & { image: string }>(s, `Object.assign(${ETAT_LECTEUR}, { image: Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|') })`)
+  noter(f.largeur, chemin, 'la position de l’extrait avance', lecture2.position > lecture1.position && lecture2.position > 0, `${lecture1.position.toFixed(2)} → ${lecture2.position.toFixed(2)} s`)
+  noter(f.largeur, chemin, 'le spectre change entre deux images', image1 !== lecture2.image && lecture2.image.includes('scaleY(') && !/^(scaleY\(0\)\|?)+$/.test(lecture2.image), `${lecture2.image.split('|').filter((v) => v && v !== 'scaleY(0)').length}/32 colonnes allumées`)
+  if (mobile) {
+    await nav.cliquer(s, '[data-g2g="replier"]')
+    await attendre(300)
+  }
+}
+
+/** Navigation interne par le lien « sorties » du lecteur (Next Link, sans rechargement). */
+async function allerAuxSorties(nav: Devtools, s: string): Promise<void> {
+  await nav.evaluer(s, `(() => { const a = Array.from(document.querySelectorAll('.g2g-lecteur a[href$="/sorties"]')).pop(); a.click() })()`)
+  await attendre(2000)
 }
 
 /** Dans la page : quadrilatères des cartes, stickers, scotch et cibles, et test de séparation des axes. */
@@ -150,22 +207,19 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
 async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
   const mobile = f.largeur < 600
   const { s, targetId } = await nav.page(`${URL}${BASE}/sorties`, f.largeur, f.hauteur, f.echelle)
-  // Chrome headless suspend requestAnimationFrame sur un onglet inactif : un screencast tient les images (GSAP, ticker).
-  const off = nav.sur((m, p) => {
-    if (m === 'Page.screencastFrame') void nav.envoyer('Page.screencastFrameAck', { sessionId: (p as { sessionId: number }).sessionId }, s)
-  })
-  await nav.envoyer('Page.startScreencast', { format: 'jpeg', quality: 30, maxWidth: 320, maxHeight: 320, everyNthFrame: 1 }, s)
-  await nav.envoyer('Target.activateTarget', { targetId })
-  await nav.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true }, s)
-  // Insertion : le clone est examiné dans la tâche même du clic (Chrome headless suspend les images d'animation
-  // par à-coups, le vol de 450 ms n'y est pas mesurable ; les vidéos le montrent).
-  await nav.evaluer(s, `(() => { const b = document.querySelector('[data-g2g="ecouter"]'); b.scrollIntoView({ block: 'center', behavior: 'instant' }); })()`)
+  const arreter = await animer(nav, s, targetId)
+  // Chemin 1 : URL directe.
+  await controlerLecteurReel(nav, s, f, 'URL directe → /sorties')
+  // Insertion d'une autre cassette : le clone est examiné dans la tâche même du clic (Chrome headless suspend les
+  // images d'animation par à-coups, le vol de 450 ms n'y est pas mesurable ; les vidéos le montrent).
+  await nav.evaluer(s, `(() => { const b = document.querySelectorAll('[data-g2g="ecouter"]')[1]; b.scrollIntoView({ block: 'center', behavior: 'instant' }); })()`)
   // Le collage à l'arrivée (IntersectionObserver) doit avoir posé la cassette avant le clic.
   await attendre(400)
   const clone = await nav.evaluer<{ present: boolean; racine: boolean; classes: string; sticker: boolean; stickerOrigine: boolean; police: string; original: number; texte: boolean }>(s, `(() => {
-    document.querySelector('[data-g2g="ecouter"]').click();
+    const b = document.querySelectorAll('[data-g2g="ecouter"]')[1];
+    b.click();
     const c = document.querySelector('.g2g-insertion');
-    const o = document.querySelector('.g2g-tuile');
+    const o = b.closest('.g2g-tuile');
     const t = c && Array.from(c.querySelectorAll('text')).find((x) => /marker/i.test(x.getAttribute('style') || ''));
     return { present: !!c, racine: !!c && c.parentElement === document.getElementById('haut'), classes: c ? c.className : '', sticker: !!c && !!c.querySelector('.g2g-sticker'), stickerOrigine: !!o.querySelector('.g2g-sticker'), police: t ? getComputedStyle(t).fontFamily : '', original: o ? Number(getComputedStyle(o.querySelector('.g2g-cassette')).opacity) : 0, texte: !!c && !!c.querySelector('.g2g-cassette__texte') };
   })()`)
@@ -173,30 +227,6 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   noter(f.largeur, '/sorties', 'clone : police au marqueur et sticker', /marker|permanent/i.test(clone.police) && clone.sticker === clone.stickerOrigine && !clone.texte, clone.police.slice(0, 40))
   noter(f.largeur, '/sorties', 'cassette d’origine visible pendant le vol', clone.original === 1)
   await attendre(1200)
-  // Exécution réelle du lecteur : le clic synthétique ci-dessus ne vaut pas geste utilisateur pour l'audio,
-  // on rejoue un vrai clic (Input.dispatchMouseEvent) sur le bouton de lecture du skin ou de la barre.
-  await nav.cliquer(s, mobile ? '[data-g2g="lecture-barre"]' : '[data-g2g="lecture"]')
-  await attendre(400)
-  const lecture1 = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
-  if (lecture1.statut !== 'lecture') {
-    await nav.cliquer(s, mobile ? '[data-g2g="lecture-barre"]' : '[data-g2g="lecture"]')
-    await attendre(400)
-  }
-  const selSpectre = mobile ? '.g2g-feuille .g2g-spectre__niveau' : '.g2g-lecteur__afficheur .g2g-spectre__niveau'
-  if (mobile) {
-    await nav.cliquer(s, '[data-g2g="deplier"]')
-    await attendre(500)
-  }
-  const image1 = await nav.evaluer<string>(s, `Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|')`)
-  await attendre(700)
-  const lecture2 = await nav.evaluer<EtatLecteur & { image: string }>(s, `Object.assign(${ETAT_LECTEUR}, { image: Array.from(document.querySelectorAll('${selSpectre}')).map((e) => e.style.transform).join('|') })`)
-  noter(f.largeur, '/sorties', 'lecteur réel : AudioContext en running après un vrai clic', lecture2.audio === 'running', `${lecture1.audio} → ${lecture2.audio}, statut ${lecture2.statut}`)
-  noter(f.largeur, '/sorties', 'lecteur réel : la position de l’extrait avance', lecture2.position > lecture1.position && lecture2.position > 0, `${lecture1.position.toFixed(2)} → ${lecture2.position.toFixed(2)} s`)
-  noter(f.largeur, '/sorties', 'lecteur réel : le spectre change entre deux images', image1 !== lecture2.image && lecture2.image.includes('scaleY(') && !/^(scaleY\(0\)\|?)+$/.test(lecture2.image), `${lecture2.image.split('|').filter((v) => v && v !== 'scaleY(0)').length}/32 colonnes allumées`)
-  if (mobile) {
-    await nav.cliquer(s, '[data-g2g="replier"]')
-    await attendre(300)
-  }
   if (!mobile) {
     const aff = await nav.evaluer<{ skin: number; dedans: boolean; colonnes: number; visibles: number; presets: number; debordements: string[] }>(s, `(() => {
       const aff = document.querySelector('.g2g-lecteur__afficheur').getBoundingClientRect();
@@ -254,34 +284,67 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   await attendre(700)
   const retourHaut = await nav.evaluer<{ compteurs: boolean; bande: boolean }>(s, `({ compteurs: !!document.querySelector('.g2g-compteurs--fin'), bande: (document.querySelector('.g2g-barre .g2g-bande') || document.querySelector('.g2g-bande')).textContent.includes('FIN DE BANDE') })`)
   noter(f.largeur, '/artistes', 'FIN DE BANDE dans l’afficheur au pied de page, compteurs de retour en haut', (mobile ? fin.bande : fin.compteurs && fin.bande) && !retourHaut.compteurs && !retourHaut.bande)
-  await nav.envoyer('Page.stopScreencast', {}, s)
-  off()
+  const erreurs = erreursDe(s)
+  noter(f.largeur, '/sorties', 'aucune erreur de console pendant le parcours du lecteur', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  await arreter()
   await nav.envoyer('Target.closeTarget', { targetId })
 }
 
 /**
- * Entrée par navigation côté client : la home du portfolio, « Découvrir mes projets », puis la tuile
- * (Next Link, sans rechargement). Le layout de l'expérience se monte sans que son script en ligne
- * s'exécute : le lecteur doit quand même être là (data-js) et jouer au premier vrai clic (bloc 7.3b).
+ * Chemin 2 : entrée par navigation côté client depuis la home du portfolio, « Découvrir mes projets »,
+ * puis la tuile (Next Link, sans rechargement). Le layout de l'expérience se monte sans aucun
+ * chargement de page : le lecteur doit être là et jouer au premier vrai clic (bloc 7.3b).
  */
-async function verifierEntreeClient(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
-  const mobile = f.largeur < 600
+async function verifierEntreeTuile(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
+  const chemin = 'tuile du portfolio → accueil'
   const { s, targetId } = await nav.page(`${URL}/`, f.largeur, f.hauteur, f.echelle)
+  const arreter = await animer(nav, s, targetId)
   await attendre(1500)
   const ouvert = await nav.evaluer<boolean>(s, `(() => { const b = Array.from(document.querySelectorAll('a, button')).find((e) => /découvrir mes projets/i.test(e.textContent || '')); if (!b) return false; b.click(); return true })()`)
   await attendre(2500)
   const tuile = await nav.evaluer<boolean>(s, `(() => { const l = document.querySelector('article.project-card a[href="/experience/groove-to-grave"]'); if (!l) return false; l.click(); return true })()`)
   await attendre(5000)
-  const etat = await nav.evaluer<{ chemin: string; dataJs: boolean; statique: string; lecteur: string; ecouter: number; document: boolean }>(s, `({ chemin: location.pathname, dataJs: !!document.getElementById('haut') && document.getElementById('haut').hasAttribute('data-js'), statique: document.querySelector('.g2g-lecteur__statique') ? getComputedStyle(document.querySelector('.g2g-lecteur__statique')).display : 'absent', lecteur: document.querySelector('${mobile ? '.g2g-barre' : '.g2g-lecteur__r2'}') ? getComputedStyle(document.querySelector('${mobile ? '.g2g-barre' : '.g2g-lecteur__r2'}')).display : 'absent', ecouter: document.querySelectorAll('[data-g2g="ecouter"]').length, document: document.documentElement.classList.contains('g2g-document') })`)
-  noter(f.largeur, '/ → tuile', 'navigation côté client depuis la home : lecteur présent, barre statique cachée, boutons écouter', ouvert && tuile && etat.chemin === BASE && etat.dataJs && etat.statique === 'none' && etat.lecteur !== 'none' && etat.lecteur !== 'absent' && etat.ecouter > 0 && etat.document, JSON.stringify(etat))
-  if (etat.ecouter > 0) {
-    await nav.cliquer(s, '[data-g2g="ecouter"]')
-    await attendre(1200)
-    const lecture = await nav.evaluer<EtatLecteur>(s, ETAT_LECTEUR)
-    noter(f.largeur, '/ → tuile', 'après navigation côté client, le lecteur joue au premier clic', lecture.audio === 'running' && lecture.statut === 'lecture' && lecture.position > 0, `${lecture.audio}, ${lecture.statut}, ${lecture.position.toFixed(2)} s`)
-  }
+  const arrive = await nav.evaluer<string>(s, 'location.pathname')
+  noter(f.largeur, chemin, 'home du portfolio, « Découvrir mes projets », tuile : arrivée sans rechargement', ouvert && tuile && arrive === BASE, arrive)
+  if (arrive === BASE) await controlerLecteurReel(nav, s, f, chemin)
   const erreurs = erreursDe(s)
-  noter(f.largeur, '/ → tuile', 'aucune erreur de console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  noter(f.largeur, chemin, 'aucune erreur de console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  await arreter()
+  await nav.envoyer('Target.closeTarget', { targetId })
+}
+
+/** Chemin 3 : navigation interne, de l'accueil de l'expérience vers /sorties par le lien du lecteur. */
+async function verifierNavigationInterne(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
+  const chemin = 'lien interne accueil → /sorties'
+  const { s, targetId } = await nav.page(`${URL}${BASE}`, f.largeur, f.hauteur, f.echelle)
+  const arreter = await animer(nav, s, targetId)
+  await allerAuxSorties(nav, s)
+  const arrive = await nav.evaluer<string>(s, 'location.pathname')
+  noter(f.largeur, chemin, 'arrivée sur /sorties par le lien du lecteur', arrive === `${BASE}/sorties`, arrive)
+  if (arrive === `${BASE}/sorties`) await controlerLecteurReel(nav, s, f, chemin)
+  const erreurs = erreursDe(s)
+  noter(f.largeur, chemin, 'aucune erreur de console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  await arreter()
+  await nav.envoyer('Target.closeTarget', { targetId })
+}
+
+/** Chemin 4 : retour puis avance du navigateur (accueil → /sorties, retour à l'accueil, avance vers /sorties). */
+async function verifierRetourAvance(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
+  const chemin = 'retour puis avance → /sorties'
+  const { s, targetId } = await nav.page(`${URL}${BASE}`, f.largeur, f.hauteur, f.echelle)
+  const arreter = await animer(nav, s, targetId)
+  await allerAuxSorties(nav, s)
+  await nav.evaluer(s, 'history.back()')
+  await attendre(1500)
+  const apresRetour = await nav.evaluer<{ chemin: string; dataJs: boolean }>(s, `({ chemin: location.pathname, dataJs: document.getElementById('haut').hasAttribute('data-js') })`)
+  await nav.evaluer(s, 'history.forward()')
+  await attendre(1500)
+  const arrive = await nav.evaluer<string>(s, 'location.pathname')
+  noter(f.largeur, chemin, 'retour à l’accueil (lecteur monté) puis avance vers /sorties', apresRetour.chemin === BASE && apresRetour.dataJs && arrive === `${BASE}/sorties`, `${apresRetour.chemin} (data-js ${apresRetour.dataJs}) → ${arrive}`)
+  if (arrive === `${BASE}/sorties`) await controlerLecteurReel(nav, s, f, chemin)
+  const erreurs = erreursDe(s)
+  noter(f.largeur, chemin, 'aucune erreur de console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
+  await arreter()
   await nav.envoyer('Target.closeTarget', { targetId })
 }
 
@@ -321,7 +384,9 @@ async function main(): Promise<void> {
   for (const f of FORMATS) {
     for (const p of PAGES) await verifierPage(nav, f, p)
     await verifierLecteur(nav, f)
-    await verifierEntreeClient(nav, f)
+    await verifierEntreeTuile(nav, f)
+    await verifierNavigationInterne(nav, f)
+    await verifierRetourAvance(nav, f)
     await verifierCanvas(nav, f)
   }
   off()

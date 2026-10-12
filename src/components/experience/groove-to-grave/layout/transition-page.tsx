@@ -26,16 +26,6 @@ export default function TransitionPage() {
   const retour = useRef(false)
   const tween = useRef<{ kill(): void } | null>(null)
 
-  // Entrée par navigation côté client (depuis la home du portfolio, par exemple) : le script en
-  // ligne du layout n'est pas exécuté par le navigateur, seul un chargement complet le fait.
-  // On pose donc aussi ici, avant le premier paint du layout, les marques que ce script pose :
-  // `data-js` sur la racine (le CSS montre le lecteur, cache la barre statique) et la classe du
-  // document (marge de défilement sous le skin). Bloc 7.3b.
-  useLayoutEffect(() => {
-    document.getElementById('haut')?.setAttribute('data-js', '')
-    document.documentElement.classList.add('g2g-document')
-  }, [])
-
   useEffect(() => {
     prechargerGsap()
     const surPopstate = () => {
@@ -58,7 +48,6 @@ export default function TransitionPage() {
     window.__g2g = { flux: () => null, mesure: () => undefined, position: () => -1, etatAudio: () => 'absent', ...window.__g2g, figerTransition }
     return () => {
       window.removeEventListener('popstate', surPopstate)
-      document.documentElement.classList.remove('g2g-document')
     }
   }, [])
 

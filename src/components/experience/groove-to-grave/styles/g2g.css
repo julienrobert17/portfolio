@@ -1088,12 +1088,8 @@
 
 /* ═════════ Le lecteur (Phase 3) ═════════ */
 
-/* Avec JavaScript, la racine porte data-js (script en ligne du layout) : les éléments .g2g-js apparaissent, .g2g-sans-js disparaît. */
+/* La racine porte data-js une fois montée par React (layout/racine.tsx) : les éléments .g2g-js apparaissent. La barre statique vit dans un noscript. */
 .g2g:not([data-js]) .g2g-js {
-  display: none !important;
-}
-
-.g2g[data-js] .g2g-sans-js {
   display: none !important;
 }
 

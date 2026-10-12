@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import Mur from '@/components/experience/groove-to-grave/canvas/mur'
 import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-bande'
 import Lecteur from '@/components/experience/groove-to-grave/layout/lecteur'
+import Racine from '@/components/experience/groove-to-grave/layout/racine'
 import SkipLink from '@/components/experience/groove-to-grave/layout/skip-link'
 import SmoothScroll from '@/components/experience/groove-to-grave/layout/smooth-scroll'
 import TransitionPage from '@/components/experience/groove-to-grave/layout/transition-page'
@@ -45,17 +46,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Avant le premier paint : la racine sait que JavaScript est là (le CSS montre le lecteur, cache la
- * barre statique) et le document reçoit la classe qui réserve la place du skin collant au focus
- * (scroll-padding-top), retirée par la transition de page au démontage.
- */
-const SCRIPT_JS = "document.currentScript.parentElement.setAttribute('data-js','');document.documentElement.classList.add('g2g-document')"
-
-/**
  * Racine de « Groove To Grave » : palette du label en variables CSS quel que soit le thème de
  * l'OS, langue française, polices de l'expérience. Le lecteur vit dans ce layout, donc
  * persistant entre toutes les pages ; son moteur audio est un singleton de module. La
- * transition de page (avance rapide du mur, balayage du contenu) vit ici aussi.
+ * transition de page (avance rapide du mur, balayage du contenu) vit ici aussi. La racine
+ * (`layout/racine.tsx`) pose `data-js` par le cycle de vie React, sans script en ligne.
  */
 export default async function GrooveToGraveLayout({ children }: { children: ReactNode }) {
   const contenu = await chargerContenu()
@@ -63,8 +58,7 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
   const brouillon = (await draftMode()).isEnabled
   const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
-    <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" id="haut" tabIndex={-1} style={variablesCss()}>
-      <script dangerouslySetInnerHTML={{ __html: SCRIPT_JS }} />
+    <Racine className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} style={variablesCss()}>
       <Mur />
       <SkipLink />
       <Lecteur catalogue={catalogueLecteur(contenu.sorties)} prochaine={texteProchaine} bandcamp={contenu.label.reseaux[0]?.url ?? MARQUE.bandcamp} />
@@ -80,6 +74,6 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
           Aperçu des brouillons. <a href="/api/g2g/apercu/fin">Quitter</a>
         </p>
       ) : null}
-    </div>
+    </Racine>
   )
 }
