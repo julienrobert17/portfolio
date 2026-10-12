@@ -51,9 +51,15 @@ jobs:
       - name: Dépendances
         if: steps.jeton.outputs.present == 'true'
         run: npm ci --ignore-scripts
+      # Le runner Ubuntu n'a plus ffmpeg préinstallé : on l'installe et on vérifie sans tube
+      # (un tube masque le code de sortie, ce qui avait fait passer l'étape à tort).
       - name: ffmpeg
         if: steps.jeton.outputs.present == 'true'
-        run: ffmpeg -version | head -1 && ffprobe -version | head -1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          ffmpeg -version > /dev/null && ffprobe -version > /dev/null
+          echo "ffmpeg $(ffmpeg -version | head -1 | cut -d' ' -f3)"
       - name: Pipeline
         if: steps.jeton.outputs.present == 'true'
         env:
