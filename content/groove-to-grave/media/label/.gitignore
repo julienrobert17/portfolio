@@ -1,5 +1,0 @@
-# Originaux fournis par le label : jamais dans git. Seuls le README, le manifeste et ce fichier sont suivis.
-audio/*
-images/*
-!audio/.gitkeep
-!images/.gitkeep

@@ -32,7 +32,10 @@ export const piste = defineType({
         }),
     }),
     defineField({ name: 'extraitTraite', title: 'Extrait traité (60 s, niveau normalisé)', type: 'file', readOnly: true, description: 'Produit automatiquement à partir de l’extrait déposé.' }),
-    defineField({ name: 'bpm', title: 'BPM', type: 'number', readOnly: true, description: 'Mesuré automatiquement ; fait tourner les bobines à la bonne vitesse.' }),
+    defineField({ name: 'extraitDuree', title: 'Durée de l’extrait traité (secondes)', type: 'number', readOnly: true }),
+    defineField({ name: 'sonie', title: 'Sonie de l’extrait traité (LUFS)', type: 'number', readOnly: true, description: 'Mesurée après traitement ; la cible est −14 LUFS.' }),
+    defineField({ name: 'bpm', title: 'BPM', type: 'number', readOnly: true, description: 'Estimé automatiquement ; fait tourner les bobines à la bonne vitesse.' }),
+    defineField({ name: 'extraitProvisoire', title: 'Extrait provisoire', type: 'boolean', readOnly: true, description: 'Boucle synthétique posée par le site en attendant un fichier du label ; remplacée dès qu’un extrait est déposé.' }),
     defineField({ name: 'traitement', title: 'Traitement automatique', type: 'traitement' }),
   ],
   preview: {
