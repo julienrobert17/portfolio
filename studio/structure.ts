@@ -1,4 +1,5 @@
 import type { StructureResolver } from 'sanity/structure'
+import { Guide } from './composants/guide'
 
 /** Sections du Studio, dans l'ordre de travail du label. */
 export const structure: StructureResolver = (S) =>
@@ -11,4 +12,10 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       S.listItem().title('Textes du label').id('textes').child(S.document().schemaType('textes').documentId('textes').title('Textes du label')),
       S.listItem().title('Réglages').id('reglages').child(S.document().schemaType('reglages').documentId('reglages').title('Réglages')),
+      S.divider(),
+      // Le guide du label, lu dans docs/groove-to-grave/guide-label.md (une seule version).
+      S.listItem()
+        .title('Guide')
+        .id('guide')
+        .child(S.component(Guide).title('Guide du site')),
     ])
