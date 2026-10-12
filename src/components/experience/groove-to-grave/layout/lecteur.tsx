@@ -35,7 +35,8 @@ function mmss(s: number): string {
  * deux rangées (titre et navigation ; transport, fenêtre cassette, afficheur, presets, volume),
  * mode mini sur une rangée et une ligne fine. Mobile : barre du haut de 56 px avec le menu en
  * plein écran, barre de lecture en bas de 64 px qui se déplie en feuille. Sans JavaScript, le
- * CSS ne montre que la barre de titre, la navigation et le lien Bandcamp (classes g2g-js).
+ * CSS ne montre que la barre de titre, la navigation et, dans un noscript, la barre statique avec
+ * le lien Bandcamp (les commandes portent la classe g2g-js, visibles quand la racine a data-js).
  */
 export default function Lecteur({ catalogue, prochaine, bandcamp = MARQUE.bandcamp }: LecteurProps) {
   const etat = useLecteur()
@@ -278,13 +279,15 @@ export default function Lecteur({ catalogue, prochaine, bandcamp = MARQUE.bandca
         </nav>
       </div>
 
-      {/* Sans JavaScript : barre statique avec le lien Bandcamp. */}
-      <div className="g2g-lecteur__statique g2g-sans-js">
-        <span>Le lecteur a besoin de JavaScript.</span>
-        <a href={bandcamp} rel="noopener">
-          Écouter sur Bandcamp
-        </a>
-      </div>
+      {/* Sans JavaScript : barre statique avec le lien Bandcamp, rendue par le navigateur lui-même (noscript), jamais quand un script tourne. */}
+      <noscript>
+        <div className="g2g-lecteur__statique">
+          <span>Le lecteur a besoin de JavaScript.</span>
+          <a href={bandcamp} rel="noopener">
+            Écouter sur Bandcamp
+          </a>
+        </div>
+      </noscript>
     </header>
   )
 }

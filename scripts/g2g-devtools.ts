@@ -14,7 +14,7 @@ export class Devtools {
   private ws!: WebSocket
   private id = 0
   private attentes = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
-  private evenements = new Set<(methode: string, params: unknown) => void>()
+  private evenements = new Set<(methode: string, params: unknown, sessionId?: string) => void>()
   private processus!: ReturnType<typeof spawn>
 
   async demarrer(): Promise<void> {
@@ -37,14 +37,14 @@ export class Devtools {
       this.ws.addEventListener('error', () => reject(new Error('WebSocket refusé')))
     })
     this.ws.addEventListener('message', (ev) => {
-      const m = JSON.parse(String(ev.data)) as { id?: number; result?: unknown; error?: { message: string }; method?: string; params?: unknown }
+      const m = JSON.parse(String(ev.data)) as { id?: number; result?: unknown; error?: { message: string }; method?: string; params?: unknown; sessionId?: string }
       if (m.id !== undefined) {
         const a = this.attentes.get(m.id)
         this.attentes.delete(m.id)
         if (!a) return
         if (m.error) a.reject(new Error(m.error.message))
         else a.resolve(m.result)
-      } else if (m.method) for (const fn of this.evenements) fn(m.method, m.params)
+      } else if (m.method) for (const fn of this.evenements) fn(m.method, m.params, m.sessionId)
     })
   }
 
@@ -54,7 +54,7 @@ export class Devtools {
     return new Promise<T>((resolve, reject) => this.attentes.set(id, { resolve: resolve as (v: unknown) => void, reject }))
   }
 
-  sur(fn: (methode: string, params: unknown) => void): () => void {
+  sur(fn: (methode: string, params: unknown, sessionId?: string) => void): () => void {
     this.evenements.add(fn)
     return () => this.evenements.delete(fn)
   }
@@ -96,6 +96,7 @@ export class Devtools {
     const { sessionId: s } = await this.envoyer<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true })
     await this.envoyer('Page.enable', {}, s)
     await this.envoyer('Runtime.enable', {}, s)
+    await this.envoyer('Log.enable', {}, s)
     await this.envoyer('Emulation.setDeviceMetricsOverride', { width: largeur, height: hauteur, deviceScaleFactor: echelle, mobile: largeur < 600 }, s)
     const charge = this.attendre('Page.loadEventFired')
     await this.envoyer('Page.navigate', { url }, s)
@@ -106,7 +107,8 @@ export class Devtools {
 
   /** Évalue une expression dans la page et retourne sa valeur (promesses attendues). */
   async evaluer<T>(s: string, expression: string): Promise<T> {
-    const { result } = await this.envoyer<{ result: { value: T } }>('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, s)
+    const { result, exceptionDetails } = await this.envoyer<{ result: { value: T }; exceptionDetails?: { text: string; exception?: { description?: string } } }>('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, s)
+    if (exceptionDetails) throw new Error(`évaluation dans la page : ${(exceptionDetails.exception?.description ?? exceptionDetails.text).split('\n')[0]}`)
     return result.value
   }
 

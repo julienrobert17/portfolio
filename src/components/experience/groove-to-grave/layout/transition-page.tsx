@@ -45,10 +45,9 @@ export default function TransitionPage() {
         main.style.setProperty('--balayage', `${Math.round((1 - p) * 100)}%`)
       }
     }
-    window.__g2g = { flux: () => null, mesure: () => undefined, position: () => -1, ...window.__g2g, figerTransition }
+    window.__g2g = { flux: () => null, mesure: () => undefined, position: () => -1, etatAudio: () => 'absent', ...window.__g2g, figerTransition }
     return () => {
       window.removeEventListener('popstate', surPopstate)
-      document.documentElement.classList.remove('g2g-document')
     }
   }, [])
 
