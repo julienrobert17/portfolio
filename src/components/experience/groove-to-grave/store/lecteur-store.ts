@@ -44,12 +44,15 @@ export interface EtatLecteur {
   finDeBande: boolean
   /** Message pour la région aria-live. */
   annonce: string
+  /** Extrait indisponible : raison technique, affichée en clair par le lecteur (bloc 7.5a). */
+  echec: string | null
 }
 
 const BPM_DEFAUT = 124
 
 let etat: EtatLecteur = {
   pret: false,
+  echec: null,
   statut: 'vide',
   piste: null,
   position: 0,
@@ -133,6 +136,7 @@ function brancher(): void {
       if (etat.statut === 'lecture') poser({ statut: 'pause', annonce: `Pause : ${etat.piste?.catalog ?? ''}` })
     },
     pret: () => poser({ pret: true }),
+    echec: (raison) => poser({ statut: 'arret', position: 0, echec: raison, annonce: 'Extrait indisponible. Écoute possible sur Bandcamp.' }),
   })
 }
 
@@ -157,7 +161,7 @@ export function lire(piste: PisteJouable): void {
   brancher()
   moteur().lire(piste.src)
   mediaSession(piste)
-  poser({ pret: true, statut: 'lecture', piste, position: 0, annonce: `Lecture : ${piste.catalog}, ${piste.artiste}, ${piste.titre}` })
+  poser({ pret: true, statut: 'lecture', piste, position: 0, echec: null, annonce: `Lecture : ${piste.catalog}, ${piste.artiste}, ${piste.titre}` })
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'
 }
 

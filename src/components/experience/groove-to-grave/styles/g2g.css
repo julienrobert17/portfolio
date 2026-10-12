@@ -1338,6 +1338,30 @@
   min-width: 0;
 }
 
+/* Extrait indisponible : l'afficheur le dit en rouge d'alerte, avec le lien de repli (bloc 7.5a). */
+.g2g-bande--echec {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--g2g-lcdPeak);
+}
+
+/* Le message rétrécit avant le lien : sur la barre mobile, c'est le lien qu'il faut garder entier. */
+.g2g-bande--echec > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.g2g-bande--echec a {
+  color: var(--g2g-lcdLit);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex: none;
+}
+
 .g2g-bande {
   font-size: 16px;
   line-height: 1;

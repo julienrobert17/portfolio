@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Groove To Grave — diagnostic audio</title>
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; padding: 20px 16px 64px; font: 16px/1.5 -apple-system, system-ui, sans-serif; background: #f4efe2; color: #111; }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      p.intro { margin: 0 0 20px; color: #444; }
+      section { border: 2px solid #111; border-radius: 4px; padding: 12px; margin-bottom: 14px; background: #fff; }
+      h2 { font-size: 16px; margin: 0 0 6px; }
+      .quoi { color: #444; font-size: 14px; margin: 0 0 10px; }
+      button { font: inherit; font-weight: 700; padding: 12px 18px; border: 2px solid #111; border-radius: 4px; background: #f14442; color: #fff; min-height: 48px; width: 100%; }
+      button[disabled] { opacity: 0.5; }
+      pre { white-space: pre-wrap; word-break: break-word; margin: 10px 0 0; padding: 8px; background: #111; color: #d8f8d8; font: 13px/1.45 ui-monospace, Menlo, monospace; border-radius: 3px; }
+      .ok { color: #7ef08a; }
+      .ko { color: #ff8f8f; }
+      #resume { position: sticky; bottom: 0; }
+      textarea { width: 100%; height: 150px; font: 12px/1.4 ui-monospace, monospace; }
+    </style>
+  </head>
+  <body>
+    <h1>Diagnostic audio — Groove To Grave</h1>
+    <p class="intro">
+      Page d'essai (bloc 7.5a), hors du site, à ouvrir sur l'iPhone. Chaque essai doit être lancé par un <strong>appui séparé</strong> : iOS n'accorde
+      l'autorisation de jouer qu'au geste. Lance-les dans l'ordre, attends le résultat de chacun, puis copie le résumé en bas.
+    </p>
+
+    <section>
+      <h2>0. Le fichier</h2>
+      <p class="quoi">Récupère l'extrait servi par la page sorties et teste son téléchargement (sans le jouer).</p>
+      <button id="b0">Essai 0 — réseau</button>
+      <pre id="r0">en attente</pre>
+    </section>
+
+    <section>
+      <h2>A. Audio nu, CDN (autre origine)</h2>
+      <p class="quoi">Un élément audio seul, sans Web Audio, sur l'adresse du CDN Sanity. C'est le cas le plus simple.</p>
+      <button id="bA" disabled>Essai A</button>
+      <pre id="rA">en attente de l'essai 0</pre>
+    </section>
+
+    <section>
+      <h2>B. Audio nu, même origine</h2>
+      <p class="quoi">Le même fichier servi par notre domaine (réécriture). Sans Web Audio.</p>
+      <button id="bB" disabled>Essai B</button>
+      <pre id="rB">en attente de l'essai 0</pre>
+    </section>
+
+    <section>
+      <h2>C. CDN + Web Audio (ce que fait le site aujourd'hui)</h2>
+      <p class="quoi">Élément audio en <code>crossOrigin=anonymous</code> sur le CDN, routé dans un AudioContext comme le lecteur.</p>
+      <button id="bC" disabled>Essai C</button>
+      <pre id="rC">en attente de l'essai 0</pre>
+    </section>
+
+    <section>
+      <h2>D. Même origine + Web Audio (le correctif envisagé)</h2>
+      <p class="quoi">Identique à C, mais le fichier vient de notre domaine.</p>
+      <button id="bD" disabled>Essai D</button>
+      <pre id="rD">en attente de l'essai 0</pre>
+    </section>
+
+    <section>
+      <h2>E. Même origine + Web Audio, sans vitesse réduite</h2>
+      <p class="quoi">Comme D, mais sans le ralenti de démarrage (<code>playbackRate 0,72</code>) que le lecteur applique.</p>
+      <button id="bE" disabled>Essai E</button>
+      <pre id="rE">en attente de l'essai 0</pre>
+    </section>
+
+    <section id="resume">
+      <h2>Résumé à me renvoyer</h2>
+      <textarea id="texte" readonly>lance les essais…</textarea>
+    </section>
+
+    <script>
+      var urlCdn = null
+      var urlLocale = null
+      var resultats = {}
+      var journal = []
+
+      function ecrire(id, texte, bon) {
+        var el = document.getElementById(id)
+        el.textContent = texte
+        el.className = bon === true ? 'ok' : bon === false ? 'ko' : ''
+      }
+
+      function resume() {
+        var l = ['Diagnostic audio Groove To Grave', 'agent : ' + navigator.userAgent, 'fichier : ' + urlCdn]
+        for (var k in resultats) l.push(k + ' → ' + resultats[k])
+        document.getElementById('texte').value = l.concat(journal).join('\n')
+      }
+
+      /** Décrit l'état d'un élément audio en une ligne. */
+      function etat(a) {
+        var e = a.error ? 'erreur code ' + a.error.code + ' (' + ['', 'ABORTED', 'NETWORK', 'DECODE', 'SRC_NOT_SUPPORTED'][a.error.code] + ') ' + (a.error.message || '') : 'pas d’erreur'
+        return 'temps ' + a.currentTime.toFixed(2) + ' s · durée ' + (isNaN(a.duration) ? '?' : a.duration.toFixed(1)) + ' s · réseau ' + a.networkState + ' · prêt ' + a.readyState + ' · ' + (a.paused ? 'en pause' : 'en lecture') + ' · ' + e
+      }
+
+      document.getElementById('b0').addEventListener('click', function () {
+        ecrire('r0', 'recherche de l’extrait…')
+        fetch('/experience/groove-to-grave/sorties', { cache: 'no-store' })
+          .then(function (r) { return r.text() })
+          .then(function (html) {
+            var m = html.match(/https:\/\/cdn\.sanity\.io\/files\/[^"\\ ]+\.mp3/)
+            if (!m) throw new Error('aucun extrait trouvé sur la page sorties')
+            urlCdn = m[0]
+            urlLocale = '/experience/groove-to-grave/media/' + urlCdn.split('/').pop()
+            var t = Date.now()
+            return fetch(urlCdn, { cache: 'no-store' }).then(function (r) {
+              return r.blob().then(function (b) {
+                resultats['0 réseau CDN'] = r.status + ' · ' + b.size + ' octets · ' + (Date.now() - t) + ' ms'
+                return fetch(urlLocale, { cache: 'no-store' }).then(function (r2) {
+                  return r2.blob().then(function (b2) {
+                    resultats['0 réseau même origine'] = r2.status + ' · ' + b2.size + ' octets'
+                    ecrire('r0', 'CDN : ' + resultats['0 réseau CDN'] + '\nmême origine : ' + resultats['0 réseau même origine'] + '\nfichier : ' + urlCdn.split('/').pop(), true)
+                    ;['bA', 'bB', 'bC', 'bD', 'bE'].forEach(function (b) { document.getElementById(b).disabled = false })
+                    ;['rA', 'rB', 'rC', 'rD', 'rE'].forEach(function (r) { document.getElementById(r).textContent = 'prêt — appuie sur le bouton' })
+                    resume()
+                  })
+                })
+              })
+            })
+          })
+          .catch(function (e) {
+            resultats['0 réseau'] = 'échec : ' + e.message
+            ecrire('r0', 'échec : ' + e.message, false)
+            resume()
+          })
+      })
+
+      /**
+       * Un essai : construit l'élément, le route ou non dans un AudioContext, appelle play() dans le
+       * geste, puis rend compte de ce qui s'est passé au bout de 4 s.
+       */
+      function essai(cle, zone, options) {
+        var a = new Audio()
+        a.preload = 'none'
+        if (options.cors) a.crossOrigin = 'anonymous'
+        a.src = options.locale ? urlLocale : urlCdn
+        var lignes = []
+        ;['loadstart', 'loadedmetadata', 'canplay', 'playing', 'waiting', 'stalled', 'suspend', 'error', 'abort'].forEach(function (n) {
+          a.addEventListener(n, function () { lignes.push(n + ' @' + Math.round(performance.now())) })
+        })
+        var ctx = null
+        if (options.webaudio) {
+          try {
+            ctx = new (window.AudioContext || window.webkitAudioContext)()
+            var src = ctx.createMediaElementSource(a)
+            var gain = ctx.createGain()
+            gain.gain.value = 0.9
+            src.connect(gain)
+            gain.connect(ctx.destination)
+            if (ctx.state !== 'running') ctx.resume()
+          } catch (e) {
+            lignes.push('AudioContext impossible : ' + e.message)
+          }
+        }
+        if (options.ralenti) {
+          a.preservesPitch = false
+          a.playbackRate = 0.72
+        }
+        a.load()
+        var p = a.play()
+        var issue = 'play() n’a rien renvoyé'
+        if (p && p.then) {
+          issue = 'play() en attente'
+          p.then(function () { issue = 'play() tenue' }).catch(function (e) { issue = 'play() REJETÉE : ' + e.name + ' — ' + e.message })
+        }
+        ecrire(zone, 'essai en cours, 4 s…')
+        setTimeout(function () {
+          var joue = a.currentTime > 0.1
+          var texte = issue + '\ncontexte : ' + (ctx ? ctx.state : 'sans Web Audio') + '\n' + etat(a) + '\névénements : ' + (lignes.join(', ') || 'aucun')
+          ecrire(zone, texte, joue)
+          resultats[cle] = (joue ? 'JOUE' : 'NE JOUE PAS') + ' · ' + issue + ' · ' + etat(a) + ' · contexte ' + (ctx ? ctx.state : '—')
+          journal.push('[' + cle + '] ' + lignes.join(', '))
+          a.pause()
+          if (ctx) ctx.close()
+          resume()
+        }, 4000)
+      }
+
+      document.getElementById('bA').addEventListener('click', function () { essai('A audio nu CDN', 'rA', { cors: false, locale: false, webaudio: false, ralenti: false }) })
+      document.getElementById('bB').addEventListener('click', function () { essai('B audio nu même origine', 'rB', { cors: false, locale: true, webaudio: false, ralenti: false }) })
+      document.getElementById('bC').addEventListener('click', function () { essai('C CDN + Web Audio', 'rC', { cors: true, locale: false, webaudio: true, ralenti: true }) })
+      document.getElementById('bD').addEventListener('click', function () { essai('D même origine + Web Audio', 'rD', { cors: true, locale: true, webaudio: true, ralenti: true }) })
+      document.getElementById('bE').addEventListener('click', function () { essai('E même origine + Web Audio sans ralenti', 'rE', { cors: true, locale: true, webaudio: true, ralenti: false }) })
+    </script>
+  </body>
+</html>

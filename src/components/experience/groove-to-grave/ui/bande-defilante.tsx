@@ -22,12 +22,25 @@ export function texteBande(etat: ReturnType<typeof useLecteur>, prochaine?: stri
  * La bande défilante de l'afficheur, en VT323, à une vitesse proportionnelle au BPM ; elle
  * s'arrête quand la lecture s'arrête, se met en pause au survol et au focus. aria-hidden : son
  * contenu est annoncé par la région aria-live du lecteur. Mouvement réduit : statique, tronquée.
+ * Quand l'extrait est indisponible, elle laisse la place au message d'échec et au lien Bandcamp.
  */
 export default function BandeDefilante({ prochaine }: { prochaine?: string }) {
   const etat = useLecteur()
   const reduit = useReducedMotion()
   const texte = texteBande(etat, prochaine)
   const joue = etat.statut === 'lecture'
+  // Extrait indisponible : l'afficheur le dit en clair et renvoie sur Bandcamp, au lieu de souffler
+  // dans le vide. Visible et annoncé, contrairement à la bande ordinaire (bloc 7.5a).
+  if (etat.echec) {
+    return (
+      <div className="g2g-bande g2g-bande--echec g2g-lcd-texte" role="status" data-g2g="echec" title={etat.echec}>
+        <span>EXTRAIT INDISPONIBLE</span>
+        <a href={etat.piste?.bandcamp ?? MARQUE.bandcamp} rel="noopener" aria-label="Écouter cette sortie sur Bandcamp" data-g2g="echec-bandcamp">
+          BANDCAMP
+        </a>
+      </div>
+    )
+  }
   if (reduit || !joue) {
     return (
       <div className="g2g-bande g2g-bande--statique g2g-lcd-texte" aria-hidden="true" title={texte}>

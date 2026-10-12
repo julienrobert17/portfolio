@@ -12,7 +12,8 @@
  *     tuile depuis la home du portfolio, lien interne entre deux pages, retour puis avance du navigateur ;
  *     pour chacun : lecteur monté, AudioContext en `running` au premier vrai clic, position de l'extrait qui
  *     avance, spectre qui change entre deux images, aucune erreur de console ;
- *   - aucune erreur de console, exception ni requête en échec sur chaque page.
+ *   - aucune erreur de console, exception ni requête en échec sur chaque page ;
+ *   - extrait indisponible (requêtes audio coupées) : le lecteur le dit et propose Bandcamp.
  * S'exécute contre un serveur local ou contre l'URL de production (`--url https://…`) : à lancer contre la
  * production à la fin de chaque phase. Sort une table Markdown et un code de retour.
  *
@@ -300,6 +301,40 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
 }
 
 /**
+ * Extrait indisponible (bloc 7.5a) : on fait échouer les requêtes audio au niveau du réseau, puis
+ * on clique sur écouter. Le lecteur doit le dire en clair (« extrait indisponible »), proposer le
+ * lien Bandcamp, et ne pas rester en lecture à souffler dans le vide.
+ */
+async function verifierExtraitIndisponible(nav: Devtools, f: (typeof FORMATS)[number]): Promise<void> {
+  const chemin = 'extrait introuvable'
+  const { s, targetId } = await nav.page(`${URL}${BASE}/sorties`, f.largeur, f.hauteur, f.echelle)
+  const arreter = await animer(nav, s, targetId)
+  await nav.envoyer('Fetch.enable', { patterns: [{ urlPattern: '*.mp3', requestStage: 'Request' }] }, s)
+  const off = nav.sur((m, p, sessionId) => {
+    if (m === 'Fetch.requestPaused' && sessionId === s) void nav.envoyer('Fetch.failRequest', { requestId: (p as { requestId: string }).requestId, errorReason: 'Failed' }, s)
+  })
+  await nav.evaluer(s, `document.querySelector('[data-g2g="ecouter"]').scrollIntoView({ block: 'center', behavior: 'instant' })`)
+  await attendre(400)
+  await nav.cliquer(s, '[data-g2g="ecouter"]')
+  // Le moteur laisse 3 s à l'extrait avant de déclarer l'échec.
+  await attendre(4500)
+  // Le message est rendu partout où vit la bande (skin, ligne fine, barre mobile, feuille) : il
+  // suffit qu'au moins une de ces places soit réellement visible au format mesuré.
+  const etat = await nav.evaluer<{ message: boolean; texte: string; bandcamp: string | null; statut: string; position: number }>(s, `(() => {
+    const tous = Array.from(document.querySelectorAll('[data-g2g="echec"]'));
+    const visible = tous.find((e) => e.getClientRects().length > 0);
+    const a = visible && visible.querySelector('[data-g2g="echec-bandcamp"]');
+    return { message: !!visible, texte: (visible || tous[0] || { textContent: '' }).textContent.trim().slice(0, 60), bandcamp: a ? a.getAttribute('href') : null, statut: document.querySelector('.g2g-lecteur').dataset.statut, position: window.__g2g.position() };
+  })()`)
+  noter(f.largeur, chemin, 'le lecteur annonce l’extrait indisponible et renvoie sur Bandcamp', etat.message && /INDISPONIBLE/i.test(etat.texte) && Boolean(etat.bandcamp?.includes('bandcamp')), `${etat.texte} · ${etat.bandcamp ?? 'aucun lien'}`)
+  noter(f.largeur, chemin, 'le lecteur ne reste pas en lecture', etat.statut !== 'lecture' && etat.position <= 0.05, `statut ${etat.statut}, position ${etat.position.toFixed(2)} s`)
+  off()
+  await nav.envoyer('Fetch.disable', {}, s)
+  await arreter()
+  await nav.envoyer('Target.closeTarget', { targetId })
+}
+
+/**
  * Chemin 2 : entrée par navigation côté client depuis la home du portfolio, « Découvrir mes projets »,
  * puis la tuile (Next Link, sans rechargement). Le layout de l'expérience se monte sans aucun
  * chargement de page : le lecteur doit être là et jouer au premier vrai clic (bloc 7.3b).
@@ -396,6 +431,7 @@ async function main(): Promise<void> {
     await verifierEntreeTuile(nav, f)
     await verifierNavigationInterne(nav, f)
     await verifierRetourAvance(nav, f)
+    await verifierExtraitIndisponible(nav, f)
     await verifierCanvas(nav, f)
   }
   off()
