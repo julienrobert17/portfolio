@@ -111,22 +111,34 @@ jobs:
           path: ~/.cache/g2g-ffmpeg
           key: g2g-ffmpeg-${{ env.FFMPEG_VERSION }}
 
-      - name: Télécharger ffmpeg
-        if: steps.travail.outputs.aFaire != '0' && steps.cache-ffmpeg.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ~/.cache/g2g-ffmpeg
-          curl -fsSL --retry 3 -o /tmp/ffmpeg.tar.xz "$FFMPEG_URL"
-          tar -xJf /tmp/ffmpeg.tar.xz -C /tmp
-          cp /tmp/ffmpeg-*/bin/ffmpeg /tmp/ffmpeg-*/bin/ffprobe ~/.cache/g2g-ffmpeg/
-          chmod +x ~/.cache/g2g-ffmpeg/ffmpeg ~/.cache/g2g-ffmpeg/ffprobe
-
-      - name: ffmpeg dans le PATH
+      # Trois cas : binaire déjà dans le cache (quelques secondes), sinon téléchargement du
+      # binaire statique, sinon apt. Les assets de la version « latest » sont réécrits
+      # régulièrement et répondent 404 pendant ce temps : d'où les reprises et le repli.
+      - name: ffmpeg
         if: steps.travail.outputs.aFaire != '0'
         run: |
-          echo "$HOME/.cache/g2g-ffmpeg" >> "$GITHUB_PATH"
-          "$HOME/.cache/g2g-ffmpeg/ffmpeg" -version > /dev/null
-          "$HOME/.cache/g2g-ffmpeg/ffprobe" -version > /dev/null
-          echo "ffmpeg $("$HOME/.cache/g2g-ffmpeg/ffmpeg" -version | head -1 | cut -d' ' -f3)"
+          if [ -x "$HOME/.cache/g2g-ffmpeg/ffmpeg" ] && [ -x "$HOME/.cache/g2g-ffmpeg/ffprobe" ]; then
+            echo "$HOME/.cache/g2g-ffmpeg" >> "$GITHUB_PATH"
+            echo "ffmpeg repris du cache"
+          elif curl -fsSL --retry 4 --retry-all-errors --retry-delay 3 --max-time 240 -o /tmp/ffmpeg.tar.xz "$FFMPEG_URL"; then
+            mkdir -p "$HOME/.cache/g2g-ffmpeg"
+            tar -xJf /tmp/ffmpeg.tar.xz -C /tmp
+            cp /tmp/ffmpeg-*/bin/ffmpeg /tmp/ffmpeg-*/bin/ffprobe "$HOME/.cache/g2g-ffmpeg/"
+            chmod +x "$HOME/.cache/g2g-ffmpeg/ffmpeg" "$HOME/.cache/g2g-ffmpeg/ffprobe"
+            echo "$HOME/.cache/g2g-ffmpeg" >> "$GITHUB_PATH"
+            echo "ffmpeg téléchargé puis mis en cache"
+          else
+            echo "::warning::Binaire statique indisponible : repli sur apt-get."
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          fi
+
+      - name: Vérifier ffmpeg
+        if: steps.travail.outputs.aFaire != '0'
+        run: |
+          ffmpeg -version > /dev/null
+          ffprobe -version > /dev/null
+          echo "ffmpeg $(ffmpeg -version | head -1 | cut -d' ' -f3)"
 
       - name: Dépendances
         if: steps.travail.outputs.aFaire != '0'
