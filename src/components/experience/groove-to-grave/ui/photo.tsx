@@ -1,3 +1,4 @@
+import { preload } from 'react-dom'
 import type { CSSProperties } from 'react'
 import type { ImageSite } from '../content/types'
 
@@ -15,11 +16,19 @@ interface PhotoProps {
 /**
  * Image optimisée par le pipeline (AVIF et WebP par largeur, jamais recadrée ni retouchée, servie
  * depuis le CDN Sanity) : l'œuvre est servie telle quelle, ratio conservé. La page décide d'un
- * repli (cassette, affiche) quand l'image n'existe pas.
+ * repli (cassette, affiche) quand l'image n'existe pas. `priority` marque l'image LCP de la page :
+ * chargement immédiat, priorité haute, et préchargement déclaré dans le head ; les autres images
+ * restent en `loading="lazy"`.
  */
 export default function Photo({ image, alt, sizes = '100vw', priority, className, style }: PhotoProps) {
   const srcset = (format: 'avif' | 'webp') => image.tailles.map((t) => `${t[format]} ${t.largeur}w`).join(', ')
   const grande = image.tailles[image.tailles.length - 1]
+  // Image LCP de la page : React pose dans le head un <link rel="preload"> avec le même srcset et
+  // le même sizes que la source AVIF ci-dessous, pour que le navigateur demande la bonne largeur
+  // dès la lecture du head (sinon la requête part après la mise en page : 350 ms de retard mesurés
+  // en Phase 7.4 depuis que les images viennent du CDN). Les navigateurs sans AVIF ignorent ce
+  // lien (le type ne correspond pas) et chargent le WebP de <picture> comme avant.
+  if (priority) preload(grande.avif, { as: 'image', type: 'image/avif', imageSrcSet: srcset('avif'), imageSizes: sizes, fetchPriority: 'high' })
   return (
     <picture className={className} style={style}>
       <source type="image/avif" srcSet={srcset('avif')} sizes={sizes} />

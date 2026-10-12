@@ -11,6 +11,7 @@ import TransitionPage from '@/components/experience/groove-to-grave/layout/trans
 import { catalogueLecteur } from '@/components/experience/groove-to-grave/lib/catalogue-lecteur'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
+import { MEME_ORIGINE } from '@/components/experience/groove-to-grave/lib/medias'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
 import { chargerContenu, soireesAVenir } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/polices'
@@ -59,9 +60,13 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
   const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
     <Racine className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} style={variablesCss()}>
-      {/* Images et extraits viennent du CDN Sanity (Phase 7.4) : connexion ouverte d'avance, en clair pour les images, en CORS pour l'audio analysé. */}
-      <link rel="preconnect" href="https://cdn.sanity.io" />
-      <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
+      {/* Images et extraits viennent du CDN Sanity (Phase 7.4) : connexion ouverte d'avance, en clair pour les images, en CORS pour l'audio analysé. Inutile quand ils passent par notre origine (bloc 7.4b). */}
+      {MEME_ORIGINE ? null : (
+        <>
+          <link rel="preconnect" href="https://cdn.sanity.io" />
+          <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
+        </>
+      )}
       <Mur />
       <SkipLink />
       <Lecteur catalogue={catalogueLecteur(contenu.sorties)} prochaine={texteProchaine} bandcamp={contenu.label.reseaux[0]?.url ?? MARQUE.bandcamp} />

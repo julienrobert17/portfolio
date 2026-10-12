@@ -4,10 +4,11 @@
 # les champs en lecture seule des documents (scripts/g2g-pipeline-sanity.ts). Le webhook Sanity de
 # publication déclenche ensuite la revalidation du site comme pour toute publication.
 #
-# Déclenchement : toutes les 15 minutes (le script ne fait rien quand aucune empreinte n'a changé),
-# à la demande, ou par `repository_dispatch` (type `g2g-medias`) si un relais est branché un jour.
-# Jeton d'écriture Sanity (rôle editor) dans le secret SANITY_PIPELINE_TOKEN ; sans lui, le job
-# s'arrête en avertissant, sans échouer.
+# Déclenchement : par `repository_dispatch` (type `g2g-medias`), envoyé par la route
+# `/api/g2g/medias` dès qu'un fichier d'origine change dans le Studio (bloc 7.4b) ; toutes les 15
+# minutes en filet, si le relais est coupé (le script ne fait rien quand aucune empreinte n'a
+# changé) ; à la demande. Jeton d'écriture Sanity (rôle editor) dans le secret
+# SANITY_PIPELINE_TOKEN ; sans lui, le job s'arrête en avertissant, sans échouer.
 name: Pipeline médias (Groove To Grave)
 
 on:
@@ -50,9 +51,15 @@ jobs:
       - name: Dépendances
         if: steps.jeton.outputs.present == 'true'
         run: npm ci --ignore-scripts
+      # Le runner Ubuntu n'a plus ffmpeg préinstallé : on l'installe et on vérifie sans tube
+      # (un tube masque le code de sortie, ce qui avait fait passer l'étape à tort).
       - name: ffmpeg
         if: steps.jeton.outputs.present == 'true'
-        run: ffmpeg -version | head -1 && ffprobe -version | head -1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          ffmpeg -version > /dev/null && ffprobe -version > /dev/null
+          echo "ffmpeg $(ffmpeg -version | head -1 | cut -d' ' -f3)"
       - name: Pipeline
         if: steps.jeton.outputs.present == 'true'
         env:
