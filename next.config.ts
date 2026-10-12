@@ -1,6 +1,22 @@
 import type { NextConfig } from "next";
 
+const PROJET_SANITY = process.env.SANITY_PROJECT_ID ?? 'da2plce8'
+const DATASET_SANITY = process.env.SANITY_DATASET ?? 'production'
+
 const nextConfig: NextConfig = {
+  /*
+   * Groove To Grave, bloc 7.4b : avec G2G_MEDIAS_MEME_ORIGINE=1, les fichiers médias du CDN
+   * Sanity (images optimisées, extraits) sont servis sous notre propre origine, pour que le
+   * document et ses médias partagent une seule connexion (voir lib/medias.ts).
+   */
+  async rewrites() {
+    return [
+      {
+        source: '/experience/groove-to-grave/media/:chemin*',
+        destination: `https://cdn.sanity.io/files/${PROJET_SANITY}/${DATASET_SANITY}/:chemin*`,
+      },
+    ]
+  },
   // Les études de cas sont lues avec fs à la demande : il faut les embarquer
   // dans la fonction serverless de la page projet.
   outputFileTracingIncludes: {

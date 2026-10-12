@@ -1,5 +1,6 @@
 import type { Artiste, Couleurs, Credits, FormatSortie, Genre, ImageSite, Lien, Piste, Soiree, Sortie, Texte } from '../content/types'
 import { MARQUE } from '../lib/marque'
+import { urlMedia } from '../lib/medias'
 import type { REQUETE_ARTISTES_RESULT, REQUETE_REGLAGES_RESULT, REQUETE_SOIREES_RESULT, REQUETE_SORTIES_RESULT, REQUETE_TEXTES_RESULT } from './types.generated'
 
 /**
@@ -31,6 +32,7 @@ type MetaImageSanity = { alt: string | null; credit: string | null; auteurNonIde
 function image(opt: ImageOptimiseeSanity | undefined, meta: MetaImageSanity | undefined): ImageSite | undefined {
   const tailles = (opt?.tailles ?? [])
     .filter((t): t is { largeur: number; hauteur: number; avif: string; webp: string } => Boolean(t.largeur && t.hauteur && t.avif && t.webp))
+    .map((t) => ({ ...t, avif: urlMedia(t.avif), webp: urlMedia(t.webp) }))
     .sort((a, b) => a.largeur - b.largeur)
   if (!tailles.length) return undefined
   const grande = tailles[tailles.length - 1]
@@ -65,7 +67,7 @@ export function adapterSorties(docs: REQUETE_SORTIES_RESULT): Sortie[] {
         if (p.artiste) piste.artist = p.artiste
         if (p.bonusNumerique) piste.digitalOnly = true
         if (p.extrait) {
-          piste.extrait = { src: p.extrait, duration: p.extraitDuree ?? DUREE_EXTRAIT, origine: p.extraitProvisoire ? 'provisoire' : 'label' }
+          piste.extrait = { src: urlMedia(p.extrait), duration: p.extraitDuree ?? DUREE_EXTRAIT, origine: p.extraitProvisoire ? 'provisoire' : 'label' }
           if (p.bpm) piste.extrait.bpm = p.bpm
         }
         return piste
