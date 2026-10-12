@@ -121,37 +121,43 @@ async function main(): Promise<void> {
     process.stdout.write(`  relais local : repository_dispatch envoyé après ${secondes(t0, tDispatch)}\n`)
   }
 
-  // 4. Action GitHub.
-  let run: { id: number; created_at: string; updated_at: string; status: string; conclusion: string | null } | undefined
-  const limiteAction = Date.now() + 900000
-  while (Date.now() < limiteAction) {
-    const d = (await (await fetch(`https://api.github.com/repos/${DEPOT}/actions/workflows/g2g-pipeline-medias.yml/runs?per_page=3`, { headers: { Authorization: `Bearer ${github}` } })).json()) as {
-      workflow_runs: { id: number; created_at: string; updated_at: string; status: string; conclusion: string | null }[]
-    }
-    const nouveau = d.workflow_runs.find((r) => r.id !== dernierRun)
-    if (nouveau) {
-      run = nouveau
-      if (nouveau.status === 'completed') break
-    }
-    await attendre(5000)
-  }
-  if (run) process.stdout.write(`  Action ${run.id} : lancée à ${run.created_at}, terminée à ${run.updated_at} (${run.conclusion}), soit ${secondes(Date.parse(run.created_at), Date.parse(run.updated_at))} de bout en bout\n`)
-
-  // 5. La production sert le nouvel extrait.
+  // 4 et 5, en parallèle : l'Action d'un côté, la page de production de l'autre. Les deux doivent
+  // être suivies en même temps, sinon le délai mesuré sur la page inclut l'attente de l'Action.
+  type Run = { id: number; created_at: string; run_started_at?: string; updated_at: string; status: string; conclusion: string | null }
+  let run: Run | undefined
   let tSite = 0
   let requetes = 0
-  const limiteSite = Date.now() + 300000
-  while (Date.now() < limiteSite) {
-    requetes++
-    const maintenant = await extraitsDeLaPage(page)
-    const nouveau = [...maintenant].find((u) => !avant.has(u))
-    if (nouveau) {
-      tSite = Date.now()
-      process.stdout.write(`  nouvel extrait servi : ${nouveau}\n`)
-      break
+  const limite = Date.now() + 900000
+  const suivreAction = async () => {
+    while (Date.now() < limite) {
+      const d = (await (await fetch(`https://api.github.com/repos/${DEPOT}/actions/workflows/g2g-pipeline-medias.yml/runs?per_page=10`, { headers: { Authorization: `Bearer ${github}` } })).json()) as { workflow_runs: Run[] }
+      // Seules comptent les exécutions créées après le dépôt : une exécution plus ancienne qui se
+      // termine entre-temps n'est pas la nôtre.
+      const notres = d.workflow_runs.filter((r) => r.id !== dernierRun && Date.parse(r.created_at) >= t0 - 5000 && r.conclusion !== 'cancelled')
+      const fini = notres.find((r) => r.status === 'completed')
+      if (fini) {
+        run = fini
+        return
+      }
+      if (notres.length) run = notres[notres.length - 1]
+      await attendre(5000)
     }
-    await attendre(2000)
   }
+  const suivreSite = async () => {
+    while (Date.now() < limite) {
+      requetes++
+      const maintenant = await extraitsDeLaPage(page)
+      const nouveau = [...maintenant].find((u) => !avant.has(u))
+      if (nouveau) {
+        tSite = Date.now()
+        process.stdout.write(`  nouvel extrait servi : ${nouveau}\n`)
+        return
+      }
+      await attendre(2000)
+    }
+  }
+  await Promise.all([suivreAction(), suivreSite()])
+  if (run) process.stdout.write(`  Action ${run.id} : créée à ${run.created_at}, terminée à ${run.updated_at} (${run.conclusion}), soit ${secondes(Date.parse(run.created_at), Date.parse(run.updated_at))} d'exécution\n`)
 
   process.stdout.write('\n| Étape | Délai depuis le dépôt |\n|---|---|\n')
   if (tWebhook) process.stdout.write(`| Webhook Sanity reçu par le site | ${secondes(t0, tWebhook)} |\n`)
