@@ -1,4 +1,4 @@
-import type { Preset, Sortie } from '../content'
+import type { Preset, Sortie } from '../content/types'
 import Cassette from '../ui/cassette'
 
 interface MurProps {

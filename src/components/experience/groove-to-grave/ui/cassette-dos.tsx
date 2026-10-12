@@ -8,7 +8,7 @@ import { couleursCassette } from './cassette'
  * pistes existe en texte sur la page.
  */
 export default function CassetteDos({ sortie }: { sortie: Sortie }) {
-  const c = couleursCassette(sortie.ref)
+  const c = couleursCassette(sortie.couleurs)
   const pistes = sortie.tracks.slice(0, 8)
   return (
     <svg viewBox="0 0 200 128" aria-hidden="true" focusable="false" className="g2g-cassette-dos">

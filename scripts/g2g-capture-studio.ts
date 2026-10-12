@@ -3,7 +3,8 @@
  * Chrome headless à une largeur donnée, en injectant le jeton de session de la CLI Sanity
  * (~/.config/sanity/config.json, jamais dans le dépôt) dans le stockage local du Studio.
  *
- *   npx tsx scripts/g2g-capture-studio.ts --largeur 390 --chemin /structure/sorties --nom studio-390-sorties [--url http://localhost:3333]
+ *   npx tsx scripts/g2g-capture-studio.ts --largeur 390 --chemin /structure/sorties --nom studio-390-sorties [--url http://localhost:3333] [--phase 7.2] [--clic "Automatique"]
+ * `--clic` clique, une fois la page chargée, le premier bouton ou onglet dont le texte est celui donné (onglet d'un document).
  */
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -21,7 +22,8 @@ const LARGEUR = Number(arg('--largeur', '390'))
 const CHEMIN = arg('--chemin', '/structure/sorties')
 const NOM = arg('--nom', `studio-${LARGEUR}`)
 const PROJET = arg('--projet', process.env.SANITY_STUDIO_PROJECT_ID ?? '')
-const SORTIE = dossier(join(RACINE, 'docs/groove-to-grave/planches/phase-7.2'))
+const CLIC = arg('--clic', '')
+const SORTIE = dossier(join(RACINE, `docs/groove-to-grave/planches/phase-${arg('--phase', '7.2')}`))
 
 async function main(): Promise<void> {
   const config = JSON.parse(readFileSync(join(homedir(), '.config/sanity/config.json'), 'utf8')) as { authToken?: string }
@@ -42,6 +44,11 @@ async function main(): Promise<void> {
   await nav.envoyer('Page.navigate', { url: `${URL}${CHEMIN}` }, s)
   await charge
   await new Promise((r) => setTimeout(r, 7000))
+  if (CLIC) {
+    const trouve = await nav.evaluer<boolean>(s, `(() => { const b = Array.from(document.querySelectorAll('button, [role="tab"], a')).find((e) => (e.textContent || '').trim() === ${JSON.stringify(CLIC)}); if (!b) return false; b.click(); return true })()`)
+    if (!trouve) throw new Error(`aucun bouton « ${CLIC} »`)
+    await new Promise((r) => setTimeout(r, 2500))
+  }
   const { data } = await nav.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png' }, s)
   await nav.envoyer('Target.closeTarget', { targetId })
   nav.fermer()

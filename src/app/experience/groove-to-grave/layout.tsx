@@ -59,6 +59,9 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
   const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
     <Racine className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} style={variablesCss()}>
+      {/* Images et extraits viennent du CDN Sanity (Phase 7.4) : connexion ouverte d'avance, en clair pour les images, en CORS pour l'audio analysé. */}
+      <link rel="preconnect" href="https://cdn.sanity.io" />
+      <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
       <Mur />
       <SkipLink />
       <Lecteur catalogue={catalogueLecteur(contenu.sorties)} prochaine={texteProchaine} bandcamp={contenu.label.reseaux[0]?.url ?? MARQUE.bandcamp} />

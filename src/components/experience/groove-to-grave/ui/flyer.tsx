@@ -1,7 +1,7 @@
 import type { Soiree } from '../content/types'
 import { styleRotation } from '../lib/desordre'
 import { dateLongue } from '../lib/format'
-import Photo, { aPhoto } from './photo'
+import Photo from './photo'
 
 /** Nom affiché d'une soirée : le sien, sinon celui du label. Jamais fabriqué à partir du lieu. */
 export function nomSoiree(s: Soiree): string {
@@ -12,8 +12,8 @@ export function nomSoiree(s: Soiree): string {
 export function SupportFlyer({ soiree, sizes = '(max-width: 600px) 100vw, 400px', priority }: { soiree: Soiree; sizes?: string; priority?: boolean }) {
   return (
     <figure className="g2g-flyer__support" style={styleRotation(soiree.date, 2)}>
-      {aPhoto(soiree.date) ? (
-        <Photo id={soiree.date} alt={`Visuel de la soirée ${nomSoiree(soiree)}, ${dateLongue(soiree.date)}`} sizes={sizes} priority={priority} />
+      {soiree.flyer ? (
+        <Photo image={soiree.flyer} alt={`Visuel de la soirée ${nomSoiree(soiree)}, ${dateLongue(soiree.date)}`} sizes={sizes} priority={priority} />
       ) : (
         <div className="g2g-affiche-date">
           <span className="g2g-affiche">

@@ -269,7 +269,7 @@ Tout le contenu typé est dans `src/components/experience/groove-to-grave/conten
 - `verified: boolean` ;
 - `draft: true` pour tout texte de notre main.
 
-`content/groove-to-grave/` à la racine du repo ne contient pas de code : `sources.md` (sources et ce qui reste à vérifier), `media/source/` et `sources.json` (originaux publics récupérés par script), `media/label/` (fichiers fournis par le label, voir §7) et `media/rapport.md`.
+`content/groove-to-grave/` à la racine du repo ne contient pas de code : `sources.md` (sources et ce qui reste à vérifier). Jusqu'à la Phase 7.4 il contenait aussi `media/source/`, `sources.json`, `media/label/` et `media/rapport.md` ; les originaux et leurs dérivés vivent désormais dans Sanity (§7).
 
 **Extraits.** Chaque piste porte un extrait optionnel (`excerpt?: { src, duration, provisional }`). Les extraits provisoires synthétisés ne sont attribués qu'à la piste A1 de chaque sortie ; les autres pistes n'affichent pas de bouton écouter tant qu'aucun vrai extrait n'existe.
 
@@ -361,6 +361,8 @@ Aucune soirée à venir n'est annoncée publiquement à ce jour.
 ## 7. Médias fournis par le label
 
 Le site est conçu pour recevoir, sans changement de code, les fichiers que Groove To Grave Records voudra bien fournir.
+
+> **Depuis la Phase 7.4 (12 octobre 2026), les médias viennent de Sanity.** Le label dépose ses fichiers d'origine dans le Studio (pochette, flyer, portrait, extrait audio brut d'une piste) ; le pipeline `scripts/g2g-pipeline-sanity.ts`, lancé par l'Action GitHub `g2g-pipeline-medias.yml` (toutes les 15 minutes, à la demande, ou par `repository_dispatch`), applique les règles ci-dessous et écrit les champs en lecture seule des documents : AVIF et WebP sans recadrage pour chaque largeur de 320 à 1600 px (chaque fichier sous 300 kB), couleurs de cassette et contrastes, extrait de 60 s dès 30 % du morceau, fondus de 2 s, MP3 192 kbps à −14 LUFS, sonie mesurée, BPM estimé, refus d'une sortie non parue avec raison ; l'état (« en attente », « en cours », « prêt », « refusé ») est visible dans l'onglet Automatique, et une empreinte par fichier d'origine évite tout retraitement inutile. Le site lit ces champs (`sanity/requetes.ts`, `adaptateur.ts`) et sert tout depuis `cdn.sanity.io` (origines déclarées dans les CORS du projet : le CDN d'un dataset privé refuse sinon les requêtes `crossOrigin`, dont l'audio analysé). Les boucles synthétiques provisoires ont été posées une fois comme extraits traités (`extraitProvisoire`), remplacées dès qu'un fichier est déposé. Le contenu TypeScript (`content/*.ts` hors `types.ts` et `presets.ts`), `content/groove-to-grave/media/`, `sources.json` et les dérivés sous `public/experience/groove-to-grave/img|audio` (hors tuile et mur) ont été retirés ; les paragraphes **Dépôt** et **Git** ci-dessous décrivent l'organisation d'avant 7.4. Jeton d'écriture `SANITY_PIPELINE_TOKEN` (rôle editor) dans les secrets GitHub et `.env.local`, jamais dans le dépôt ; en local le script peut utiliser la session de la CLI.
 
 **Priorité par emplacement média.** Pour chaque emplacement (extrait de piste, pochette, flyer de soirée, photo d'artiste, photo du label), dans l'ordre : fichier fourni par le label, sinon fichier public récupéré par script, sinon provisoire. `scripts/g2g-media.ts` applique cette règle et écrit dans `content/groove-to-grave/media/rapport.md`, pour chaque emplacement, la source retenue.
 

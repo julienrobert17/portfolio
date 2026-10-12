@@ -1,13 +1,12 @@
-import { extraits } from '../content/extraits'
-import type { Artiste, Credits, FormatSortie, Genre, Lien, Piste, Soiree, Sortie, Texte } from '../content/types'
+import type { Artiste, Couleurs, Credits, FormatSortie, Genre, ImageSite, Lien, Piste, Soiree, Sortie, Texte } from '../content/types'
 import { MARQUE } from '../lib/marque'
 import type { REQUETE_ARTISTES_RESULT, REQUETE_REGLAGES_RESULT, REQUETE_SOIREES_RESULT, REQUETE_SORTIES_RESULT, REQUETE_TEXTES_RESULT } from './types.generated'
 
 /**
- * Adaptateur (Phase 7.3) : des documents Sanity (types générés) vers les types du site
+ * Adaptateur (Phases 7.3 et 7.4) : des documents Sanity (types générés) vers les types du site
  * (content/types.ts), que tous les composants et pages continuent d'utiliser tels quels. Les
- * images et les extraits ne sont pas lus dans Sanity : ils restent sous
- * public/experience/groove-to-grave/, retrouvés par la clé stable (ref, date, slug).
+ * images optimisées, les couleurs et les extraits traités sont les champs remplis par le
+ * pipeline ; absents tant qu'il n'a pas tourné (la page montre alors la cassette ou l'affiche).
  */
 
 type TexteSanity = { langue: 'fr' | 'en' | string | null; corps: string | null; aValiderParLeLabel: boolean | null } | null
@@ -23,7 +22,34 @@ function liens(l: { libelle: string | null; url: string | null }[] | null | unde
 
 const FORMATS: Record<string, FormatSortie> = { vinyle: '12″ vinyle', 'ep-numerique': 'EP numérique', compilation: 'compilation numérique' }
 const GENRES: Genre[] = ['house', 'break', 'minimal', 'electro']
-const BPM_PROVISOIRE = 124
+const DUREE_EXTRAIT = 60
+
+type ImageOptimiseeSanity = { largeur: number | null; hauteur: number | null; tailles: { largeur: number | null; hauteur: number | null; avif: string | null; webp: string | null }[] | null } | null
+type MetaImageSanity = { alt: string | null; credit: string | null; auteurNonIdentifie: boolean | null } | null
+
+/** Image optimisée du site : seulement si le pipeline a produit au moins une largeur complète. */
+function image(opt: ImageOptimiseeSanity | undefined, meta: MetaImageSanity | undefined): ImageSite | undefined {
+  const tailles = (opt?.tailles ?? [])
+    .filter((t): t is { largeur: number; hauteur: number; avif: string; webp: string } => Boolean(t.largeur && t.hauteur && t.avif && t.webp))
+    .sort((a, b) => a.largeur - b.largeur)
+  if (!tailles.length) return undefined
+  const grande = tailles[tailles.length - 1]
+  const i: ImageSite = { largeur: opt?.largeur ?? grande.largeur, hauteur: opt?.hauteur ?? grande.hauteur, tailles }
+  if (meta?.alt) i.alt = meta.alt
+  if (meta?.credit) i.credit = meta.credit
+  else if (meta?.auteurNonIdentifie) i.credit = 'auteur non identifié'
+  return i
+}
+
+function couleurs(c: { dominante: string | null; accent: string | null; contrasteInkDominante: number | null; contrasteInkAccent: number | null; contrastePosterDominante: number | null; contrastePosterAccent: number | null } | null | undefined): Couleurs | undefined {
+  if (!c?.dominante || !c.accent) return undefined
+  return {
+    dominant: c.dominante,
+    accent: c.accent,
+    contrasteInk: { dominant: c.contrasteInkDominante ?? 0, accent: c.contrasteInkAccent ?? 0 },
+    contrastePoster: { dominant: c.contrastePosterDominante ?? 0, accent: c.contrastePosterAccent ?? 0 },
+  }
+}
 
 export function adapterSorties(docs: REQUETE_SORTIES_RESULT): Sortie[] {
   const sorties: Sortie[] = []
@@ -38,7 +64,10 @@ export function adapterSorties(docs: REQUETE_SORTIES_RESULT): Sortie[] {
         const piste: Piste = { id, position: String(p.position), title: String(p.titre), duration: p.duree ?? 0 }
         if (p.artiste) piste.artist = p.artiste
         if (p.bonusNumerique) piste.digitalOnly = true
-        if (extraits[id]) piste.extrait = extraits[id]
+        if (p.extrait) {
+          piste.extrait = { src: p.extrait, duration: p.extraitDuree ?? DUREE_EXTRAIT, origine: p.extraitProvisoire ? 'provisoire' : 'label' }
+          if (p.bpm) piste.extrait.bpm = p.bpm
+        }
         return piste
       })
     const links: Sortie['links'] = { bandcamp: d.bandcamp ?? MARQUE.bandcamp }
@@ -62,13 +91,15 @@ export function adapterSorties(docs: REQUETE_SORTIES_RESULT): Sortie[] {
       genresVerified: false,
       credits,
       links,
-      bandcampArtId: 0,
-      bpmProvisoire: BPM_PROVISOIRE,
       tracks,
       sources: (d.sources ?? []).filter((s): s is string => Boolean(s)),
       verified: true,
     }
     if (d.artisteSlug) sortie.artistSlug = d.artisteSlug
+    const pochette = image(d.pochetteOptimisee, d.pochette)
+    if (pochette) sortie.pochette = pochette
+    const c = couleurs(d.couleurs)
+    if (c) sortie.couleurs = c
     const t = texte(d.texte)
     if (t) sortie.text = t
     if (d.aVerifier?.length) sortie.aVerifier = d.aVerifier.filter((a): a is string => Boolean(a))
@@ -91,6 +122,8 @@ export function adapterArtistes(docs: REQUETE_ARTISTES_RESULT): Artiste[] {
     }
     if (d.ville) a.city = d.ville
     if (d.role) a.role = d.role
+    const portrait = image(d.portraitOptimise, d.portrait)
+    if (portrait) a.portrait = portrait
     const p = texte(d.presentation)
     if (p) a.presentation = p
     artistes.push(a)
@@ -121,6 +154,8 @@ export function adapterSoirees(docs: REQUETE_SOIREES_RESULT): Soiree[] {
     // Crédit du flyer : celui du label, ou « auteur non identifié » quand la case est cochée (bloc 7.2b).
     if (d.flyer?.credit) s.flyerCredit = d.flyer.credit
     else if (d.flyer?.auteurNonIdentifie) s.flyerCredit = 'auteur non identifié'
+    const flyer = image(d.flyerOptimise, d.flyer)
+    if (flyer) s.flyer = flyer
     soirees.push(s)
   }
   return soirees
