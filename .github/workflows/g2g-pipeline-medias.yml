@@ -89,12 +89,14 @@ jobs:
         if: steps.travail.outputs.aFaire != '0'
         with:
           # Le pipeline n'a besoin que des scripts et du manifeste npm : inutile de tirer les
-          # vidéos et les images du portfolio.
+          # vidéos et les images du portfolio. `.npmrc` est indispensable (legacy-peer-deps),
+          # sans lui `npm ci` échoue sur les pairs de react-simple-maps.
           sparse-checkout: |
             scripts
             package.json
             package-lock.json
             tsconfig.json
+            .npmrc
           sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v4
