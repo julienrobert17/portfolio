@@ -1088,9 +1088,21 @@
 
 /* ═════════ Le lecteur (Phase 3) ═════════ */
 
-/* La racine porte data-js une fois montée par React (layout/racine.tsx) : les éléments .g2g-js apparaissent. La barre statique vit dans un noscript. */
+/*
+ * Les commandes du lecteur (.g2g-js) ne fonctionnent qu'une fois React monté (la racine porte alors
+ * data-js, layout/racine.tsx) : avant, elles sont invisibles mais gardent leur place, pour que la
+ * géométrie du rendu serveur soit celle du rendu hydraté (aucun décalage de mise en page, CLS 0).
+ * Sans script du tout (media query native `scripting: none`), elles sont retirées et la barre
+ * statique du noscript prend le relais ; la navigation reprend sa place dans le skin.
+ */
 .g2g:not([data-js]) .g2g-js {
-  display: none !important;
+  visibility: hidden;
+}
+
+@media (scripting: none) {
+  .g2g-js {
+    display: none !important;
+  }
 }
 
 /* Skin desktop : 132 px à 1440 (bords 6, marges 9, rangée 1 de 32, écart 4, rangée 2 de 81), rien de coupé. */
@@ -1583,7 +1595,7 @@
   font-weight: 700;
 }
 
-.g2g[data-js] .g2g-page {
+.g2g-page {
   padding-top: var(--s2);
 }
 
@@ -1621,12 +1633,12 @@
     height: 32px;
   }
 
-  .g2g[data-js] .g2g-lecteur__nav {
+  .g2g-lecteur__nav {
     display: none;
   }
 
   /* Le nom reste dans le nom accessible du lien : masqué visuellement, pas retiré. */
-  .g2g[data-js] .g2g-lecteur__nom > span:not(.g2g-cache) {
+  .g2g-lecteur__nom > span:not(.g2g-cache) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1635,16 +1647,8 @@
     white-space: nowrap;
   }
 
-  .g2g:not([data-js]) .g2g-lecteur__r1 {
-    flex-wrap: wrap;
-    padding: 8px 0;
-  }
-
-  .g2g:not([data-js]) .g2g-lecteur__nav {
-    width: 100%;
-  }
-
-  .g2g[data-js] .g2g-lecteur__menu-bouton {
+  /* Même spécificité que la règle desktop `.g2g-lecteur .g2g-lecteur__menu-bouton` qui le cache. */
+  .g2g-lecteur .g2g-lecteur__menu-bouton {
     display: inline-flex;
     margin-left: auto;
     width: 44px;
@@ -1657,7 +1661,7 @@
     display: none !important;
   }
 
-  .g2g[data-js] .g2g-barre {
+  .g2g-barre {
     position: fixed;
     left: 0;
     right: 0;
@@ -1681,11 +1685,11 @@
     align-items: center;
   }
 
-  .g2g[data-js] .g2g-page {
+  .g2g-page {
     padding-bottom: calc(var(--s5) + 80px);
   }
 
-  .g2g[data-js] .g2g-feuille:not([hidden]) {
+  .g2g-feuille:not([hidden]) {
     position: fixed;
     left: 0;
     right: 0;
@@ -1792,7 +1796,7 @@
     width: 100%;
   }
 
-  .g2g[data-js] .g2g-menu:not([hidden]) {
+  .g2g-menu:not([hidden]) {
     position: fixed;
     inset: 56px 0 0;
     z-index: var(--z-modal);
@@ -2033,10 +2037,26 @@ html.g2g-document {
   animation: g2g-collage 220ms ease-out both;
 }
 
-.g2g:not([data-js]) [data-collage] > .g2g-cassette,
-.g2g:not([data-js]) [data-collage] > .g2g-flyer__support,
-.g2g:not([data-js]) [data-collage].g2g-affiche-lien {
-  opacity: 1;
+/* Sans script, rien ne viendrait coller les pièces : elles sont visibles d'emblée. */
+@media (scripting: none) {
+  [data-collage] > .g2g-cassette,
+  [data-collage] > .g2g-flyer__support,
+  [data-collage].g2g-affiche-lien {
+    opacity: 1;
+  }
+}
+
+/* Sans script, sous 768 px : la navigation reprend sa place dans le skin, sur sa propre ligne. */
+@media (max-width: 767px) and (scripting: none) {
+  .g2g-lecteur__r1 {
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+
+  .g2g-lecteur__nav {
+    display: flex;
+    width: 100%;
+  }
 }
 
 .g2g-cassette-dos {

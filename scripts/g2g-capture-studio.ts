@@ -45,9 +45,11 @@ async function main(): Promise<void> {
   await charge
   await new Promise((r) => setTimeout(r, 7000))
   if (CLIC) {
-    const trouve = await nav.evaluer<boolean>(s, `(() => { const b = Array.from(document.querySelectorAll('button, [role="tab"], a')).find((e) => (e.textContent || '').trim() === ${JSON.stringify(CLIC)}); if (!b) return false; b.click(); return true })()`)
-    if (!trouve) throw new Error(`aucun bouton « ${CLIC} »`)
-    await new Promise((r) => setTimeout(r, 2500))
+    // Vrai clic souris au centre de l'élément : les onglets de Sanity UI réagissent au pointeur, pas à `element.click()`.
+    const rect = await nav.evaluer<{ x: number; y: number } | null>(s, `(() => { const b = Array.from(document.querySelectorAll('button, [role="tab"], a')).find((e) => (e.textContent || '').trim() === ${JSON.stringify(CLIC)}); if (!b) return null; b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })()`)
+    if (!rect) throw new Error(`aucun bouton « ${CLIC} »`)
+    for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'] as const) await nav.envoyer('Input.dispatchMouseEvent', { type, x: rect.x, y: rect.y, button: 'left', clickCount: 1 }, s)
+    await new Promise((r) => setTimeout(r, 3000))
   }
   const { data } = await nav.envoyer<{ data: string }>('Page.captureScreenshot', { format: 'png' }, s)
   await nav.envoyer('Target.closeTarget', { targetId })
