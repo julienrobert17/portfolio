@@ -43,10 +43,13 @@ Le label dépose ses fichiers d'origine dans le Studio ; le site n'a plus aucun 
 - **Planches** `phase-7.4-1440/` (18) et `phase-7.4-390/` (19), prises sur la preview, comparées pixel à pixel à celles de 7.3 (`scripts/g2g-diff-planches.ts`, annexe `phase-7-4-diff-planches.md`) : 11 pages sur 18 et 10 sur 19 strictement identiques ou sous 0,01 % de pixels mobiles ; les états du lecteur en lecture diffèrent de 0,2 à 0,5 % (spectre et compteur, qui bougent) ; l'accueil (3,6 à 6,5 %) et la page soirées (44 à 50 %) changent **par le contenu, pas par les médias** : la soirée du 11 octobre 2026 était « prochaine soirée » le 11 octobre et est passée en archive le 12 (bloc « aucune date annoncée », grille des flyers décalée d'une case), et la bande défilante du lecteur n'annonce plus de date. Aucune différence qui viendrait des images servies par le CDN : les flyers et pochettes sont identiques au pixel près là où la mise en page est la même (page sortie GTGR05 : 0,01 %). Les planches ont été prises avant le correctif CLS, qui ne change rien au rendu hydraté.
 - **Vidéos** de 30 s avec le son, extraits lus depuis le CDN : `phase-7.4-1440-2026-10-12.mp4`, `phase-7.4-390-2026-10-12.mp4`.
 
-## 4. Ce qui reste à faire par toi (bloqué par les permissions)
+## 4. Clôture : g2g-verif contre la production (bloc 7.4b, point 1)
 
-1. **Fusionner la PR #10** : la fusion a été refusée par le classifieur de permissions (« merge without review »), alors que la PR #9 était passée. Après fusion et déploiement, lancer la clôture requise par le brief : `npx tsx scripts/g2g-verif.ts --url https://portfolio-eight-sable-66.vercel.app` (154 contrôles attendus, dont l'exécution réelle du lecteur avec les extraits du CDN) et joindre le résultat à ce compte-rendu ; je le ferai dès que tu me le dis.
-2. **Créer le jeton d'écriture** du pipeline, refusé lui aussi par le classifieur (« secret-store writes ») : dans `studio/`, `npx sanity tokens create "Pipeline médias (GitHub Action)" --role editor`, puis le poser dans les secrets du dépôt sous `SANITY_PIPELINE_TOKEN` (et dans `.env.local` si tu veux lancer le pipeline sans la session CLI). Tant qu'il manque, l'Action s'arrête avec un avertissement toutes les 15 minutes et le pipeline ne tourne qu'en local (session CLI).
+PR #10 fusionnée (`e370161`). Le premier déploiement de production a échoué **sans build** (`git_info_fail` : l'intégration GitHub de Vercel n'a pas pu lire le dépôt, rien à voir avec le code) ; le même commit relancé par l'API Vercel (`portfolio-lp6o7y110`) est passé. La production sert bien la Phase 7.4 : `@media (scripting: none)` dans le CSS servi, 50 références à `cdn.sanity.io` sur la page GTGR05.
+
+**`npx tsx scripts/g2g-verif.ts --url https://portfolio-eight-sable-66.vercel.app` : 154/154** — résultat complet en annexe `phase-7-4-g2g-verif-production.md`. Les quatre chemins d'arrivée, aux deux formats, avec les extraits servis par le CDN : AudioContext `absent → running` au premier vrai clic, position qui avance, 32 colonnes du spectre qui changent, aucune erreur de console sur aucune page.
+
+Le jeton d'écriture du pipeline (`SANITY_PIPELINE_TOKEN`), que le classifieur de permissions m'avait empêché de créer, a été posé dans les secrets du dépôt : l'Action tourne (bloc 7.4b).
 
 ## 5. Arbitrages
 

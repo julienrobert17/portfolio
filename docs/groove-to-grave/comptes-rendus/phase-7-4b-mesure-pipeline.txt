@@ -1,0 +1,15 @@
+Dépôt du fichier d'origine sur gtgr01-b1 (https://portfolio-eight-sable-66.vercel.app/experience/groove-to-grave/sorties/gtgr01)
+t0 2026-10-12T11:12:13.035Z : fichier déposé et document publié
+  webhook médias appelé après 1.8 s (réponse 404)
+  relais local : repository_dispatch envoyé après 5.1 s
+  Action 38241147781 : lancée à 2026-10-12T11:12:17Z, terminée à 2026-10-12T11:13:54Z (success), soit 97.0 s de bout en bout
+  nouvel extrait servi : https://cdn.sanity.io/files/da2plce8/production/b347910edc12e1df7c248589e0ff0c70859c77e7.mp3
+
+| Étape | Délai depuis le dépôt |
+|---|---|
+| Webhook Sanity reçu par le site | 1.8 s |
+| repository_dispatch envoyé | 5.1 s |
+| Action terminée | 101.0 s |
+| **Extrait visible en production** | **104.6 s** (2 requêtes) |
+
+Piste remise en état (champs vidés, fichiers supprimés).

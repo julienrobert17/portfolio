@@ -90,7 +90,8 @@ async function main(): Promise<void> {
   // 2. Webhook Sanity → route du site.
   let tWebhook = 0
   let codeWebhook = ''
-  while (Date.now() - t0 < 120000) {
+  const limiteWebhook = Date.now() + 150000
+  while (Date.now() < limiteWebhook) {
     const tentatives = await jsonSanity<{ createdAt?: string; resultCode?: number; failureCount?: number }[]>(`hooks/projects/${PROJET}/${HOOK_MEDIAS}/attempts`)
     if (tentatives.length > tentativesAvant) {
       const t = tentatives[0]
@@ -122,7 +123,8 @@ async function main(): Promise<void> {
 
   // 4. Action GitHub.
   let run: { id: number; created_at: string; updated_at: string; status: string; conclusion: string | null } | undefined
-  while (Date.now() - t0 < 900000) {
+  const limiteAction = Date.now() + 900000
+  while (Date.now() < limiteAction) {
     const d = (await (await fetch(`https://api.github.com/repos/${DEPOT}/actions/workflows/g2g-pipeline-medias.yml/runs?per_page=3`, { headers: { Authorization: `Bearer ${github}` } })).json()) as {
       workflow_runs: { id: number; created_at: string; updated_at: string; status: string; conclusion: string | null }[]
     }
@@ -138,7 +140,8 @@ async function main(): Promise<void> {
   // 5. La production sert le nouvel extrait.
   let tSite = 0
   let requetes = 0
-  while (Date.now() - t0 < 900000) {
+  const limiteSite = Date.now() + 300000
+  while (Date.now() < limiteSite) {
     requetes++
     const maintenant = await extraitsDeLaPage(page)
     const nouveau = [...maintenant].find((u) => !avant.has(u))
