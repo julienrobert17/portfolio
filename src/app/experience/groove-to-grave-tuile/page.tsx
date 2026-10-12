@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/polices'
+import { archivo, marker } from '@/components/experience/groove-to-grave/polices'
 import { couleurs as tokens, variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import { CassetteSvg } from '@/components/experience/groove-to-grave/ui/cassette-svg'
 import { couleursCassette } from '@/components/experience/groove-to-grave/ui/cassette'
@@ -24,7 +24,7 @@ export default async function TuilePage() {
   const { sorties } = await chargerContenu()
   const c = couleursCassette(getSortie(sorties, 'gtgr05')?.couleurs)
   return (
-    <div className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} lang="fr" style={{ ...variablesCss(), minHeight: 0, overflow: 'hidden' }}>
+    <div className={`g2g ${archivo.variable} ${marker.variable}`} lang="fr" style={{ ...variablesCss(), minHeight: 0, overflow: 'hidden' }}>
       <div
         id="tuile"
         style={{ position: 'relative', width: 1000, height: 1000, overflow: 'hidden', backgroundImage: 'url(/experience/groove-to-grave/mur-1920.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }}

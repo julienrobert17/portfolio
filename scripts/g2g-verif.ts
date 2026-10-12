@@ -284,6 +284,15 @@ async function verifierLecteur(nav: Devtools, f: (typeof FORMATS)[number]): Prom
   await attendre(700)
   const retourHaut = await nav.evaluer<{ compteurs: boolean; bande: boolean }>(s, `({ compteurs: !!document.querySelector('.g2g-compteurs--fin'), bande: (document.querySelector('.g2g-barre .g2g-bande') || document.querySelector('.g2g-bande')).textContent.includes('FIN DE BANDE') })`)
   noter(f.largeur, '/artistes', 'FIN DE BANDE dans l’afficheur au pied de page, compteurs de retour en haut', (mobile ? fin.bande : fin.compteurs && fin.bande) && !retourHaut.compteurs && !retourHaut.bande)
+  // La police de l'afficheur ne doit pas peser avant l'image LCP : elle n'est demandée qu'une fois
+  // la racine montée (famille appliquée sous [data-js] seulement, bloc 7.4c).
+  const police = await nav.evaluer<{ demandee: boolean; debut: number; lcp: number; dcl: number }>(s, `(() => {
+    const r = performance.getEntriesByType('resource').find((e) => /vt323/i.test(e.name));
+    const l = performance.getEntriesByType('largest-contentful-paint').pop();
+    const n = performance.getEntriesByType('navigation')[0];
+    return { demandee: !!r, debut: r ? r.startTime : -1, lcp: l ? l.startTime : -1, dcl: n ? n.domContentLoadedEventEnd : -1 };
+  })()`)
+  noter(f.largeur, '/sorties', 'police de l’afficheur demandée après le contenu principal, jamais avant', !police.demandee || (police.debut > police.lcp && police.debut > police.dcl), `demandée à ${police.debut.toFixed(0)} ms, LCP ${police.lcp.toFixed(0)} ms, DOM prêt ${police.dcl.toFixed(0)} ms`)
   const erreurs = erreursDe(s)
   noter(f.largeur, '/sorties', 'aucune erreur de console pendant le parcours du lecteur', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
   await arreter()
