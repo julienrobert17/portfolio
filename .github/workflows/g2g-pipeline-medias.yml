@@ -5,10 +5,12 @@
 # publication déclenche ensuite la revalidation du site comme pour toute publication.
 #
 # Déclenchement : par `repository_dispatch` (type `g2g-medias`), envoyé par la route
-# `/api/g2g/medias` dès qu'un fichier d'origine change dans le Studio (bloc 7.4b) ; toutes les 15
-# minutes en filet, si le relais est coupé (le script ne fait rien quand aucune empreinte n'a
-# changé) ; à la demande. Jeton d'écriture Sanity (rôle editor) dans le secret
-# SANITY_PIPELINE_TOKEN ; sans lui, le job s'arrête en avertissant, sans échouer.
+# `/api/g2g/medias` dès qu'un document est publié (bloc 7.4b) ; toutes les 15 minutes en filet, si
+# le relais est coupé ; à la demande. Comme le relais part à chaque publication, la première étape
+# demande à Sanity, en une requête et sans rien installer, s'il y a vraiment un fichier à traiter,
+# et tout le reste est sauté sinon : une exécution à vide coûte quelques secondes (bloc 7.4c).
+# Jeton d'écriture Sanity (rôle editor) dans le secret SANITY_PIPELINE_TOKEN ; sans lui, le job
+# s'arrête en avertissant, sans échouer.
 name: Pipeline médias (Groove To Grave)
 
 on:
@@ -24,6 +26,12 @@ permissions:
 concurrency:
   group: g2g-pipeline-medias
   cancel-in-progress: false
+
+env:
+  # Binaire statique mis en cache par l'Action : le runner Ubuntu n'a plus ffmpeg, et
+  # `apt-get install` coûtait 30 s à chaque exécution (bloc 7.4c).
+  FFMPEG_VERSION: n8.1-latest
+  FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz
 
 jobs:
   medias:
@@ -41,34 +49,113 @@ jobs:
           else
             echo "present=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Une requête GROQ, sans dépôt ni dépendances : compte les documents dont le fichier
+      # d'origine n'a pas l'empreinte du dernier traitement (même règle que le script), plus les
+      # extraits refusés dont la sortie est désormais parue. Toute erreur de lecture compte pour 1,
+      # pour ne jamais sauter le pipeline sur un incident réseau.
+      - name: Quelque chose à traiter ?
+        id: travail
+        if: steps.jeton.outputs.present == 'true'
+        env:
+          SANITY_PIPELINE_TOKEN: ${{ secrets.SANITY_PIPELINE_TOKEN }}
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+        run: |
+          n=$(python3 - <<'PY'
+          import datetime, json, os, sys, urllib.parse, urllib.request
+          requete = (
+              '{"images": count(*[_type in ["sortie","soiree","artiste"]'
+              ' && defined(coalesce(pochette.asset._ref, flyer.asset._ref, portrait.asset._ref))'
+              ' && coalesce(traitement.empreinte, "") != "image:" + coalesce(pochette.asset._ref, flyer.asset._ref, portrait.asset._ref)]),'
+              ' "audio": count(*[_type == "sortie"].pistes[defined(extraitBrut.asset)'
+              ' && (coalesce(traitement.empreinte, "") != "audio:" + extraitBrut.asset._ref'
+              ' || (traitement.etat == "refuse" && ^.dateSortie <= $aujourdhui))])}'
+          )
+          params = urllib.parse.urlencode({"query": requete, "$aujourdhui": json.dumps(datetime.date.today().isoformat())})
+          url = "https://%s.api.sanity.io/v2025-01-01/data/query/production?%s" % (os.environ["SANITY_PROJECT_ID"], params)
+          try:
+              req = urllib.request.Request(url, headers={"Authorization": "Bearer " + os.environ["SANITY_PIPELINE_TOKEN"]})
+              r = json.load(urllib.request.urlopen(req, timeout=20))["result"]
+              print(int(r["images"]) + int(r["audio"]))
+          except Exception as e:
+              print("1")
+              print("lecture impossible, pipeline lancé quand même : %s" % e, file=sys.stderr)
+          PY
+          )
+          echo "fichiers à traiter : $n"
+          echo "aFaire=$n" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
-        if: steps.jeton.outputs.present == 'true'
+        if: steps.travail.outputs.aFaire != '0'
+        with:
+          # Le pipeline n'a besoin que des scripts et du manifeste npm : inutile de tirer les
+          # vidéos et les images du portfolio. `.npmrc` est indispensable (legacy-peer-deps),
+          # sans lui `npm ci` échoue sur les pairs de react-simple-maps.
+          sparse-checkout: |
+            scripts
+            package.json
+            package-lock.json
+            tsconfig.json
+            .npmrc
+          sparse-checkout-cone-mode: false
+
       - uses: actions/setup-node@v4
-        if: steps.jeton.outputs.present == 'true'
+        if: steps.travail.outputs.aFaire != '0'
         with:
           node-version: 22
           cache: npm
-      - name: Dépendances
-        if: steps.jeton.outputs.present == 'true'
-        run: npm ci --ignore-scripts
-      # Le runner Ubuntu n'a plus ffmpeg préinstallé : on l'installe et on vérifie sans tube
-      # (un tube masque le code de sortie, ce qui avait fait passer l'étape à tort).
+
+      - name: ffmpeg en cache
+        id: cache-ffmpeg
+        if: steps.travail.outputs.aFaire != '0'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/g2g-ffmpeg
+          key: g2g-ffmpeg-${{ env.FFMPEG_VERSION }}
+
+      # Trois cas : binaire déjà dans le cache (quelques secondes), sinon téléchargement du
+      # binaire statique, sinon apt. Les assets de la version « latest » sont réécrits
+      # régulièrement et répondent 404 pendant ce temps : d'où les reprises et le repli.
       - name: ffmpeg
-        if: steps.jeton.outputs.present == 'true'
+        if: steps.travail.outputs.aFaire != '0'
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends ffmpeg
-          ffmpeg -version > /dev/null && ffprobe -version > /dev/null
+          if [ -x "$HOME/.cache/g2g-ffmpeg/ffmpeg" ] && [ -x "$HOME/.cache/g2g-ffmpeg/ffprobe" ]; then
+            echo "$HOME/.cache/g2g-ffmpeg" >> "$GITHUB_PATH"
+            echo "ffmpeg repris du cache"
+          elif curl -fsSL --retry 4 --retry-all-errors --retry-delay 3 --max-time 240 -o /tmp/ffmpeg.tar.xz "$FFMPEG_URL"; then
+            mkdir -p "$HOME/.cache/g2g-ffmpeg"
+            tar -xJf /tmp/ffmpeg.tar.xz -C /tmp
+            cp /tmp/ffmpeg-*/bin/ffmpeg /tmp/ffmpeg-*/bin/ffprobe "$HOME/.cache/g2g-ffmpeg/"
+            chmod +x "$HOME/.cache/g2g-ffmpeg/ffmpeg" "$HOME/.cache/g2g-ffmpeg/ffprobe"
+            echo "$HOME/.cache/g2g-ffmpeg" >> "$GITHUB_PATH"
+            echo "ffmpeg téléchargé puis mis en cache"
+          else
+            echo "::warning::Binaire statique indisponible : repli sur apt-get."
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          fi
+
+      - name: Vérifier ffmpeg
+        if: steps.travail.outputs.aFaire != '0'
+        run: |
+          ffmpeg -version > /dev/null
+          ffprobe -version > /dev/null
           echo "ffmpeg $(ffmpeg -version | head -1 | cut -d' ' -f3)"
+
+      - name: Dépendances
+        if: steps.travail.outputs.aFaire != '0'
+        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+
       - name: Pipeline
-        if: steps.jeton.outputs.present == 'true'
+        if: steps.travail.outputs.aFaire != '0'
         env:
           SANITY_PIPELINE_TOKEN: ${{ secrets.SANITY_PIPELINE_TOKEN }}
           SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
           SANITY_DATASET: production
         run: npx tsx scripts/g2g-pipeline-sanity.ts --rapport rapport-pipeline.md
+
       - uses: actions/upload-artifact@v4
-        if: steps.jeton.outputs.present == 'true'
+        if: steps.travail.outputs.aFaire != '0'
         with:
           name: rapport-pipeline-${{ github.run_id }}
           path: rapport-pipeline.md

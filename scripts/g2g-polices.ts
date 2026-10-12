@@ -5,13 +5,14 @@
  * dépôt, `~/.cache/g2g-polices-venv`, fonttools + brotli), restreint Archivo aux plages d'axes
  * réellement utilisées (wdth 75 à 100, wght 400 à 900, `fontTools.varLib.instancer`) et
  * sous-ensemble les trois polices à ce jeu de caractères, chiffres tabulaires et crénage conservés.
- * Écrit les woff2 dans src/components/experience/groove-to-grave/polices/ (servis par
+ * Écrit les woff2 dans src/components/experience/groove-to-grave/polices/, et VT323 aussi dans
+ * public/experience/groove-to-grave/polices/ (servis par
  * next/font/local) et polices/jeu.txt (le jeu de caractères, pour relecture).
  *
  *   npx tsx scripts/g2g-polices.ts
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { CACHE, RACINE, dossier } from './g2g-lib'
@@ -19,6 +20,8 @@ import { CACHE, RACINE, dossier } from './g2g-lib'
 const PYTHON = join(homedir(), '.cache/g2g-polices-venv/bin/python')
 const SOURCES = dossier(join(CACHE, 'polices'))
 const SORTIE = dossier(join(RACINE, 'src/components/experience/groove-to-grave/polices'))
+/** VT323 est aussi servie depuis public/ : déclarée à la main dans g2g.css, hors next/font (bloc 7.4c). */
+const SORTIE_PUBLIQUE = dossier(join(RACINE, 'public/experience/groove-to-grave/polices'))
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
 
 /** Les trois familles, leur requête Google Fonts et leurs plages d'axes conservées (Archivo seulement). */
@@ -103,6 +106,9 @@ async function main(): Promise<void> {
     const resultat = execFileSync(PYTHON, ['-I', script, source, cible, JSON.stringify(p.axes), join(SORTIE, 'jeu.txt')], { encoding: 'utf8' }).trim()
     const avant = statSync(source).size
     const apres = statSync(cible).size
+    // VT323 n'est pas servie par next/font (en-tête de préchargement imposé) : sa copie publique
+    // est celle que charge le @font-face de g2g.css (bloc 7.4c).
+    if (p.nom === 'vt323') copyFileSync(cible, join(SORTIE_PUBLIQUE, 'vt323.woff2'))
     process.stdout.write(`${p.nom} : ${Math.round(avant / 1024)} kB → ${Math.round(apres / 1024)} kB · ${resultat}\n`)
   }
 }

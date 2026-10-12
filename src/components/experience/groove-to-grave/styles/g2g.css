@@ -123,13 +123,38 @@
   line-height: 0.92;
 }
 
+/*
+ * Police à segments de l'afficheur, déclarée à la main plutôt que par next/font : celui-ci envoie
+ * un en-tête `Link: rel=preload` pour toute police d'une route, même en `preload: false`, ce qui
+ * la plaçait avant l'image LCP. Ici, le navigateur ne la demande que lorsqu'un texte l'utilise,
+ * donc sous `[data-js]`, après l'hydratation. `block` : l'afficheur apparaît directement dans la
+ * bonne police au lieu de passer sous les yeux par la monospace du système (bloc 7.4c).
+ */
+@font-face {
+  font-family: 'G2G LCD';
+  src: url('/experience/groove-to-grave/polices/vt323.woff2') format('woff2');
+  font-weight: 400;
+  font-display: block;
+}
+
 .g2g-marqueur {
   font-family: var(--g2g-font-marker), 'Permanent Marker', cursive;
   font-weight: 400;
 }
 
+/*
+ * Afficheur du lecteur : la police à segments ne sert qu'à lui, et il n'existe pas avant que
+ * React ait monté la racine. La famille n'est donc appliquée que sous `[data-js]` : le
+ * navigateur ne demande VT323 qu'après l'hydratation, jamais avant le LCP (bloc 7.4c). La
+ * monospace du système tient la place entre-temps, à la même taille, sur un lecteur encore
+ * invisible.
+ */
 .g2g-lcd-texte {
-  font-family: var(--g2g-font-lcd), VT323, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.g2g[data-js] .g2g-lcd-texte {
+  font-family: 'G2G LCD', VT323, ui-monospace, monospace;
 }
 
 .g2g-meta {
@@ -1313,6 +1338,30 @@
   min-width: 0;
 }
 
+/* Extrait indisponible : l'afficheur le dit en rouge d'alerte, avec le lien de repli (bloc 7.5a). */
+.g2g-bande--echec {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--g2g-lcdPeak);
+}
+
+/* Le message rétrécit avant le lien : sur la barre mobile, c'est le lien qu'il faut garder entier. */
+.g2g-bande--echec > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.g2g-bande--echec a {
+  color: var(--g2g-lcdLit);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex: none;
+}
+
 .g2g-bande {
   font-size: 16px;
   line-height: 1;
@@ -1520,10 +1569,14 @@
   border-radius: 2px;
   background: transparent;
   color: var(--g2g-lcdDim);
-  font-family: var(--g2g-font-lcd), VT323, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
+}
+
+.g2g[data-js] .g2g-presets button {
+  font-family: 'G2G LCD', VT323, ui-monospace, monospace;
 }
 
 .g2g-presets button:hover {

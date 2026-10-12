@@ -23,9 +23,16 @@ export interface EvenementsMoteur {
   termine(): void
   interrompu(): void
   pret(): void
+  /** L'extrait n'a pas pu être lu : erreur de l'élément, lecture refusée, ou rien au bout de DELAI_ECHEC. */
+  echec(raison: string): void
 }
 
 const CLE_REGLAGES = 'g2g-lecteur'
+/**
+ * Au-delà de ce délai sans une seule seconde jouée après le geste, l'extrait est déclaré
+ * indisponible : le lecteur le dit au lieu de souffler dans le vide (bloc 7.5a).
+ */
+const DELAI_ECHEC = 3000
 const PLEURAGE_DUREE = 0.5
 export const VOLUME_DEFAUT = 0.85
 /**
@@ -51,6 +58,7 @@ export class Moteur {
   private pleurageDepart = 0
   private ecouteurs: EvenementsMoteur | null = null
   private enLecture = false
+  private veille: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     this.audio = new Audio()
@@ -58,7 +66,19 @@ export class Moteur {
     this.audio.crossOrigin = 'anonymous'
     this.audio.preservesPitch = false
     this.reglages = this.lireReglages()
-    this.audio.addEventListener('timeupdate', () => this.ecouteurs?.position(this.audio.currentTime))
+    this.audio.addEventListener('timeupdate', () => {
+      // Une seconde jouée : l'extrait est bien arrivé, la veille d'échec n'a plus lieu d'être.
+      if (this.audio.currentTime > 0.05) this.annulerVeille()
+      this.ecouteurs?.position(this.audio.currentTime)
+    })
+    this.audio.addEventListener('playing', () => {
+      if (this.audio.currentTime > 0.05) this.annulerVeille()
+    })
+    this.audio.addEventListener('error', () => {
+      const e = this.audio.error
+      const noms = ['', 'lecture interrompue', 'réseau', 'décodage', 'format ou adresse refusés']
+      this.echouer(e ? `${noms[e.code] ?? 'erreur'}${e.message ? ` (${e.message})` : ''}` : 'erreur de l’élément audio')
+    })
     this.audio.addEventListener('ended', () => {
       this.enLecture = false
       this.ecouteurs?.termine()
@@ -180,11 +200,31 @@ export class Moteur {
     this.pleurageDepart = ctx.currentTime + 0.1
     this.audio.playbackRate = 0.72
     this.gainSouffle?.gain.setTargetAtTime(dbVersGain(-34), ctx.currentTime, 0.1)
+    this.annulerVeille()
+    this.veille = setTimeout(() => {
+      if (this.enLecture && this.audio.currentTime <= 0.05) this.echouer(`rien n’est arrivé en ${DELAI_ECHEC / 1000} s`)
+    }, DELAI_ECHEC)
     const promesse = this.audio.play()
-    if (promesse) promesse.catch(() => {
-      this.enLecture = false
-      this.ecouteurs?.interrompu()
-    })
+    if (promesse) promesse.catch((e: unknown) => this.echouer(`lecture refusée (${e instanceof Error ? e.name : 'inconnu'})`))
+  }
+
+  private annulerVeille(): void {
+    if (this.veille) clearTimeout(this.veille)
+    this.veille = null
+  }
+
+  /** Coupe tout (lecture, souffle) et prévient le lecteur, qui affiche l'échec et propose Bandcamp. */
+  private echouer(raison: string): void {
+    this.annulerVeille()
+    if (!this.enLecture && !this.audio.error) return
+    this.enLecture = false
+    try {
+      this.audio.pause()
+    } catch {
+      // L'élément peut déjà être dans un état impossible : l'échec est signalé quand même.
+    }
+    if (this.ctx) this.gainSouffle?.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05)
+    this.ecouteurs?.echec(raison)
   }
 
   /** Pleurage de démarrage de bande : à appeler à chaque frame tant que la vitesse n'est pas revenue à 1. Vrai tant que ça pleure. */
@@ -198,6 +238,7 @@ export class Moteur {
 
   pause(): void {
     if (!this.ctx) return
+    this.annulerVeille()
     this.enLecture = false
     this.sons?.clac()
     this.audio.pause()
@@ -206,6 +247,7 @@ export class Moteur {
 
   stop(): void {
     if (!this.ctx) return
+    this.annulerVeille()
     this.enLecture = false
     this.sons?.clac()
     this.audio.pause()

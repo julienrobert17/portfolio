@@ -14,7 +14,7 @@ import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { MEME_ORIGINE } from '@/components/experience/groove-to-grave/lib/medias'
 import { BASE, URL_SITE } from '@/components/experience/groove-to-grave/lib/routes'
 import { chargerContenu, soireesAVenir } from '@/components/experience/groove-to-grave/sanity/contenu'
-import { archivo, lcd, marker } from '@/components/experience/groove-to-grave/polices'
+import { archivo, marker } from '@/components/experience/groove-to-grave/polices'
 import { variablesCss } from '@/components/experience/groove-to-grave/tokens'
 import Collage from '@/components/experience/groove-to-grave/ui/collage'
 import '@/components/experience/groove-to-grave/styles/g2g.css'
@@ -59,7 +59,7 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
   const brouillon = (await draftMode()).isEnabled
   const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? prochaine.venue).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
-    <Racine className={`g2g ${archivo.variable} ${marker.variable} ${lcd.variable}`} style={variablesCss()}>
+    <Racine className={`g2g ${archivo.variable} ${marker.variable}`} style={variablesCss()}>
       {/* Images et extraits viennent du CDN Sanity (Phase 7.4) : connexion ouverte d'avance, en clair pour les images, en CORS pour l'audio analysé. Inutile quand ils passent par notre origine (bloc 7.4b). */}
       {MEME_ORIGINE ? null : (
         <>

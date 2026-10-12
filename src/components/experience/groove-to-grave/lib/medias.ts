@@ -1,11 +1,16 @@
 /**
- * Origine des fichiers médias (bloc 7.4b). Par défaut le site sert les images et les extraits
- * directement depuis le CDN Sanity. Avec `G2G_MEDIAS_MEME_ORIGINE=1`, les mêmes fichiers passent
- * par une réécriture Next (`/experience/groove-to-grave/media/<fichier>` → CDN, voir
- * `next.config.ts`) : une seule origine pour le document et ses médias, donc pas de connexion
- * supplémentaire à ouvrir avant l'image LCP, et plus besoin de déclarer d'origine dans les CORS
- * Sanity pour l'audio analysé. Variante mesurée au bloc 7.4b, gardée paramétrable.
+ * Origine des fichiers médias. **Par défaut, le CDN Sanity sert directement les images et les
+ * extraits** : c'est la seule livraison validée sur iPhone (essais F, G et K du bloc 7.5b, sur
+ * appareil réel). `G2G_MEDIAS_MEME_ORIGINE=1` fait passer les mêmes fichiers par une réécriture
+ * Next (`/experience/groove-to-grave/media/<fichier>`, voir `next.config.ts`) : une seule origine
+ * pour le document et ses médias, et plus de CORS à déclarer pour l'audio analysé. Cette option a
+ * été le défaut pendant le bloc 7.5a et a été retirée : le cache de périphérie de Vercel mémorise
+ * la **première** réponse d'une adresse, or la première requête d'iOS sur un média est une requête
+ * de plage `bytes=0-1` ; l'adresse restait figée sur deux octets et le lecteur calait sans erreur.
+ * `next.config.ts` interdit désormais la mise en cache de ce chemin, ce qui ferme le piège, mais
+ * l'option reste à vérifier sur appareil avant d'être reprise (le jour du domaine du label).
  */
+
 const PROJET = process.env.SANITY_PROJECT_ID ?? 'da2plce8'
 const DATASET = process.env.SANITY_DATASET ?? 'production'
 
