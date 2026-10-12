@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Groove To Grave — diagnostic 2</title>
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; padding: 16px 14px 40px; font: 16px/1.5 -apple-system, system-ui, sans-serif; background: #f4efe2; color: #111; }
+      h1 { font-size: 19px; margin: 0 0 4px; }
+      p.intro, .quoi { color: #444; font-size: 14.5px; }
+      p.intro { margin: 0 0 16px; }
+      section { border: 2px solid #111; border-radius: 4px; padding: 12px; margin-bottom: 12px; background: #fff; }
+      h2 { font-size: 16px; margin: 0 0 4px; }
+      a.bouton, button { display: block; text-align: center; text-decoration: none; font: inherit; font-weight: 700; padding: 13px 16px; border: 2px solid #111; border-radius: 4px; background: #f14442; color: #fff; min-height: 50px; width: 100%; box-sizing: border-box; -webkit-appearance: none; margin-top: 8px; }
+      a.bouton.secondaire, button.secondaire { background: #111; }
+      pre { white-space: pre-wrap; word-break: break-word; margin: 10px 0 0; padding: 8px; background: #111; color: #e6e6e6; font: 12.5px/1.45 ui-monospace, Menlo, monospace; border-radius: 3px; }
+      pre b { color: #7ef08a; }
+      pre i { color: #ff8f8f; font-style: normal; }
+      #journal { border-color: #f14442; }
+      #journal pre { background: #2a0e0e; }
+      textarea { width: 100%; height: 150px; font: 12px/1.4 ui-monospace, monospace; border: 2px solid #111; border-radius: 3px; padding: 6px; box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <h1>Diagnostic 2 — reproduire le vrai lecteur</h1>
+    <p class="intro" id="intro">…</p>
+
+    <section id="journal">
+      <h2>Erreurs de la page</h2>
+      <pre id="rJ">aucune pour l'instant</pre>
+    </section>
+
+    <div id="menu" style="display: none"></div>
+
+    <section id="essai" style="display: none">
+      <h2 id="titre"></h2>
+      <p class="quoi" id="quoi"></p>
+      <button id="lancer">Lancer l'essai</button>
+      <pre id="sortie">pas encore lancé</pre>
+      <button id="copier" class="secondaire">Tout copier</button>
+      <a class="bouton secondaire" href="?">← revenir au menu</a>
+      <pre id="copie" style="display: none"></pre>
+    </section>
+
+    <textarea id="texte" readonly style="display: none"></textarea>
+
+    <script>
+      /* Un essai par chargement de page : chaque essai part d'un onglet propre, avec un seul
+         AudioContext. Aucune dépendance, syntaxe ancienne, tout s'affiche à l'écran. */
+      var FICHIER = '219687bb825321395886d3146d28f8fea91b9025.mp3'
+      var BASE_CDN = 'https://cdn.sanity.io/files/da2plce8/production/'
+      var BASE_LOCALE = '/experience/groove-to-grave/media/'
+
+      /* Compte des AudioContext créés depuis le chargement : iOS en limite le nombre. */
+      var contextesCrees = 0
+      ;(function () {
+        var noms = ['AudioContext', 'webkitAudioContext']
+        for (var i = 0; i < noms.length; i++) {
+          ;(function (n) {
+            var vrai = window[n]
+            if (!vrai) return
+            function Compte() {
+              contextesCrees++
+              var instance = new vrai()
+              return instance
+            }
+            Compte.prototype = vrai.prototype
+            window[n] = Compte
+          })(noms[i])
+        }
+      })()
+
+      var erreursPage = []
+      function erreurPage(t) {
+        erreursPage.push(t)
+        document.getElementById('rJ').innerHTML = '<i>' + erreursPage.join('<br>') + '</i>'
+        majResume()
+      }
+      window.addEventListener('error', function (e) { erreurPage('erreur : ' + (e.message || e.type)) })
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e.reason
+        erreurPage('promesse rejetée : ' + (r && (r.name || r.message) ? (r.name || '') + ' ' + (r.message || '') : String(r)))
+      })
+
+      /* Chaque adresse porte un paramètre unique : le cache de périphérie de Vercel a été pris en
+         flagrant délit de servir une réponse partielle de 2 octets aux requêtes qui portent un
+         en-tête Origin (bloc 7.5b). On mesure le code, pas le cache. */
+      function url(locale) {
+        var base = locale ? location.origin + BASE_LOCALE : BASE_CDN
+        return base + FICHIER + '?e=' + Date.now() + '-' + Math.round(Math.random() * 1e6)
+      }
+
+      var ESSAIS = {
+        F: { titre: 'F — CDN + Web Audio + crossOrigin', quoi: 'Élément audio sur le CDN, crossOrigin=anonymous, routé dans un AudioContext. Préchargement laissé par défaut.' },
+        G: { titre: 'G — F plus preload="none"', quoi: 'Identique à F, mais l’élément est en preload="none", comme le vrai lecteur.' },
+        H: { titre: 'H — même origine + Web Audio + crossOrigin', quoi: 'Identique à F, mais le fichier vient de notre domaine (réécriture). L’adresse est d’abord tirée en entier par un fetch : le cache de périphérie de Vercel garde la PREMIÈRE réponse d’une adresse et la ressert ensuite, même partielle — sans cette amorce, la requête de plage que fait iOS en premier (bytes=0-1) empoisonne l’adresse et l’élément ne reçoit que 2 octets (démontré au bloc 7.5b).' },
+        H2: { titre: 'H2 — même origine, sans amorce du cache', quoi: 'Le même essai que H, mais sans tirer le fichier d’abord : c’est la situation réelle du site. S’il cale avec réseau 2 et prêt 0, c’est le cache, pas le code.' },
+        I: { titre: 'I — même origine, sans élément audio', quoi: 'fetch du MP3, decodeAudioData, lecture par AudioBufferSourceNode, analyseur branché. C’est le candidat de remplacement.' },
+        J: { titre: 'J — comme I, depuis le CDN', quoi: 'Même méthode que I, fichier pris sur le CDN.' },
+        K: { titre: 'K — reproduction fidèle du lecteur', quoi: 'Élément créé au chargement de la page (hors geste), comme le vrai lecteur ; contexte et graphe complets créés au geste (quatre filtres, gain, analyseur, limiteur, master), souffle, preload="none", crossOrigin, ralenti 0,72. Fichier du CDN, comme la production muette.' },
+      }
+
+      var resume = []
+      function noter(l) {
+        resume.push(l)
+        majResume()
+      }
+      function majResume() {
+        var l = ['=== Diagnostic 2 Groove To Grave ===', 'quand : ' + new Date().toISOString(), 'page : ' + location.href, 'agent : ' + navigator.userAgent, '']
+        l = l.concat(resume)
+        if (erreursPage.length) l = l.concat(['', 'erreurs de page :'], erreursPage)
+        document.getElementById('texte').value = l.join('\n')
+      }
+
+      function ecrire(lignes) {
+        document.getElementById('sortie').innerHTML = lignes.join('\n')
+      }
+
+      /* Élément de K, créé tout de suite : hors de tout geste, comme dans le vrai lecteur. */
+      var elementHorsGeste = null
+      function preparerElementHorsGeste() {
+        elementHorsGeste = new Audio()
+        elementHorsGeste.preload = 'none'
+        elementHorsGeste.crossOrigin = 'anonymous'
+        try { elementHorsGeste.preservesPitch = false } catch (e) {}
+      }
+
+      function evenementsDe(a, liste) {
+        var noms = ['loadstart', 'loadedmetadata', 'canplay', 'canplaythrough', 'playing', 'waiting', 'stalled', 'suspend', 'error', 'abort', 'emptied', 'progress']
+        for (var i = 0; i < noms.length; i++) {
+          ;(function (n) {
+            a.addEventListener(n, function () {
+              var sup = ''
+              if (n === 'error' && a.error) sup = ' [code ' + a.error.code + ' ' + ['', 'ABORTED', 'NETWORK', 'DECODE', 'SRC_NOT_SUPPORTED'][a.error.code] + (a.error.message ? ' — ' + a.error.message : '') + ']'
+              liste.push(n + sup + ' @' + Math.round(performance.now()) + 'ms')
+            })
+          })(noms[i])
+        }
+      }
+
+      function contexte() {
+        var C = window.AudioContext || window.webkitAudioContext
+        if (!C) throw new Error('AudioContext absent de ce navigateur')
+        var ctx = new C()
+        if (ctx.state !== 'running' && ctx.resume) ctx.resume()
+        return ctx
+      }
+
+      /* Essais à élément audio : F, G, H, H2, K. */
+      function essaiElement(cle, options) {
+        var lignes = []
+        var evenements = []
+        var adresse = url(options.locale)
+        lignes.push('url : ' + adresse)
+        var a = options.horsGeste && elementHorsGeste ? elementHorsGeste : new Audio()
+        lignes.push('élément : ' + (options.horsGeste ? 'créé au chargement de la page' : 'créé maintenant, dans le geste'))
+        if (options.preloadNone) a.preload = 'none'
+        a.crossOrigin = 'anonymous'
+        evenementsDe(a, evenements)
+        if (options.amorcer) {
+          // Tirer l'adresse en entier AVANT l'élément : le cache garde cette réponse complète.
+          // Attention : le geste iOS n'autorise la lecture que de façon synchrone, donc on ne peut
+          // pas attendre ce fetch avant play() ; il part en parallèle, ce qui suffit à remplir
+          // l'entrée de cache quand le fichier est petit.
+          try {
+            fetch(adresse, { cache: 'no-store' })
+            lignes.push('amorce du cache : fetch complet lancé en parallèle')
+          } catch (e) {
+            lignes.push('amorce impossible : ' + ((e && e.message) || e))
+          }
+        }
+        a.src = adresse
+        var ctx = null
+        var analyseur = null
+        try {
+          ctx = contexte()
+          var source = ctx.createMediaElementSource(a)
+          if (options.chaineComplete) {
+            // Le graphe du vrai lecteur, nœud pour nœud.
+            var graves = ctx.createBiquadFilter(); graves.type = 'lowshelf'; graves.frequency.value = 110
+            var mediums = ctx.createBiquadFilter(); mediums.type = 'peaking'; mediums.frequency.value = 1200; mediums.Q.value = 1
+            var aigus = ctx.createBiquadFilter(); aigus.type = 'highshelf'; aigus.frequency.value = 6000
+            var passeHaut = ctx.createBiquadFilter(); passeHaut.type = 'highpass'; passeHaut.frequency.value = 20
+            var normalisation = ctx.createGain()
+            analyseur = ctx.createAnalyser(); analyseur.fftSize = 2048; analyseur.smoothingTimeConstant = 0.5
+            var limiteur = ctx.createDynamicsCompressor()
+            var master = ctx.createGain(); master.gain.value = 0.85
+            source.connect(graves); graves.connect(mediums); mediums.connect(aigus); aigus.connect(passeHaut)
+            passeHaut.connect(normalisation); normalisation.connect(analyseur); analyseur.connect(limiteur)
+            limiteur.connect(master); master.connect(ctx.destination)
+            // Souffle de bande : un bruit en boucle, comme le lecteur.
+            var tampon = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 2), ctx.sampleRate)
+            var d = tampon.getChannelData(0)
+            for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.08
+            var souffle = ctx.createBufferSource(); souffle.buffer = tampon; souffle.loop = true
+            var gainSouffle = ctx.createGain(); gainSouffle.gain.value = 0.02
+            souffle.connect(gainSouffle); gainSouffle.connect(limiteur); souffle.start()
+            lignes.push('graphe : chaîne complète du lecteur (4 filtres, gain, analyseur, limiteur, master) + souffle')
+          } else {
+            var gain = ctx.createGain(); gain.gain.value = 0.9
+            source.connect(gain); gain.connect(ctx.destination)
+            lignes.push('graphe : source → gain → sortie')
+          }
+        } catch (e) {
+          lignes.push('<i>AudioContext impossible : ' + ((e && e.message) || e) + '</i>')
+        }
+        if (options.ralenti) {
+          try { a.preservesPitch = false } catch (e) {}
+          a.playbackRate = 0.72
+          lignes.push('ralenti de démarrage : playbackRate 0,72')
+        }
+        try { a.load() } catch (e) { lignes.push('<i>load() a échoué : ' + ((e && e.message) || e) + '</i>') }
+        var issue = 'play() n’a rien renvoyé (ancienne API)'
+        try {
+          var p = a.play()
+          if (p && p.then) {
+            issue = 'play() toujours en attente après 6 s'
+            p.then(function () { issue = 'play() tenue' }, function (e) { issue = 'play() REJETÉE : ' + (e.name || '?') + ' — ' + (e.message || '') })
+          }
+        } catch (e) { issue = 'play() a jeté : ' + ((e && e.message) || e) }
+        ecrire(lignes.concat(['essai en cours, 6 s…']))
+        setTimeout(function () {
+          var joue = a.currentTime > 0.1
+          var niveau = '—'
+          if (analyseur) {
+            var data = new Uint8Array(analyseur.frequencyBinCount)
+            analyseur.getByteFrequencyData(data)
+            var max = 0
+            for (var i = 0; i < data.length; i++) if (data[i] > max) max = data[i]
+            niveau = String(max)
+          }
+          var err = a.error ? 'code ' + a.error.code + (a.error.message ? ' — ' + a.error.message : '') : 'aucune'
+          lignes.push((joue ? '<b>JOUE</b>' : '<i>NE JOUE PAS</i>') + ' · ' + issue)
+          lignes.push('position ' + a.currentTime.toFixed(2) + ' s · durée ' + (isNaN(a.duration) ? '?' : a.duration.toFixed(1) + ' s') + ' · ' + (a.paused ? 'en pause' : 'en lecture'))
+          lignes.push('réseau ' + a.networkState + ' (0 vide, 1 inactif, 2 en cours, 3 sans source) · prêt ' + a.readyState + ' (0 rien … 4 tout)')
+          lignes.push('erreur élément : ' + err)
+          lignes.push('AudioContext : ' + (ctx ? ctx.state : 'aucun') + ' · créés depuis le chargement : ' + contextesCrees + (analyseur ? ' · niveau analyseur ' + niveau + '/255' : ''))
+          lignes.push('événements : ' + (evenements.length ? evenements.join(', ') : 'aucun'))
+          ecrire(lignes)
+          noter(cle + ' → ' + (joue ? 'JOUE' : 'NE JOUE PAS') + ' · ' + issue + ' · position ' + a.currentTime.toFixed(2) + ' s · réseau ' + a.networkState + ' · prêt ' + a.readyState + ' · erreur ' + err + ' · contexte ' + (ctx ? ctx.state : '—') + ' (' + contextesCrees + ' créé(s))' + (analyseur ? ' · analyseur ' + niveau : '') + ' · ' + (evenements.join(' ') || 'aucun événement') + ' · ' + adresse)
+          try { a.pause() } catch (e) {}
+        }, 6000)
+      }
+
+      /* Essais sans élément audio : I et J — fetch, décodage, lecture par tampon. */
+      function essaiTampon(cle, locale) {
+        var lignes = []
+        var adresse = url(locale)
+        lignes.push('url : ' + adresse)
+        lignes.push('méthode : fetch → decodeAudioData → AudioBufferSourceNode → analyseur')
+        ecrire(lignes.concat(['essai en cours…']))
+        var ctx
+        try {
+          ctx = contexte()
+        } catch (e) {
+          lignes.push('<i>AudioContext impossible : ' + ((e && e.message) || e) + '</i>')
+          ecrire(lignes)
+          noter(cle + ' → AudioContext impossible')
+          return
+        }
+        var analyseur = ctx.createAnalyser()
+        analyseur.fftSize = 2048
+        var master = ctx.createGain()
+        master.gain.value = 0.9
+        analyseur.connect(master)
+        master.connect(ctx.destination)
+        var t = Date.now()
+        var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null
+        var minuteur = setTimeout(function () { if (ctrl) ctrl.abort() }, 15000)
+        fetch(adresse, ctrl ? { signal: ctrl.signal, cache: 'no-store' } : { cache: 'no-store' })
+          .then(function (r) {
+            lignes.push('HTTP ' + r.status + ' · ' + (r.headers.get('content-type') || '?') + ' · ' + (Date.now() - t) + ' ms')
+            return r.arrayBuffer()
+          })
+          .then(function (buf) {
+            clearTimeout(minuteur)
+            lignes.push('reçu ' + buf.byteLength + ' octets en ' + (Date.now() - t) + ' ms')
+            ecrire(lignes.concat(['décodage…']))
+            return new Promise(function (ok, ko) {
+              // Deux formes de decodeAudioData : WebKit a longtemps exigé les fonctions de rappel.
+              var p = ctx.decodeAudioData(buf, ok, ko)
+              if (p && p.then) p.then(ok, ko)
+            })
+          })
+          .then(function (tampon) {
+            lignes.push('<b>décodé : ' + tampon.duration.toFixed(1) + ' s · ' + tampon.numberOfChannels + ' canal/canaux · ' + tampon.sampleRate + ' Hz</b>')
+            var src = ctx.createBufferSource()
+            src.buffer = tampon
+            src.connect(analyseur)
+            var depart = ctx.currentTime
+            src.start()
+            ecrire(lignes.concat(['lecture lancée, 5 s…']))
+            setTimeout(function () {
+              var data = new Uint8Array(analyseur.frequencyBinCount)
+              analyseur.getByteFrequencyData(data)
+              var max = 0
+              for (var i = 0; i < data.length; i++) if (data[i] > max) max = data[i]
+              var avance = ctx.currentTime - depart
+              var joue = max > 0 && avance > 0.5
+              lignes.push((joue ? '<b>JOUE</b>' : '<i>NE JOUE PAS</i>') + ' · horloge du contexte avancée de ' + avance.toFixed(2) + ' s · niveau analyseur ' + max + '/255')
+              lignes.push('AudioContext : ' + ctx.state + ' · créés depuis le chargement : ' + contextesCrees)
+              ecrire(lignes)
+              noter(cle + ' → ' + (joue ? 'JOUE' : 'NE JOUE PAS') + ' · décodé ' + tampon.duration.toFixed(1) + ' s · horloge +' + avance.toFixed(2) + ' s · analyseur ' + max + ' · contexte ' + ctx.state + ' (' + contextesCrees + ' créé(s)) · ' + adresse)
+              try { src.stop() } catch (e) {}
+            }, 5000)
+          })
+          .catch(function (e) {
+            clearTimeout(minuteur)
+            var m = (e && (e.message || e.name)) || String(e)
+            lignes.push('<i>échec : ' + m + '</i>')
+            ecrire(lignes)
+            noter(cle + ' → ÉCHEC : ' + m + ' · ' + adresse)
+          })
+      }
+
+      function lancer(cle) {
+        if (cle === 'F') essaiElement('F CDN + Web Audio', { locale: false, preloadNone: false, chaineComplete: false, ralenti: false, horsGeste: false })
+        else if (cle === 'G') essaiElement('G CDN + Web Audio + preload none', { locale: false, preloadNone: true, chaineComplete: false, ralenti: false, horsGeste: false })
+        else if (cle === 'H') essaiElement('H même origine + Web Audio (cache amorcé)', { locale: true, preloadNone: false, chaineComplete: false, ralenti: false, horsGeste: false, amorcer: true })
+        else if (cle === 'H2') essaiElement('H2 même origine + Web Audio (sans amorce)', { locale: true, preloadNone: false, chaineComplete: false, ralenti: false, horsGeste: false })
+        else if (cle === 'I') essaiTampon('I même origine, tampon décodé', true)
+        else if (cle === 'J') essaiTampon('J CDN, tampon décodé', false)
+        else if (cle === 'K') essaiElement('K reproduction du lecteur (CDN)', { locale: false, preloadNone: true, chaineComplete: true, ralenti: true, horsGeste: true })
+      }
+
+      var cle = (location.search.match(/essai=(H2|[A-K])/) || [])[1]
+      if (cle && ESSAIS[cle]) {
+        document.getElementById('intro').innerHTML = 'Essai <b>' + cle + '</b>, seul dans cette page. Appuie sur le bouton (iOS n’autorise le son qu’au geste), attends le compte rendu, puis « tout copier ». Reviens au menu pour l’essai suivant : <b>chaque essai doit partir d’une page rechargée</b>.'
+        document.getElementById('essai').style.display = 'block'
+        document.getElementById('titre').textContent = ESSAIS[cle].titre
+        document.getElementById('quoi').textContent = ESSAIS[cle].quoi
+        document.getElementById('lancer').textContent = 'Lancer l’essai ' + cle
+        if (cle === 'K') preparerElementHorsGeste()
+        document.getElementById('lancer').addEventListener('click', function () { lancer(cle) })
+      } else {
+        document.getElementById('intro').innerHTML = 'Deuxième série : on s’approche du vrai lecteur, un facteur à la fois. <b>Un essai par page</b> : chaque bouton recharge la page, pour n’avoir qu’un seul AudioContext et aucun effet d’ordre. Chaque adresse porte un paramètre unique, pour ne pas mesurer un cache.'
+        var menu = document.getElementById('menu')
+        var html = '<section><h2>Les essais</h2>'
+        for (var k in ESSAIS) html += '<a class="bouton" href="?essai=' + k + '">' + ESSAIS[k].titre + '</a>'
+        html += '<a class="bouton secondaire" href="diagnostic.html">← première série (A à E)</a></section>'
+        menu.innerHTML = html
+        menu.style.display = 'block'
+      }
+
+      document.getElementById('copier').addEventListener('click', function () {
+        var zone = document.getElementById('texte')
+        var dit = function (m) {
+          var el = document.getElementById('copie')
+          el.style.display = 'block'
+          el.textContent = m
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(zone.value).then(function () { dit('copié (' + zone.value.length + ' caractères)') }, function (e) { secours(zone, dit, e) })
+        } else secours(zone, dit, null)
+      })
+
+      function secours(zone, dit, e) {
+        zone.style.display = 'block'
+        zone.removeAttribute('readonly')
+        zone.focus()
+        zone.setSelectionRange(0, zone.value.length)
+        var ok = false
+        try { ok = document.execCommand('copy') } catch (x) {}
+        zone.setAttribute('readonly', 'readonly')
+        dit(ok ? 'copié (sélection)' : 'copie refusée' + (e ? ' : ' + ((e && e.message) || e) : '') + ' — le texte est sélectionné ci-dessous, utilise Copier')
+      }
+
+      majResume()
+    </script>
+  </body>
+</html>
