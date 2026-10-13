@@ -23,3 +23,8 @@ export function rotation(cle: string, amplitude: number): number {
 export function styleRotation(cle: string, amplitude: number): CSSProperties {
   return { '--rot-base': `${rotation(cle, amplitude)}deg` } as CSSProperties
 }
+
+/** Variante stable dans [0, n−1] pour une clé donnée : sert au désordre discret (accroches, décalages). */
+export function variante(cle: string, n: number): number {
+  return Math.min(n - 1, Math.floor(hachage(cle) * n))
+}

@@ -68,6 +68,23 @@ for (const a of artistes) {
     `${ok ? 'ok ' : 'KO '} ${a.slug.padEnd(16)} ${(dominante ?? 'sans pochette').padEnd(13)} lum ${lum.toFixed(3)} ${lum < LUMINANCE_BASCULE ? 'sombre ' : 'claire '} → affiche ${affiche.couleur} ${texte(affiche)} ${affiche.rapport.toFixed(2)}:1 (${affiche.origine}) · tuile ${tuile.couleur} ${texte(tuile)} ${tuile.rapport.toFixed(2)}:1 (${tuile.origine})\n`,
   )
 }
+// Une dominante qui frôle la bascule peut changer de traitement au prochain « Publier » du label,
+// sans que personne ne regarde : on le dit d'avance, avec le nombre de pages concernées. Ce n'est
+// pas un échec — c'est un événement à voir venir.
+const MARGE_BASCULE = 0.1
+const parDominante = new Map<string, number>()
+for (const a of artistes) {
+  const d = dominanteDeLArtiste(a, sorties)
+  if (d) parDominante.set(d, (parDominante.get(d) ?? 0) + 1)
+}
+for (const [d, n] of [...parDominante].sort((x, y) => y[1] - x[1])) {
+  const ecart = (luminance(d) - LUMINANCE_BASCULE) / LUMINANCE_BASCULE
+  if (Math.abs(ecart) >= MARGE_BASCULE) continue
+  process.stdout.write(
+    `    ⚠ ${d} est à ${(ecart * 100).toFixed(1)} % de la bascule (${luminance(d).toFixed(3)} contre ${LUMINANCE_BASCULE.toFixed(3)}) et commande ${n} ${n > 1 ? 'tuiles' : 'tuile'} : une nouvelle pochette peut les faire changer de traitement d'un seul « Publier »\n`,
+  )
+}
+
 if (echecs) {
   process.stderr.write(`${echecs} paire(s) sous le minimum\n`)
   process.exit(1)

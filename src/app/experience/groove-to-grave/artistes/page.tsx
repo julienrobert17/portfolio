@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { chargerContenu } from '@/components/experience/groove-to-grave/sanity/contenu'
 import { tonsDeLArtiste } from '@/components/experience/groove-to-grave/lib/artiste'
-import { rotation } from '@/components/experience/groove-to-grave/lib/desordre'
+import { rotation, variante } from '@/components/experience/groove-to-grave/lib/desordre'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
 
@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: 'Artistes',
   description: `Le crew, les artistes signés et les invités des compilations de ${MARQUE.nom}.`,
 }
+
+/**
+ * Accroches du mur sous 600 px : à gauche, à droite, et deux débords légers (Phase 7.10, note 2).
+ * Le hachage seul donnait une répartition très inégale sur dix-neuf noms (neuf à gauche, aucune à
+ * droite) : le rang de l'artiste le décale, ce qui reste déterministe et garantit l'alternance.
+ */
+const ACCROCHES = ['gauche', 'droite', 'debord-gauche', 'debord-droite'] as const
 
 /** Les noms en typographie d'affiche collée, un par affiche, le crew d'abord. */
 export default async function ArtistesPage() {
@@ -23,8 +30,9 @@ export default async function ArtistesPage() {
       <p className="g2g-chapeau">Le crew, les artistes signés, puis les invités des compilations. Présentations tirées des textes publics, rien d’inventé.</p>
       <ul className="g2g-affiches" style={{ marginTop: 'var(--s4)' }}>
         {/* Une seule source de teinte : la dominante de l'artiste, ici au seuil du petit texte (7.9). */}
-        {artistes.map((a) => (
-          <li key={a.slug}>
+        {artistes.map((a, i) => (
+          // Sur petit écran, les tuiles tomberaient toutes sur le bord gauche : l'accroche varie.
+          <li key={a.slug} data-accroche={ACCROCHES[(variante(a.slug, ACCROCHES.length) + i) % ACCROCHES.length]}>
             <Link
               href={routes.artiste(a.slug)}
               className="g2g-affiche g2g-affiche-lien"

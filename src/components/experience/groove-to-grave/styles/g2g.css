@@ -782,6 +782,32 @@
   align-items: flex-start;
 }
 
+/* Sous 600 px, une tuile occupe presque toute la largeur : sans accroche variable, le mur devient
+   une colonne d'autocollants calés à gauche. Les accroches sont déterministes (lib/desordre.ts),
+   et les débords restent sous la marge de page, donc rien ne déborde de l'écran. */
+@media (max-width: 599px) {
+  .g2g-affiches > li {
+    display: flex;
+    width: 100%;
+  }
+
+  .g2g-affiches > li[data-accroche='droite'],
+  .g2g-affiches > li[data-accroche='debord-droite'] {
+    justify-content: flex-end;
+  }
+
+  /* Un débord dépasse la mesure de la colonne : la largeur suit, sinon la marge négative ne
+     déplace que les voisins et la tuile reste collée au bord. */
+  .g2g-affiches > li[data-accroche='debord-droite'] {
+    width: calc(100% + 12px);
+  }
+
+  .g2g-affiches > li[data-accroche='debord-gauche'] {
+    width: calc(100% + 10px);
+    margin-left: -10px;
+  }
+}
+
 .g2g .g2g-affiche-lien {
   display: inline-block;
   padding: 10px 16px 12px;
