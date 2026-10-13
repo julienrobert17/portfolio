@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { chargerContenu, getArtiste } from '@/components/experience/groove-to-grave/sanity/contenu'
 import type { Piste, Sortie } from '@/components/experience/groove-to-grave/content/types'
-import { afficheDeLArtiste, sortiesDeLArtiste } from '@/components/experience/groove-to-grave/lib/artiste'
-import { duree } from '@/components/experience/groove-to-grave/lib/format'
+import { afficheDeLArtiste, soireesDeLArtiste, sortiesDeLArtiste } from '@/components/experience/groove-to-grave/lib/artiste'
+import { dateLongue, duree } from '@/components/experience/groove-to-grave/lib/format'
+import { lieuAffiche } from '@/components/experience/groove-to-grave/lib/registre'
+import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import BoutonPiste from '@/components/experience/groove-to-grave/ui/bouton-piste'
 import Cassette, { pisteJouable } from '@/components/experience/groove-to-grave/ui/cassette'
 import Photo from '@/components/experience/groove-to-grave/ui/photo'
@@ -46,6 +49,8 @@ export default async function ArtistePage({ params }: Props) {
   const a = getArtiste(contenu.artistes, slug)
   if (!a) notFound()
   const sorties = sortiesDeLArtiste(contenu.sorties, slug, a.releases)
+  // Line-ups déjà publiés : correspondance exacte sur le nom normalisé, jamais approximative (7.8).
+  const soirees = soireesDeLArtiste(contenu.soirees, a.name)
   const solo = sorties.find((s) => s.artistSlug === slug && s.pochette)
   // Une seule charte d'en-tête : l'affiche scotchée, dont le papier prend la dominante relevée
   // sur la pochette de l'artiste, avec repli sur la palette si elle ne porte pas l'encre (7.7).
@@ -133,6 +138,23 @@ export default async function ArtistePage({ params }: Props) {
                 </li>
               )
             })}
+          </ul>
+        </section>
+      ) : null}
+      {/* Rendue seulement s'il y a des soirées, comme les pistes : aucun remplissage (7.8). */}
+      {soirees.length ? (
+        <section className="g2g-section" aria-labelledby="aux-soirees">
+          <h2 id="aux-soirees" className="g2g-affiche g2g-titre-section">
+            Aux soirées du label
+          </h2>
+          <ul className="g2g-soirees-artiste">
+            {soirees.map((s) => (
+              <li key={s.date}>
+                <time dateTime={s.date}>{dateLongue(s.date)}</time>
+                <Link href={routes.soiree(s.date)}>{s.name ?? MARQUE.nom}</Link>
+                <span className="g2g-meta">{lieuAffiche(s.venue)}</span>
+              </li>
+            ))}
           </ul>
         </section>
       ) : null}

@@ -10,13 +10,15 @@
  * capture ces pages-là (titre = le chemin) au lieu de la liste habituelle, et `--vignette 300`
  * réduit chaque capture à cette largeur pour les faire tenir en grille dans une seule image.
  *   npx tsx scripts/g2g-planche-captures.ts --phase 7.7-artistes --pages "$SLUGS" --vignette 300
+ * `--fenetre` capture le haut de page seulement (les en-têtes, pour juger les couleurs d'un coup).
+ * Tout est écrit **hors du dépôt**, dans `~/Desktop/g2g-sorties/planches` (`G2G_SORTIES`).
  */
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { couleurs } from '../src/components/experience/groove-to-grave/tokens'
 import { Devtools } from './g2g-devtools'
-import { CACHE, RACINE, dossier } from './g2g-lib'
+import { CACHE, RACINE, SORTIES, dossier } from './g2g-lib'
 
 const DATE = new Date().toISOString().slice(0, 10)
 const arg = (nom: string, defaut: string) => {
@@ -28,6 +30,8 @@ const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
 const LISTE = arg('--pages', '')
 const VIGNETTE = Number(arg('--vignette', '0'))
+/** `--fenetre` : capture la fenêtre (le haut de page) au lieu de la page entière. */
+const FENETRE = process.argv.includes('--fenetre')
 
 interface Etat {
   chemin: string
@@ -129,11 +133,11 @@ async function main(): Promise<void> {
   dossier(join(CACHE, 'captures'))
   const navigateur = new Captures()
   await navigateur.demarrer()
-  const PLANCHES = dossier(join(RACINE, 'docs/groove-to-grave/planches'))
+  const PLANCHES = dossier(join(SORTIES, 'planches'))
   const POLICE = 'Helvetica Neue, Helvetica, Arial, sans-serif'
   for (const f of FORMATS) {
     const captures: { titre: string; buf: Buffer; w: number; h: number }[] = []
-    const demandees: Etat[] = LISTE ? LISTE.split(',').map((c) => ({ chemin: c.trim(), titre: c.trim().replace(/^\//, '') })) : Number(PHASE) >= 3 ? [...PAGES, ...ETATS_LECTEUR] : PAGES
+    const demandees: Etat[] = LISTE ? LISTE.split(',').map((c) => ({ chemin: c.trim(), titre: c.trim().replace(/^\//, ''), fenetre: FENETRE })) : Number(PHASE) >= 3 ? [...PAGES, ...ETATS_LECTEUR] : PAGES
     const liste = demandees.filter((p) => !p.format || p.format === f.largeur)
     // Dossier par format : une image par page et par état, coupée à deux hauteurs d'écran au plus, JPEG 82.
     const dossierFormat = dossier(join(PLANCHES, `phase-${PHASE}-${f.largeur}`))

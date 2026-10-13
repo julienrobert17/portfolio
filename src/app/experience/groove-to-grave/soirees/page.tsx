@@ -28,7 +28,7 @@ export default async function SoireesPage() {
         {aVenir.length > 1 ? (
           <ul className="g2g-flyers" style={{ marginTop: 'var(--s4)' }}>
             {aVenir.slice(1).map((s) => (
-              <li key={s.date}>
+              <li key={s.date} id={`soiree-${s.date}`}>
                 <Flyer soiree={s} />
               </li>
             ))}
@@ -42,7 +42,7 @@ export default async function SoireesPage() {
         <p>Les flyers tels quels, jamais recadrés, visuels LukasDarian quand il est crédité. Les dates sans source en ligne sont celles que nous avons relevées ailleurs, et le site le dit sur l’affiche.</p>
         <ul className="g2g-flyers" style={{ marginTop: 'var(--s4)' }}>
           {passees.map((s) => (
-            <li key={s.date}>
+            <li key={s.date} id={`soiree-${s.date}`}>
               <Flyer soiree={s} />
             </li>
           ))}

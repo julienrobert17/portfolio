@@ -6,6 +6,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { join } from 'node:path'
 import sharp from 'sharp'
 
@@ -14,6 +15,13 @@ export const PUBLIC = join(RACINE, 'public/experience/groove-to-grave')
 export const PUBLIC_IMG = join(PUBLIC, 'img')
 /** Originaux et WAV intermédiaires, hors dépôt (.next est ignoré). */
 export const CACHE = join(RACINE, '.next/cache/groove-to-grave')
+/**
+ * Sorties de revue — planches, rapports Lighthouse, vidéos — **hors du dépôt** (Phase 7.8) :
+ * elles servent à juger une fois, pas à être versionnées. `G2G_SORTIES` permet de les ranger
+ * ailleurs. Le dossier `docs/groove-to-grave/planches` est en plus ignoré par git, pour qu'un
+ * script oublié ne les y ramène pas tout seul.
+ */
+export const SORTIES = process.env.G2G_SORTIES ?? join(homedir(), 'Desktop', 'g2g-sorties')
 
 export const INK = '#111111'
 export const POSTER = '#f4efe2'

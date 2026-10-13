@@ -4,9 +4,11 @@ import { LIEU_NON_RETROUVE } from './registre'
 /**
  * Ligne de chronologie d'une soirée (Phase 7.7). Elle était collée sans regarder : « Soirée
  * Première soirée », « à la Panic Room, Panic Room », « Soirée, 42 Marches ». Elle est maintenant
- * composée à partir des champs : le mot « Soirée » n'est ajouté que si le titre existe et ne le
- * porte pas déjà, le lieu n'est rappelé que si le titre ne le contient pas, et il ne reste jamais
- * de virgule en attente d'un champ absent.
+ * composée à partir des champs. La chronologie mêle sorties et soirées : une ligne de soirée doit
+ * donc toujours se dire comme telle. **« Soirée » n'est omis que si le titre le porte déjà** ;
+ * sans titre, « Soirée » est le titre et reste (Phase 7.8, correction de 7.7, qui laissait
+ * « 42 Marches, annulée » sans rien pour l'identifier). Le lieu n'est rappelé que si le titre ne
+ * le contient pas, et il ne reste jamais de virgule en attente d'un champ absent.
  */
 const sansAccent = (t: string) =>
   t
@@ -28,10 +30,10 @@ export function ligneChronologie(s: Soiree): string {
   const titreComparable = titre ? comparable(titre) : ''
   const lieuComparable = comparable(lieu)
   const lieuDejaDit = Boolean(titreComparable) && lieuComparable.length > 0 && titreComparable.includes(lieuComparable)
-  const prefixe = titre && !/soir[ée]e/i.test(titre) ? 'Soirée ' : ''
-  // Sans titre ni lieu, la ligne ne peut pas être vide : elle dit l'absence (registre public).
-  const morceaux = [titre ? `${prefixe}${titre}` : lieu || LIEU_NON_RETROUVE]
-  if (titre && lieu && !lieuDejaDit) morceaux.push(lieu)
+  const tete = titre ? (/soir[ée]e/i.test(titre) ? titre : `Soirée ${titre}`) : 'Soirée'
+  const morceaux = [tete]
+  // Le lieu suit, sauf s'il est déjà dans le titre ; inconnu, il se dit (registre public).
+  if (!lieuDejaDit) morceaux.push(lieu || LIEU_NON_RETROUVE)
   if (s.status === 'annulee') morceaux.push('annulée')
   if (s.status === 'reportee') morceaux.push('reportée')
   return morceaux.join(', ')

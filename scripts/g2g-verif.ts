@@ -138,6 +138,24 @@ async function allerAuxSorties(nav: Devtools, s: string): Promise<void> {
 }
 
 /** Dans la page : quadrilatères des cartes, stickers, scotch et cibles, et test de séparation des axes. */
+/** Textes posés sur le papier d'affiche : taille et graisse, pour tenir le seuil de 4,5:1. */
+const SCRIPT_TEXTE_AFFICHE = `(() => {
+  const mauvais = []
+  for (const bande of document.querySelectorAll('.g2g-bande-titre')) {
+    const marche = document.createTreeWalker(bande, NodeFilter.SHOW_TEXT)
+    let n
+    while ((n = marche.nextNode())) {
+      if (!n.textContent.trim()) continue
+      const el = n.parentElement
+      const st = getComputedStyle(el)
+      const taille = parseFloat(st.fontSize)
+      const graisse = parseInt(st.fontWeight, 10) || 400
+      if (taille < 24 || graisse < 600) mauvais.push(el.tagName + ' ' + Math.round(taille) + 'px/' + graisse + ' « ' + n.textContent.trim().slice(0, 24) + ' »')
+    }
+  }
+  return mauvais
+})()`
+
 const SCRIPT_CHEVAUCHEMENTS = `(() => {
   const quad = (el) => {
     const r = el.getBoundingClientRect();
@@ -215,6 +233,11 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
     creux.titres.length === 0 && creux.sections.length === 0 && creux.cellules.length === 0 && !trop,
     [...creux.titres, ...creux.sections, ...creux.cellules, trop ? `vide de fin ${creux.videDeFin} px` : ''].filter(Boolean).join(' ; '),
   )
+  // Seuil du papier d'affiche (Phase 7.8) : 4,5:1 ne vaut que pour le nom en grand et en gras.
+  // Si un petit texte se posait sur le papier échantillonné, le seuil deviendrait 7:1 : le
+  // contrôle échoue à cet instant-là, sans qu'il faille y penser.
+  const petits = await nav.evaluer<string[]>(s, SCRIPT_TEXTE_AFFICHE)
+  noter(f.largeur, chemin, 'papier d’affiche : rien que du grand texte gras (sinon le seuil passe à 7:1)', petits.length === 0, petits.slice(0, 3).join(' ; '))
   // Registre public (bloc 7.7) : aucune note de chantier dans le texte rendu, d'où qu'elle vienne.
   const texte = await nav.evaluer<string>(s, `document.body.innerText`)
   const notes = texte

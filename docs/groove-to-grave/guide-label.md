@@ -117,4 +117,4 @@ Si un état reste « en cours » plus de dix minutes, prévenez Julien.
 
 Publiez : ce qui est écrit se récupère toujours depuis l'historique du document. Si quelque chose vous semble cassé sur le site, notez l'heure et ce que vous veniez de publier, et prévenez Julien — c'est ce qui permet de retrouver la cause.
 
-**Contact : _adresse à compléter avant envoi_.**
+**Contact : julien.robert17@gmail.com** (adresse provisoire, elle sera remplacée par une adresse du label).
