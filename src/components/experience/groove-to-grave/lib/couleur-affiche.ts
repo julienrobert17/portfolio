@@ -19,7 +19,11 @@ import { contraste, couleurs as tokens } from '../tokens'
 
 /** Seuil appliqué au papier d'affiche : du texte de 24 px et plus, en gras, et rien d'autre. */
 export const MINIMUM_AFFICHE = 4.5
-/** Seuil qui s'appliquerait si un texte courant se posait un jour sur l'affiche (brief §3.1). */
+/**
+ * Seuil du petit texte sur papier échantillonné : celui du brief pour le texte courant. C'est le
+ * seuil de la **tuile du mur des artistes** (Phase 7.9), qui porte un nom et une ligne de rôle —
+ * et celui qui s'appliquerait si un petit texte se posait un jour sur l'affiche d'une page.
+ */
 export const MINIMUM_AFFICHE_PETIT_TEXTE = 7
 /** Plafond de saturation du papier éclairci : au-delà, la couleur crie au lieu de porter le nom. */
 export const SATURATION_MAX = 0.55
@@ -73,19 +77,24 @@ export interface Affiche {
   origine: 'dominante' | 'eclaircie' | 'palette'
 }
 
-/** Couleur d'affiche pour une dominante : telle quelle, éclaircie à teinte constante, ou de palette. */
-export function couleurAffiche(dominante?: string): Affiche {
+/**
+ * Couleur tirée d'une dominante pour un seuil donné : telle quelle si elle le tient, sinon
+ * éclaircie à teinte constante, sinon la couleur de palette la plus proche. Deux tons sortent
+ * de la même teinte (Phase 7.9) : l'affiche d'une page à `MINIMUM_AFFICHE`, la tuile du mur à
+ * `MINIMUM_AFFICHE_PETIT_TEXTE`, parce qu'elle porte un petit texte.
+ */
+export function couleurAffiche(dominante?: string, minimum: number = MINIMUM_AFFICHE): Affiche {
   if (!dominante) return { couleur: tokens.poster, rapport: contraste(tokens.ink, tokens.poster), origine: 'dominante' }
   const rapportBrut = contraste(tokens.ink, dominante)
-  if (rapportBrut >= MINIMUM_AFFICHE) return { couleur: dominante, rapport: rapportBrut, origine: 'dominante' }
+  if (rapportBrut >= minimum) return { couleur: dominante, rapport: rapportBrut, origine: 'dominante' }
   const [t, s, l] = versHsl(dominante)
   const saturation = Math.min(s, SATURATION_MAX)
   // Le contraste avec l'encre croît avec la clarté : on monte par pas de 1 % jusqu'au premier qui tient.
   for (let clarte = l; clarte <= CLARTE_MAX + 1e-9; clarte += 0.01) {
     const essai = versHex(t, saturation, Math.min(clarte, CLARTE_MAX))
     const rapport = contraste(tokens.ink, essai)
-    if (rapport >= MINIMUM_AFFICHE) return { couleur: essai, rapport, origine: 'eclaircie' }
+    if (rapport >= minimum) return { couleur: essai, rapport, origine: 'eclaircie' }
   }
-  const proche = [...REPLIS].filter((c) => contraste(tokens.ink, c) >= MINIMUM_AFFICHE).sort((a, b) => distance(a, dominante) - distance(b, dominante))[0]
+  const proche = [...REPLIS].filter((c) => contraste(tokens.ink, c) >= minimum).sort((a, b) => distance(a, dominante) - distance(b, dominante))[0] ?? tokens.poster
   return { couleur: proche, rapport: contraste(tokens.ink, proche), origine: 'palette' }
 }

@@ -1,5 +1,5 @@
 import type { Artiste, Soiree, Sortie } from '../content/types'
-import { couleurAffiche, type Affiche } from './couleur-affiche'
+import { MINIMUM_AFFICHE_PETIT_TEXTE, couleurAffiche, type Affiche } from './couleur-affiche'
 
 /**
  * Ce que le gabarit artiste a besoin de savoir d'un artiste (Phase 7.7), rassemblé ici pour que
@@ -37,8 +37,17 @@ export function soireesDeLArtiste(soirees: Soiree[], nom: string): Soiree[] {
   return soirees.filter((s) => s.lineup.some((l) => normaliserNom(l) === cible)).sort((a, b) => b.date.localeCompare(a.date))
 }
 
-/** Papier de l'affiche d'un artiste : la dominante de sa première pochette, repli compris. */
-export function afficheDeLArtiste(artiste: Artiste, toutes: Sortie[]): Affiche {
-  const sorties = sortiesDeLArtiste(toutes, artiste.slug, artiste.releases)
-  return couleurAffiche(sorties.find((s) => s.couleurs)?.couleurs?.dominant)
+/** Dominante de l'artiste : celle de sa première pochette, dans l'ordre d'affichage de ses sorties. */
+export function dominanteDeLArtiste(artiste: Artiste, toutes: Sortie[]): string | undefined {
+  return sortiesDeLArtiste(toutes, artiste.slug, artiste.releases).find((s) => s.couleurs)?.couleurs?.dominant
+}
+
+/**
+ * Les deux tons d'un artiste, tirés de la **même** dominante (Phase 7.9) : l'affiche de sa page,
+ * qui ne porte qu'un titre énorme, et la tuile du mur des artistes, qui porte un petit texte et
+ * demande donc le seuil du texte courant. Une seule source, pour qu'un clic ne change pas de teinte.
+ */
+export function tonsDeLArtiste(artiste: Artiste, toutes: Sortie[]): { affiche: Affiche; tuile: Affiche } {
+  const dominante = dominanteDeLArtiste(artiste, toutes)
+  return { affiche: couleurAffiche(dominante), tuile: couleurAffiche(dominante, MINIMUM_AFFICHE_PETIT_TEXTE) }
 }

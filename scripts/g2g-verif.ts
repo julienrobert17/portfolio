@@ -30,7 +30,7 @@ const arg = (nom: string, defaut: string) => {
 }
 const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
-const PAGES = ['', '/sorties', '/sorties/gtgr05', '/sorties/gtgrva02', '/artistes', '/artistes/kitchen-plug', '/artistes/lungo', '/soirees', '/label', '/contact', '/sources']
+const PAGES = ['', '/sorties', '/sorties/gtgr05', '/sorties/gtgrva02', '/artistes', '/artistes/kitchen-plug', '/artistes/lungo', '/artistes/julius', '/soirees', '/label', '/contact', '/sources']
 const FORMATS = [
   { largeur: 1440, hauteur: 900, echelle: 1 },
   { largeur: 390, hauteur: 844, echelle: 2 },
@@ -138,6 +138,27 @@ async function allerAuxSorties(nav: Devtools, s: string): Promise<void> {
 }
 
 /** Dans la page : quadrilatères des cartes, stickers, scotch et cibles, et test de séparation des axes. */
+/**
+ * Lieu répété dans un bloc de soirée (Phase 7.9) : chaque bloc rendu porte sa date et son lieu,
+ * et le lieu normalisé ne doit apparaître qu'une fois dans le texte du bloc — sinon le titre et
+ * la ligne de lieu disent deux fois la même chose (cas « La Péniche Marcounet invite… » suivi de
+ * « PÉNICHE MARCOUNET »).
+ */
+const SCRIPT_LIEU_REPETE = `(() => {
+  const normaliser = (t) => t.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const mauvais = []
+  for (const bloc of document.querySelectorAll('[data-soiree][data-lieu]')) {
+    const lieu = normaliser(bloc.getAttribute('data-lieu') || '')
+    if (lieu.length < 3) continue
+    const texte = normaliser(bloc.innerText || '')
+    let n = 0
+    let i = texte.indexOf(lieu)
+    while (i !== -1) { n++; i = texte.indexOf(lieu, i + lieu.length) }
+    if (n > 1) mauvais.push(bloc.getAttribute('data-soiree') + ' : « ' + bloc.getAttribute('data-lieu') + ' » ' + n + ' fois')
+  }
+  return mauvais
+})()`
+
 /** Textes posés sur le papier d'affiche : taille et graisse, pour tenir le seuil de 4,5:1. */
 const SCRIPT_TEXTE_AFFICHE = `(() => {
   const mauvais = []
@@ -233,6 +254,9 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
     creux.titres.length === 0 && creux.sections.length === 0 && creux.cellules.length === 0 && !trop,
     [...creux.titres, ...creux.sections, ...creux.cellules, trop ? `vide de fin ${creux.videDeFin} px` : ''].filter(Boolean).join(' ; '),
   )
+  // Une soirée ne dit jamais son lieu deux fois dans le même bloc (Phase 7.9).
+  const repetes = await nav.evaluer<string[]>(s, SCRIPT_LIEU_REPETE)
+  noter(f.largeur, chemin, 'aucun lieu de soirée répété dans son bloc', repetes.length === 0, repetes.slice(0, 3).join(' ; '))
   // Seuil du papier d'affiche (Phase 7.8) : 4,5:1 ne vaut que pour le nom en grand et en gras.
   // Si un petit texte se posait sur le papier échantillonné, le seuil deviendrait 7:1 : le
   // contrôle échoue à cet instant-là, sans qu'il faille y penser.

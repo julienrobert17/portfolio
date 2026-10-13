@@ -784,27 +784,15 @@
   display: inline-block;
   padding: 10px 16px 12px;
   border: var(--trait-fort) solid var(--g2g-ink);
-  background: var(--g2g-poster);
+  background: var(--papier-affiche, var(--g2g-poster));
   color: var(--g2g-ink);
   text-decoration: none;
   font-size: clamp(32px, 4vw, 56px);
   transform: rotate(var(--rot));
 }
 
-.g2g .g2g-affiche-lien--rouge {
-  background: var(--g2g-red);
-}
-
-.g2g .g2g-affiche-lien--vert {
-  /* La ligne de 13 px sous le nom impose greenDeep et poster (ink sur green ne fait que 4,07:1). */
-  background: var(--g2g-greenDeep);
-  color: var(--g2g-poster);
-}
-
-.g2g .g2g-affiche-lien--encre {
-  background: var(--g2g-ink);
-  color: var(--g2g-poster);
-}
+/* Phase 7.9 : plus de rotation de teintes. Le papier vient de la dominante de l'artiste, éclaircie
+   jusqu'à 7:1 parce que la tuile porte une ligne de 13 px sous le nom (lib/couleur-affiche.ts). */
 
 .g2g-affiche-lien small {
   display: block;

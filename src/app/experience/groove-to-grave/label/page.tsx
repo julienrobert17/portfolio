@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { chargerContenu, getArtiste } from '@/components/experience/groove-to-grave/sanity/contenu'
-import { ligneChronologie } from '@/components/experience/groove-to-grave/lib/chronologie'
+import { ligneSoiree } from '@/components/experience/groove-to-grave/lib/soiree'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
@@ -17,8 +17,8 @@ export default async function LabelPage() {
   const { sorties, soirees, artistes, label, textes } = await chargerContenu()
   const crew = label.crew.map((s) => getArtiste(artistes, s)).filter((a) => a !== undefined)
   const chrono = [
-    ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref) })),
-    ...soirees.map((s) => ({ date: s.date, texte: ligneChronologie(s), href: routes.soirees })),
+    ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref), lieu: undefined })),
+    ...soirees.map((s) => ({ date: s.date, texte: ligneSoiree(s), href: routes.soiree(s.date), lieu: s.venue })),
   ].sort((a, b) => b.date.localeCompare(a.date))
   return (
     <>
@@ -58,7 +58,7 @@ export default async function LabelPage() {
         </h2>
         <ol className="g2g-chrono">
           {chrono.map((c, i) => (
-            <li key={`${c.date}-${i}`}>
+            <li key={`${c.date}-${i}`} data-soiree={c.lieu === undefined ? undefined : c.date} data-lieu={c.lieu}>
               <time dateTime={c.date}>{dateLongue(c.date)}</time>
               <Link href={c.href}>{c.texte}</Link>
             </li>

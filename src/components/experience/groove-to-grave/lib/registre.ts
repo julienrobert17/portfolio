@@ -15,11 +15,5 @@ export function estNoteDeChantier(valeur: unknown): boolean {
   return typeof valeur === 'string' && NOTES_DE_CHANTIER.test(valeur)
 }
 
-/** Ce que le site écrit quand le lieu d'une soirée n'a pas été retrouvé. */
+/** Ce que le site écrit quand le lieu d'une soirée n'a pas été retrouvé (voir `lib/soiree.ts`). */
 export const LIEU_NON_RETROUVE = 'Lieu non retrouvé'
-
-/** Le lieu d'une soirée, ou son absence dite franchement. Jamais une case vide. */
-export function lieuAffiche(lieu?: string | null): string {
-  const t = lieu?.trim()
-  return t ? t : LIEU_NON_RETROUVE
-}

@@ -10,7 +10,7 @@
  *   npm run test:g2g-tokens
  */
 import { readFileSync } from 'node:fs'
-import { afficheDeLArtiste, sortiesDeLArtiste } from './lib/artiste'
+import { dominanteDeLArtiste, tonsDeLArtiste } from './lib/artiste'
 import { MINIMUM_AFFICHE, MINIMUM_AFFICHE_PETIT_TEXTE } from './lib/couleur-affiche'
 import { adapterArtistes, adapterSorties } from './sanity/adaptateur'
 import type { REQUETE_ARTISTES_RESULT, REQUETE_SORTIES_RESULT } from './sanity/types.generated'
@@ -46,24 +46,24 @@ const instantane = JSON.parse(readFileSync('src/components/experience/groove-to-
 }
 const sorties = adapterSorties(instantane.sorties)
 const artistes = adapterArtistes(instantane.artistes)
+// Les deux tons de chaque artiste, tirés de la même dominante : l'affiche de sa page (titre
+// énorme, 4,5:1) et la tuile du mur (nom plus ligne de rôle en 13 px, donc 7:1). Le seuil de
+// l'affiche ne vaut que pour le grand texte : si un petit texte s'y posait, c'est 7:1 qu'il
+// faudrait, et le contrôle de rendu de g2g-verif le fait échouer à cet instant-là.
 const compte = { dominante: 0, eclaircie: 0, palette: 0 }
-let petits = 0
-process.stdout.write(`\n    affiches d'artistes, instantané du ${instantane.priseLe.slice(0, 10)} (minimum ${MINIMUM_AFFICHE}:1 face à ink, texte d'affiche seulement)\n`)
+process.stdout.write(`\n    teintes d'artistes, instantané du ${instantane.priseLe.slice(0, 10)} : affiche à ${MINIMUM_AFFICHE}:1, tuile du mur à ${MINIMUM_AFFICHE_PETIT_TEXTE}:1\n`)
 for (const a of artistes) {
-  const dominante = sortiesDeLArtiste(sorties, a.slug, a.releases).find((s) => s.couleurs)?.couleurs?.dominant
-  const { couleur, rapport, origine } = afficheDeLArtiste(a, sorties)
-  const ok = rapport >= MINIMUM_AFFICHE
+  const dominante = dominanteDeLArtiste(a, sorties)
+  const { affiche, tuile } = tonsDeLArtiste(a, sorties)
+  const ok = affiche.rapport >= MINIMUM_AFFICHE && tuile.rapport >= MINIMUM_AFFICHE_PETIT_TEXTE
   if (!ok) echecs++
-  compte[origine]++
-  if (rapport >= MINIMUM_AFFICHE_PETIT_TEXTE) petits++
-  process.stdout.write(`${ok ? 'ok ' : 'KO '} ${a.slug.padEnd(16)} ${(dominante ?? 'sans pochette').padEnd(13)} → ${couleur} ${rapport.toFixed(2)}:1 (${origine})\n`)
+  compte[affiche.origine]++
+  process.stdout.write(
+    `${ok ? 'ok ' : 'KO '} ${a.slug.padEnd(16)} ${(dominante ?? 'sans pochette').padEnd(13)} → affiche ${affiche.couleur} ${affiche.rapport.toFixed(2)}:1 (${affiche.origine}) · tuile ${tuile.couleur} ${tuile.rapport.toFixed(2)}:1 (${tuile.origine})\n`,
+  )
 }
-// Le seuil de 4,5:1 ne vaut que pour le nom en grand. Si un texte courant se pose un jour sur
-// l'affiche, c'est 7:1 qu'il faut : le contrôle de rendu de g2g-verif le fait échouer, et ce
-// relevé dit d'avance combien de papiers tiendraient ce seuil-là.
-process.stdout.write(`    ${petits} affiche(s) sur ${artistes.length} tiendraient ${MINIMUM_AFFICHE_PETIT_TEXTE}:1, le seuil exigé si un petit texte s'y posait\n`)
 if (echecs) {
   process.stderr.write(`${echecs} paire(s) sous le minimum\n`)
   process.exit(1)
 }
-process.stdout.write(`${PAIRES.length} paires vérifiées, ${artistes.length} affiches d'artistes : ${compte.dominante} dominantes telles quelles, ${compte.eclaircie} éclaircies, ${compte.palette} de palette\n`)
+process.stdout.write(`${PAIRES.length} paires vérifiées, ${artistes.length} artistes en deux tons : ${compte.dominante} dominantes telles quelles sur l'affiche, ${compte.eclaircie} éclaircies, ${compte.palette} de palette\n`)

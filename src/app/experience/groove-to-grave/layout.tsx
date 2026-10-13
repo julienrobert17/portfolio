@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import type { ReactNode } from 'react'
 import Mur from '@/components/experience/groove-to-grave/canvas/mur'
-import { lieuAffiche } from '@/components/experience/groove-to-grave/lib/registre'
+import { composerSoiree } from '@/components/experience/groove-to-grave/lib/soiree'
 import FinDeBande from '@/components/experience/groove-to-grave/layout/fin-de-bande'
 import Lecteur from '@/components/experience/groove-to-grave/layout/lecteur'
 import Racine from '@/components/experience/groove-to-grave/layout/racine'
@@ -58,7 +58,7 @@ export default async function GrooveToGraveLayout({ children }: { children: Reac
   const contenu = await chargerContenu()
   const prochaine = soireesAVenir(contenu.soirees)[0]
   const brouillon = (await draftMode()).isEnabled
-  const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${(prochaine.name ?? lieuAffiche(prochaine.venue)).toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
+  const texteProchaine = prochaine ? `PROCHAINE SOIRÉE ${dateLongue(prochaine.date).toUpperCase()} · ${composerSoiree(prochaine).titre.toUpperCase()}` : 'AUCUNE DATE ANNONCÉE · RESTE BRANCHÉ'
   return (
     <Racine className={`g2g ${archivo.variable} ${marker.variable}`} style={variablesCss()}>
       {/* Images et extraits viennent du CDN Sanity (Phase 7.4) : connexion ouverte d'avance, en clair pour les images, en CORS pour l'audio analysé. Inutile quand ils passent par notre origine (bloc 7.4b). */}

@@ -41,7 +41,21 @@ Ils portent la mention **brouillon** sur le site tant que la case « À valider 
 - **Textes du label** (section Textes du label) : la phrase d'accroche, « pourquoi », la procédure de démo, le message quand aucune soirée n'est annoncée, le texte de la newsletter.
 - **Présentations d'artistes** : Gregs, Julius, LukasDarian.
 
-## 5. Les coordonnées
+## 5. Quatre line-ups à écrire avec le nom exact de l'artiste
+
+Le site relie une soirée à la page d'un artiste quand son nom est écrit **exactement** dans le line-up — un nom approchant n'est jamais rapproché, pour ne rien inventer. Quatre entrées ne se relient donc pas alors qu'elles le devraient. Dans **Soirées**, champ **Line-up**, écrire le nom de l'artiste sur sa propre ligne (les précisions peuvent rester, sur une autre ligne) :
+
+| Soirée | Écrit aujourd'hui | À écrire |
+|---|---|---|
+| 28 juin 2024, Burnin' Ship 3 | `Emi Ömar (live)` | `Emi Ömar` |
+| 28 juin 2024, Burnin' Ship 3 | `Lungo (RMP Soundsystem)` | `Lungo` |
+| 11 octobre 2026, Finesse Rekords x Groove To Grave | `Gregs b2b Julius` | `Gregs` et `Julius`, deux lignes |
+| 25 juillet 2025, Jardin21 | `résidents Groove To Grave` | les noms des résidents présents |
+| 7 février 2025 | `Emi Ömar b2b Gregs` | `Emi Ömar` et `Gregs`, deux lignes |
+
+Les trente-six autres noms de line-up sans correspondance sont pour la plupart des **invités extérieurs au label** (Pink Mermaids, Alyhas, Foxin, Denyl Brook, les scènes « Atrium », « Refuge », « Mini-club »…) : il n'y a rien à faire pour eux, ils n'ont pas de page.
+
+## 6. Les coordonnées
 
 Dans **Réglages**, deux champs sont vides et le site s'en explique à chaque fois :
 
@@ -49,11 +63,11 @@ Dans **Réglages**, deux champs sont vides et le site s'en explique à chaque fo
 - **Contact démo** : idem pour l'envoi de démos.
 - La **newsletter** est marquée inactive : le formulaire du site le dit honnêtement et n'enregistre rien. À activer le jour où un fournisseur est choisi.
 
-## 6. Un point de détail relevé sur une étiquette
+## 7. Un point de détail relevé sur une étiquette
 
 **GTGR02** : le crédit de mastering a été lu sur l'étiquette du disque, il n'apparaît nulle part sur Bandcamp. À confirmer ou corriger (onglet Texte et crédits).
 
-## 7. Ce qui améliorerait le site, sans être une correction
+## 8. Ce qui améliorerait le site, sans être une correction
 
 - **Sept extraits sont encore des boucles synthétiques** (le site écrit « EXTRAIT PROVISOIRE » dans le lecteur). Déposer le vrai morceau sur la piste concernée les remplace, automatiquement, en une à deux minutes.
 - **Aucun des dix-neuf artistes n'a de portrait.** Le champ existe, facultatif ; une photo avec son crédit suffit.
