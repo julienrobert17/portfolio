@@ -20,7 +20,7 @@ export default async function HerosSoiree({ prochaine, lienToutes }: HerosProps)
   if (!prochaine) {
     return (
       <div className="g2g-vide">
-        <p className="g2g-marqueur">{textes.soireesVide.body}</p>
+        {textes.soireesVide.body ? <p className="g2g-marqueur">{textes.soireesVide.body}</p> : null}
         <p>Aucune date n’est annoncée publiquement pour l’instant. Les prochaines sorties et soirées passent d’abord par Instagram et la newsletter.</p>
         <ul className="g2g-liens">
           <li>

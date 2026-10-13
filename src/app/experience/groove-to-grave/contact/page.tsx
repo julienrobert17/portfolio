@@ -35,10 +35,12 @@ export default async function ContactPage({ searchParams }: Props) {
           <CassetteVierge />
           <div className="g2g-pile">
             <h2 className="g2g-affiche g2g-titre-section">Envoie ta tape</h2>
-            <p>
-              {textes.demo.body}
-              <span className="g2g-brouillon">brouillon</span>
-            </p>
+            {textes.demo.body ? (
+              <p>
+                {textes.demo.body}
+                {textes.demo.draft ? <span className="g2g-brouillon">brouillon</span> : null}
+              </p>
+            ) : null}
             <ul className="g2g-liens" style={{ marginTop: 0 }}>
               <li>
                 <a href={instagram.url} rel="noopener" className="g2g-bouton--principal">

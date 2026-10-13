@@ -1,4 +1,5 @@
 import type { Artiste, Couleurs, Credits, FormatSortie, Genre, ImageSite, Lien, Piste, Soiree, Sortie, Texte } from '../content/types'
+import { MASQUER_BROUILLONS } from '../lib/brouillons'
 import { MARQUE } from '../lib/marque'
 import { urlMedia } from '../lib/medias'
 import type { REQUETE_ARTISTES_RESULT, REQUETE_REGLAGES_RESULT, REQUETE_SOIREES_RESULT, REQUETE_SORTIES_RESULT, REQUETE_TEXTES_RESULT } from './types.generated'
@@ -14,6 +15,8 @@ type TexteSanity = { langue: 'fr' | 'en' | string | null; corps: string | null; 
 
 function texte(t: TexteSanity | undefined): Texte | undefined {
   if (!t?.corps) return undefined
+  // Brouillon masqué (jour du domaine final) : le texte n'est pas publié du tout.
+  if (t.aValiderParLeLabel && MASQUER_BROUILLONS) return undefined
   return { lang: t.langue === 'en' ? 'en' : 'fr', body: t.corps, ...(t.aValiderParLeLabel ? { draft: true as const } : {}) }
 }
 

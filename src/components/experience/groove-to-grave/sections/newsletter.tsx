@@ -32,7 +32,8 @@ export default async function Newsletter({ etat, retour }: NewsletterProps) {
       </form>
       {etat === 'merci' ? (
         <p className="g2g-message" role="status">
-          {textes.newsletter.body}
+          {/* Ce message dit un fait (rien n'est enregistré) : sans le texte du label, nous le disons nous-mêmes. */}
+          {textes.newsletter.body || 'Rien n’a été enregistré : la newsletter n’est pas encore ouverte.'}
         </p>
       ) : etat === 'invalide' ? (
         <p className="g2g-message" role="alert">

@@ -42,12 +42,15 @@ export default async function LabelPage() {
           ))}
         </ul>
       </section>
-      <section className="g2g-section" aria-labelledby="pourquoi">
-        <h2 id="pourquoi" className="g2g-affiche g2g-titre-section">
-          Pourquoi <span className="g2g-brouillon">brouillon</span>
-        </h2>
-        <p>{textes.pourquoi.body}</p>
-      </section>
+      {/* Section entière, titre compris : sans le texte, elle n'a plus de raison d'être (bloc 7.6). */}
+      {textes.pourquoi.body ? (
+        <section className="g2g-section" aria-labelledby="pourquoi">
+          <h2 id="pourquoi" className="g2g-affiche g2g-titre-section">
+            Pourquoi {textes.pourquoi.draft ? <span className="g2g-brouillon">brouillon</span> : null}
+          </h2>
+          <p>{textes.pourquoi.body}</p>
+        </section>
+      ) : null}
       <section className="g2g-section" aria-labelledby="chrono">
         <h2 id="chrono" className="g2g-affiche g2g-titre-section">
           Chronologie
@@ -62,10 +65,11 @@ export default async function LabelPage() {
         </ol>
       </section>
       <section className="g2g-section" aria-labelledby="demo">
+        {/* La section reste : ses liens (contact, sources) valent par eux-mêmes, même sans le texte. */}
         <h2 id="demo" className="g2g-affiche g2g-titre-section">
-          Proposer une démo <span className="g2g-brouillon">brouillon</span>
+          Proposer une démo {textes.demo.draft ? <span className="g2g-brouillon">brouillon</span> : null}
         </h2>
-        <p>{textes.demo.body}</p>
+        {textes.demo.body ? <p>{textes.demo.body}</p> : null}
         <ul className="g2g-liens">
           <li>
             <Link href={routes.contact} className="g2g-bouton--principal">

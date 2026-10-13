@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { ApercuCassette } from '../composants/apercu-cassette'
+import { SaisieDuree } from '../composants/duree'
 import { GENRES } from './communs'
 
 /** Vrai si la date de sortie du document est passée (ou aujourd'hui). */
@@ -17,7 +18,14 @@ export const piste = defineType({
     defineField({ name: 'position', title: 'Position', type: 'string', description: 'Telle qu’imprimée : A1, B2… pour un vinyle, 1 à 8 pour une compilation.', validation: (r) => r.required() }),
     defineField({ name: 'titre', title: 'Titre', type: 'string', validation: (r) => r.required() }),
     defineField({ name: 'artiste', title: 'Artiste de la piste', type: 'string', description: 'Seulement pour une compilation (nom d’artiste, jamais un nom civil).' }),
-    defineField({ name: 'duree', title: 'Durée (secondes)', type: 'number', description: 'Durée du morceau complet, en secondes.', validation: (r) => r.required().integer().positive() }),
+    defineField({
+      name: 'duree',
+      title: 'Durée',
+      type: 'number',
+      description: 'Comme sur l’étiquette : 3:42. Vous pouvez aussi écrire le nombre de secondes.',
+      components: { input: SaisieDuree },
+      validation: (r) => r.required().integer().positive().error('La durée est obligatoire : écrivez-la comme sur l’étiquette (3:42) ou en secondes (222).'),
+    }),
     defineField({ name: 'bonusNumerique', title: 'Bonus numérique', type: 'boolean', description: 'Absent du vinyle.', initialValue: false }),
     defineField({
       name: 'extraitBrut',
