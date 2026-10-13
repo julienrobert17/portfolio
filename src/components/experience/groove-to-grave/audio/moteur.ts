@@ -37,7 +37,7 @@ const PLEURAGE_DUREE = 0.5
 export const VOLUME_DEFAUT = 0.85
 /**
  * Le DynamicsCompressorNode applique un gain de compensation automatique qu'on ne peut pas
- * désactiver : ce trim le retire après le limiteur, calibré par scripts/g2g-mesures-audio.ts pour
+ * désactiver : ce trim le retire après le limiteur, calibré par mesure (brief §13.1) pour
  * −16 LUFS intégrés sur TOUT au volume par défaut.
  */
 const TRIM_LIMITEUR_DB = -5
@@ -396,7 +396,7 @@ let instance: Moteur | null = null
 
 declare global {
   interface Window {
-    /** Outils de capture, de mesure et de vérification (scripts/g2g-video.ts, g2g-mesures-audio.ts, g2g-verif.ts, g2g-planche-captures.ts). */
+    /** Outils de capture et de vérification (scripts/g2g-verif.ts, g2g-planche-captures.ts). */
     __g2g?: {
       flux: () => MediaStream | null
       mesure: (quoi: 'clac' | 'avance' | 'souffle' | 'musique', actif?: boolean) => void

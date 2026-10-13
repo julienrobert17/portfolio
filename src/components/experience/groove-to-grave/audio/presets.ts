@@ -20,7 +20,7 @@ export const COURBES: Record<Preset, CourbeEq> = {
  * Normalisation mesurée, en dB : ce que chaque courbe ajoute ou retire de sonie intégrée sur
  * les extraits (moyenne de trois extraits provisoires, ffmpeg ebur128, 10 octobre 2026). Un
  * relèvement de 7 dB sur les graves n'ajoute que 3,6 LU : compenser le relèvement nominal
- * surcorrigeait. À remesurer avec les vrais extraits du label (scripts/g2g-mesures-audio.ts).
+ * surcorrigeait. À remesurer avec les vrais extraits du label (table et méthode au brief §13.1).
  */
 export const NORMALISATION_DB: Record<Preset, number> = {
   tout: 0,

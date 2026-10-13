@@ -4,7 +4,7 @@
  * temporaire hors du dépôt** — rien n'est déplacé, rien n'est supprimé dans `docs/`. Les chemins
  * donnés sont relatifs à la racine du worktree ; ceux qui n'existent pas sont signalés et ignorés.
  *
- *   npx tsx scripts/g2g-archive-phase.ts --phase 7.4c docs/groove-to-grave/comptes-rendus/phase-7-4c.md docs/groove-to-grave/planches/phase-7.4c
+ *   npx tsx scripts/g2g-archive-phase.ts --phase 7.8 docs/groove-to-grave/historique.md ~/Desktop/g2g-sorties/planches
  */
 import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdtempSync, rmSync, statSync } from 'node:fs'
