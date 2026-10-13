@@ -6,6 +6,8 @@ interface TitrePageProps {
   /** Texte brut du titre, pour décider de la rotation (une ligne seulement). */
   texte: string
   teinte?: 'poster' | 'rouge' | 'vert'
+  /** Couleur du papier, quand elle vient du contenu (dominante d'un artiste, Phase 7.7). */
+  couleur?: string
   id?: string
   as?: 'h1' | 'h2'
 }
@@ -18,13 +20,13 @@ const UNE_LIGNE = 11
  * clamp(64px, 11vw, 168px), rotation déterministe de 1,5° au plus seulement s'il tient sur une
  * ligne (brief, passe de direction 2.1).
  */
-export default function TitrePage({ children, texte, teinte = 'poster', id, as = 'h1' }: TitrePageProps) {
+export default function TitrePage({ children, texte, teinte = 'poster', couleur, id, as = 'h1' }: TitrePageProps) {
   const Balise = as
   const rot = texte.length <= UNE_LIGNE ? rotation(texte, 1.5) : 0
   const classe = `g2g-bande-titre${teinte === 'rouge' ? ' g2g-bande-titre--rouge' : teinte === 'vert' ? ' g2g-bande-titre--vert' : ''}`
   return (
     <Balise id={id} className="g2g-affiche g2g-titre-page">
-      <span className={classe} style={{ '--rot-base': `${rot}deg` } as CSSProperties}>
+      <span className={classe} style={{ '--rot-base': `${rot}deg`, ...(couleur ? { '--papier-affiche': couleur } : {}) } as CSSProperties}>
         {children}
       </span>
     </Balise>

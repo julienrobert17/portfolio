@@ -1,4 +1,17 @@
 import { defineField, defineType } from 'sanity'
+import { estNoteDeChantier } from '../../src/components/experience/groove-to-grave/lib/registre'
+
+/**
+ * Registre public (Phase 7.7) : le site n'affiche jamais une note de chantier. Une information
+ * inconnue se tait, ou se dit « non retrouvé » — jamais « à vérifier », « à confirmer », « TODO »
+ * ni « ? ». La règle et son expression vivent dans `lib/registre.ts`, côté site : cette validation
+ * est la même barrière, posée à l'endroit où le label écrit.
+ */
+
+export function sansNoteDeChantier(valeur: unknown): true | string {
+  if (!estNoteDeChantier(valeur)) return true
+  return 'Cette formule est une note de chantier, et le site n’en affiche aucune. Laissez le champ vide si l’information n’est pas connue : la page s’en passera proprement.'
+}
 
 /** Genres des presets du lecteur : la seule liste autorisée. */
 export const GENRES = [
@@ -20,14 +33,14 @@ export const imageCreditee = defineType({
       title: 'Texte alternatif',
       type: 'string',
       description: 'Ce que montre l’image, en une phrase, pour les personnes qui ne la voient pas. Obligatoire.',
-      validation: (r) => r.required().min(3).error('Le texte alternatif est obligatoire.'),
+      validation: (r) => [r.required().min(3).error('Le texte alternatif est obligatoire.'), r.custom(sansNoteDeChantier)],
     }),
     defineField({
       name: 'credit',
       title: 'Crédit',
       type: 'string',
       description: 'Qui a fait l’image (illustrateur, graphiste, photographe). Obligatoire : l’œuvre est affichée telle quelle, jamais recadrée. Si vous ne savez pas, cochez « auteur non identifié ».',
-      validation: (r) => r.custom((valeur, contexte) => (valeur || (contexte.parent as { auteurNonIdentifie?: boolean } | undefined)?.auteurNonIdentifie ? true : 'Le crédit est obligatoire, ou cochez « auteur non identifié ».')),
+      validation: (r) => r.custom(sansNoteDeChantier).custom((valeur, contexte) => (valeur || (contexte.parent as { auteurNonIdentifie?: boolean } | undefined)?.auteurNonIdentifie ? true : 'Le crédit est obligatoire, ou cochez « auteur non identifié ».')),
     }),
     defineField({
       name: 'auteurNonIdentifie',
@@ -46,7 +59,7 @@ export const texte = defineType({
   type: 'object',
   fields: [
     defineField({ name: 'langue', title: 'Langue', type: 'string', options: { list: [{ title: 'Français', value: 'fr' }, { title: 'Anglais', value: 'en' }], layout: 'radio' }, initialValue: 'fr', validation: (r) => r.required() }),
-    defineField({ name: 'corps', title: 'Texte', type: 'text', rows: 6, validation: (r) => r.required() }),
+    defineField({ name: 'corps', title: 'Texte', type: 'text', rows: 6, validation: (r) => r.custom(sansNoteDeChantier).required() }),
     defineField({
       name: 'aValiderParLeLabel',
       title: 'À valider par le label',

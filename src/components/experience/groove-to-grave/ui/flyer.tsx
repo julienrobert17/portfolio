@@ -1,6 +1,7 @@
 import type { Soiree } from '../content/types'
 import { styleRotation } from '../lib/desordre'
 import { dateLongue } from '../lib/format'
+import { lieuAffiche } from '../lib/registre'
 import Photo from './photo'
 
 /** Nom affiché d'une soirée : le sien, sinon celui du label. Jamais fabriqué à partir du lieu. */
@@ -19,7 +20,7 @@ export function SupportFlyer({ soiree, sizes = '(max-width: 600px) 100vw, 400px'
           <span className="g2g-affiche">
             <time dateTime={soiree.date}>{dateLongue(soiree.date)}</time>
           </span>
-          <span className="g2g-affiche g2g-affiche--lieu">{soiree.venue}</span>
+          <span className="g2g-affiche g2g-affiche--lieu">{lieuAffiche(soiree.venue)}</span>
           <span className="g2g-meta">visuel non retrouvé</span>
         </div>
       )}
@@ -47,12 +48,12 @@ export default function Flyer({ soiree }: { soiree: Soiree }) {
           {soiree.hours ? `, ${soiree.hours}` : ''}
         </span>
         <span>
-          {soiree.venue}
+          {lieuAffiche(soiree.venue)}
           {soiree.address ? `, ${soiree.address}` : ''}
         </span>
         {soiree.lineup.length ? <span>{soiree.lineup.join(' · ')}</span> : null}
         {soiree.price ? <span className="g2g-meta">{soiree.price}</span> : null}
-        {!soiree.verified ? <span className="g2g-meta">Date à confirmer par le label</span> : null}
+        {!soiree.verified ? <span className="g2g-meta">Date relevée sans source en ligne</span> : null}
         {soiree.ticketing ? (
           <a href={soiree.ticketing} rel="noopener">
             {soiree.status === 'a-venir' ? 'Billetterie' : 'Page de la soirée'}

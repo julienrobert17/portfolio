@@ -1,6 +1,6 @@
 # Ce que le label doit compléter lui-même
 
-Relevé du 12 octobre 2026, directement dans le contenu publié. Rien ici n'est bloquant pour le site : il affiche honnêtement ce qu'il ne sait pas. Mais chacun de ces points est une information que **nous** ne pouvons pas inventer.
+Relevé du 12 octobre 2026, mis à jour le 13 octobre 2026, directement dans le contenu publié. Rien ici n'est bloquant pour le site : il affiche honnêtement ce qu'il ne sait pas. Mais chacun de ces points est une information que **nous** ne pouvons pas inventer.
 
 ## 1. Huit crédits de flyers « auteur non identifié »
 
@@ -25,11 +25,11 @@ GTGR01, GTGR02, GTGR03, GTGR04, GTGR05, GTGRVA01, GTGRVA02 — les sept.
 
 ## 3. Quatre soirées dont la date ou le lieu reste à confirmer
 
-Le site affiche « Date à confirmer par le label » sous ces quatre-là. Vérifier, corriger, puis cocher **« Date et lieu vérifiés »**.
+Le site écrit « Date relevée sans source en ligne » sous ces quatre-là. Vérifier, corriger, puis cocher **« Date et lieu vérifiés »**. Pour celle du 7 février 2025, le lieu n'a pas été retrouvé : le champ est vide et le site l'écrit franchement — si vous vous en souvenez, il suffit de le remplir.
 
 | Date relevée | Soirée | Lieu relevé |
 |---|---|---|
-| 7 février 2025 | (sans nom) | **Lieu à vérifier** |
+| 7 février 2025 | (sans nom) | **Lieu non retrouvé** (champ vidé le 13 octobre 2026) |
 | 1er novembre 2024 | (sans nom) | 42 Marches |
 | 4 novembre 2023 | Burnin' Ship | Péniche Cinéma, Le Baruda |
 | 22 février 2023 | Groove To Grave Records au bar éphémère L'Exode | Bar éphémère L'Exode (ex-45 Tours) |

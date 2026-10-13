@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { chargerContenu, getArtiste } from '@/components/experience/groove-to-grave/sanity/contenu'
+import { ligneChronologie } from '@/components/experience/groove-to-grave/lib/chronologie'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
@@ -17,7 +18,7 @@ export default async function LabelPage() {
   const crew = label.crew.map((s) => getArtiste(artistes, s)).filter((a) => a !== undefined)
   const chrono = [
     ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref) })),
-    ...soirees.map((s) => ({ date: s.date, texte: `Soirée${s.name ? ` ${s.name}` : ''}, ${s.venue}${s.status === 'annulee' ? ', annulée' : ''}`, href: routes.soirees })),
+    ...soirees.map((s) => ({ date: s.date, texte: ligneChronologie(s), href: routes.soirees })),
   ].sort((a, b) => b.date.localeCompare(a.date))
   return (
     <>
@@ -65,19 +66,24 @@ export default async function LabelPage() {
         </ol>
       </section>
       <section className="g2g-section" aria-labelledby="demo">
-        {/* La section reste : ses liens (contact, sources) valent par eux-mêmes, même sans le texte. */}
         <h2 id="demo" className="g2g-affiche g2g-titre-section">
-          Proposer une démo {textes.demo.draft ? <span className="g2g-brouillon">brouillon</span> : null}
+          Proposer une démo
         </h2>
-        {textes.demo.body ? <p>{textes.demo.body}</p> : null}
+        {/* Tant que le label n'a pas publié d'adresse de démo, le site dit l'état réel plutôt que
+            de promettre une action qu'il ne sait pas rendre ; le jour où le champ est rempli,
+            c'est l'adresse qui s'affiche (Phase 7.7). */}
+        {label.contactDemo ? (
+          <p>
+            Envoyez votre lien d’écoute à <a href={`mailto:${label.contactDemo}`}>{label.contactDemo}</a>.
+          </p>
+        ) : (
+          <p>Le label n’a pas publié d’adresse pour les démos. Le contact du site est le seul chemin ouvert pour l’instant.</p>
+        )}
         <ul className="g2g-liens">
           <li>
             <Link href={routes.contact} className="g2g-bouton--principal">
               Contact
             </Link>
-          </li>
-          <li>
-            <Link href={routes.sources}>Sources et crédits</Link>
           </li>
         </ul>
       </section>

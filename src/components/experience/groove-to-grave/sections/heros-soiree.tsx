@@ -3,6 +3,7 @@ import { chargerContenu } from '../sanity/contenu'
 import type { Soiree } from '../content/types'
 import { dateLongue } from '../lib/format'
 import { routes } from '../lib/routes'
+import { lieuAffiche } from '../lib/registre'
 import { SupportFlyer, nomSoiree } from '../ui/flyer'
 
 interface HerosProps {
@@ -48,7 +49,7 @@ export default async function HerosSoiree({ prochaine, lienToutes }: HerosProps)
           {prochaine.hours ? `, ${prochaine.hours}` : ''}
         </p>
         <p>
-          {prochaine.venue}
+          {lieuAffiche(prochaine.venue)}
           {prochaine.address ? `, ${prochaine.address}` : ''}
         </p>
         {prochaine.lineup.length ? <p>{prochaine.lineup.join(' · ')}</p> : null}

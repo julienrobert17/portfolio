@@ -39,7 +39,7 @@ export default async function SoireesPage() {
         <h2 id="archive" className="g2g-affiche g2g-titre-section">
           Archive
         </h2>
-        <p>Les flyers tels quels, jamais recadrés, visuels LukasDarian quand il est crédité. Les dates sans source lisible restent à confirmer par le label.</p>
+        <p>Les flyers tels quels, jamais recadrés, visuels LukasDarian quand il est crédité. Les dates sans source en ligne sont celles que nous avons relevées ailleurs, et le site le dit sur l’affiche.</p>
         <ul className="g2g-flyers" style={{ marginTop: 'var(--s4)' }}>
           {passees.map((s) => (
             <li key={s.date}>

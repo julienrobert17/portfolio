@@ -12,7 +12,7 @@
  *     tuile depuis la home du portfolio, lien interne entre deux pages, retour puis avance du navigateur ;
  *     pour chacun : lecteur monté, AudioContext en `running` au premier vrai clic, position de l'extrait qui
  *     avance, spectre qui change entre deux images, aucune erreur de console ;
- *   - aucun titre orphelin ni section vide sur chaque page ;
+ *   - aucun creux de mise en page sur chaque page : titre orphelin, section vide, grille trouée, vide de fin ;
  *   - aucune erreur de console, exception ni requête en échec sur chaque page ;
  *   - extrait indisponible (requêtes audio coupées) : le lecteur le dit et propose Bandcamp.
  * S'exécute contre un serveur local ou contre l'URL de production (`--url https://…`) : à lancer contre la
@@ -20,6 +20,8 @@
  *
  *   npx tsx scripts/g2g-verif.ts [--url http://localhost:3000 | https://portfolio-eight-sable-66.vercel.app]
  */
+import { NOTES_DE_CHANTIER } from '../src/components/experience/groove-to-grave/lib/registre'
+import { SCRIPT_CREUX, VIDE_DE_FIN_MAX, type Creux } from './g2g-creux'
 import { Devtools } from './g2g-devtools'
 
 const arg = (nom: string, defaut: string) => {
@@ -201,21 +203,25 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
   // Chevauchements.
   const chev = await nav.evaluer<{ cartes: number; decors: number; problemes: string[] }>(s, SCRIPT_CHEVAUCHEMENTS)
   noter(f.largeur, chemin, `chevauchements (${chev.cartes} cartes, ${chev.decors} décors)`, chev.problemes.length === 0, chev.problemes.join(' ; '))
-  // Aucun titre laissé seul ni section vide : un texte absent (brouillon non publié le jour du
-  // domaine final, champ vide) doit emporter sa section, pas laisser un trou (bloc 7.6).
-  const creux = await nav.evaluer<{ titres: string[]; sections: string[] }>(s, `(() => {
-    const vide = (el) => el.innerText.trim().length === 0;
-    const visible = (el) => el.getClientRects().length > 0;
-    const titres = Array.from(document.querySelectorAll('main h1, main h2, main h3')).filter((h) => {
-      const section = h.closest('section, article');
-      if (!section || !visible(section)) return false;
-      const reste = Array.from(section.children).filter((c) => c !== h && !c.contains(h));
-      return reste.length === 0 || reste.every((c) => vide(c));
-    }).map((h) => h.textContent.trim().slice(0, 40));
-    const sections = Array.from(document.querySelectorAll('main section, main article')).filter((x) => visible(x) && vide(x)).map((x) => x.className || x.tagName);
-    return { titres, sections };
-  })()`)
-  noter(f.largeur, chemin, 'aucun titre orphelin ni section vide', creux.titres.length === 0 && creux.sections.length === 0, [...creux.titres, ...creux.sections].join(' ; '))
+  // Aucun creux de mise en page : titre orphelin, section vide, grille trouée, vide de fin
+  // (blocs 7.6 et 7.7). Le détecteur est partagé avec les scripts de planches.
+  await nav.evaluer(s, `window.scrollTo(0, 0)`)
+  const creux = await nav.evaluer<Creux>(s, SCRIPT_CREUX)
+  const trop = creux.videDeFin > VIDE_DE_FIN_MAX(f.hauteur)
+  noter(
+    f.largeur,
+    chemin,
+    'aucun creux : titre orphelin, section vide, grille trouée, vide de fin',
+    creux.titres.length === 0 && creux.sections.length === 0 && creux.cellules.length === 0 && !trop,
+    [...creux.titres, ...creux.sections, ...creux.cellules, trop ? `vide de fin ${creux.videDeFin} px` : ''].filter(Boolean).join(' ; '),
+  )
+  // Registre public (bloc 7.7) : aucune note de chantier dans le texte rendu, d'où qu'elle vienne.
+  const texte = await nav.evaluer<string>(s, `document.body.innerText`)
+  const notes = texte
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => NOTES_DE_CHANTIER.test(l))
+  noter(f.largeur, chemin, 'aucune note de chantier dans le texte rendu', notes.length === 0, notes.slice(0, 3).join(' ; '))
   const erreurs = erreursDe(s)
   noter(f.largeur, chemin, 'aucune erreur de console ni requête en échec', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
   await nav.envoyer('Target.closeTarget', { targetId })

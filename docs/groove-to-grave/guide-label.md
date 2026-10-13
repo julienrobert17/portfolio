@@ -36,6 +36,8 @@ Puis **Publier**. La sortie apparaît sur le site, dans le mur de cassettes et d
 
 Une soirée passe toute seule dans l'archive le lendemain de sa date : vous n'avez rien à faire. « Annulée » et « Reportée » s'affichent en clair sur le site si vous changez son statut.
 
+**Si vous ne retrouvez pas le lieu, laissez le champ vide.** Le site écrira « Lieu non retrouvé » et la soirée restera à sa date, avec son line-up. C'est la règle générale du site : **il n'affiche jamais une note de chantier**. Si vous écrivez « à vérifier », « à confirmer », « TODO » ou un point d'interrogation seul dans un champ, le Studio le refuse et vous le dit — une information que personne n'a, le site la tait ou l'écrit « non retrouvé », il ne la met pas en vitrine.
+
 ---
 
 ## Ajouter ou corriger un artiste

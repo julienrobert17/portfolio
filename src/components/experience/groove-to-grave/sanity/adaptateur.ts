@@ -139,10 +139,12 @@ export function adapterArtistes(docs: REQUETE_ARTISTES_RESULT): Artiste[] {
 export function adapterSoirees(docs: REQUETE_SOIREES_RESULT): Soiree[] {
   const soirees: Soiree[] = []
   for (const d of docs) {
-    if (!d.date || !d.lieu) continue
+    // Seule la date est indispensable : un lieu non retrouvé ne fait pas disparaître la soirée
+    // du registre, le site le dit à la place (Phase 7.7).
+    if (!d.date) continue
     const s: Soiree = {
       date: d.date,
-      venue: d.lieu,
+      venue: d.lieu ?? '',
       city: d.ville ?? 'Paris',
       lineup: (d.lineup ?? []).filter((l): l is string => Boolean(l)),
       status: (d.statut ?? 'passee') as Soiree['status'],
