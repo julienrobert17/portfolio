@@ -204,8 +204,10 @@
   max-width: 100%;
   margin-top: var(--s3);
   padding: 0.12em 0.18em 0.1em;
-  /* Le papier prend la dominante de l'artiste quand il y en a une (Phase 7.7), sinon l'affiche. */
+  /* Le papier prend la dominante de l'artiste quand il y en a une (7.7), sinon l'affiche ; sur une
+     dominante sombre, c'est le papier qui sert d'encre (7.10). */
   background: var(--papier-affiche, var(--g2g-poster));
+  color: var(--encre-affiche, inherit);
   border: var(--trait-fort) solid var(--g2g-ink);
   transform: rotate(var(--rot));
 }
@@ -785,7 +787,7 @@
   padding: 10px 16px 12px;
   border: var(--trait-fort) solid var(--g2g-ink);
   background: var(--papier-affiche, var(--g2g-poster));
-  color: var(--g2g-ink);
+  color: var(--encre-affiche, var(--g2g-ink));
   text-decoration: none;
   font-size: clamp(32px, 4vw, 56px);
   transform: rotate(var(--rot));

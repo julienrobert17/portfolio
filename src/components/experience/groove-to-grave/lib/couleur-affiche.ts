@@ -1,14 +1,17 @@
-import { contraste, couleurs as tokens } from '../tokens'
+import { contraste, couleurs as tokens, luminance } from '../tokens'
 
 /**
  * Couleur du papier de l'affiche d'un artiste (Phase 7.7, revue en 7.8). Une seule charte
  * d'en-tête : toutes les pages d'artistes portent l'affiche scotchée, et son papier vient de la
  * **dominante relevée sur la pochette** de l'artiste par le pipeline.
  *
- * Une dominante relevée sur une œuvre est souvent trop sombre pour porter l'encre. La règle de
- * 7.7 — basculer sur la couleur de palette la plus proche — rendait dix pages identiques et
- * effaçait le lien avec l'œuvre. Depuis 7.8, **la dominante est éclaircie à teinte constante**
- * jusqu'à ce que le rapport soit atteint : la couleur de la pochette reste reconnaissable.
+ * Une dominante relevée sur une œuvre ne porte pas toujours l'encre. La règle de 7.7 — basculer
+ * sur la couleur de palette la plus proche — rendait dix pages identiques et effaçait le lien avec
+ * l'œuvre ; celle de 7.8 — éclaircir à teinte constante — gardait la teinte mais **trahissait la
+ * valeur** : les pochettes sombres devenaient pâles et le mur perdait ses ancres. Depuis la Phase
+ * 7.10, **la luminance de la dominante décide du traitement** : une dominante claire est éclaircie
+ * et porte l'encre ; une dominante sombre est **assombrie** et porte le papier. Le rapport reste le
+ * juge dans les deux cas.
  *
  * Garde-fous : le rapport reste le juge (`MINIMUM_AFFICHE`, voir le seuil et son arbitrage au
  * brief) ; la saturation est plafonnée pour que dix-neuf papiers éclaircis ne virent pas au néon ;
@@ -29,9 +32,21 @@ export const MINIMUM_AFFICHE_PETIT_TEXTE = 7
 export const SATURATION_MAX = 0.55
 /** Plafond de clarté : au-delà, ce n'est plus la couleur de l'œuvre, c'est du blanc. */
 export const CLARTE_MAX = 0.92
+/** Plancher de clarté : en deçà, ce n'est plus la couleur de l'œuvre, c'est du noir. */
+export const CLARTE_MIN = 0.05
+/**
+ * Luminance de bascule entre les deux traitements (Phase 7.10). Ce n'est pas un chiffre choisi :
+ * c'est le point où une couleur contraste autant avec l'encre qu'avec le papier, `√((Lpapier +
+ * 0,05)(Lencre + 0,05)) − 0,05`. En dessous, la couleur est du côté sombre et le papier sera son
+ * texte ; au-dessus, elle est du côté clair et porte l'encre. Déplacer ce seuil déplace la
+ * frontière, sans toucher à la règle.
+ */
+export const LUMINANCE_BASCULE = Math.sqrt((luminance(tokens.poster) + 0.05) * (luminance(tokens.ink) + 0.05)) - 0.05
 
-/** Papiers de la palette, dernier recours : clairs, déjà vérifiés face à l'encre. */
-const REPLIS = [tokens.poster, tokens.chromeLight, tokens.chrome, tokens.wall, tokens.lambeauVert, tokens.lambeauRouge] as const
+/** Papiers de la palette, dernier recours côté clair : déjà vérifiés face à l'encre. */
+const REPLIS_CLAIRS = [tokens.poster, tokens.chromeLight, tokens.chrome, tokens.wall, tokens.lambeauVert, tokens.lambeauRouge] as const
+/** Aplats de la palette, dernier recours côté sombre : déjà vérifiés face au papier. */
+const REPLIS_SOMBRES = [tokens.ink, tokens.greenDeep, tokens.lcdOff, tokens.papierSombre] as const
 
 function canaux(hex: string): [number, number, number] {
   const h = hex.replace('#', '')
@@ -72,29 +87,36 @@ export function versHex(t: number, s: number, l: number): string {
 
 export interface Affiche {
   couleur: string
+  /** Couleur du texte posé dessus : l'encre côté clair, le papier côté sombre. */
+  encre: string
   rapport: number
-  /** D'où vient le papier : la dominante telle quelle, la dominante éclaircie, ou la palette. */
-  origine: 'dominante' | 'eclaircie' | 'palette'
+  /** D'où vient la couleur : la dominante telle quelle, éclaircie, assombrie, ou la palette. */
+  origine: 'dominante' | 'eclaircie' | 'assombrie' | 'palette'
 }
 
 /**
- * Couleur tirée d'une dominante pour un seuil donné : telle quelle si elle le tient, sinon
- * éclaircie à teinte constante, sinon la couleur de palette la plus proche. Deux tons sortent
- * de la même teinte (Phase 7.9) : l'affiche d'une page à `MINIMUM_AFFICHE`, la tuile du mur à
- * `MINIMUM_AFFICHE_PETIT_TEXTE`, parce qu'elle porte un petit texte.
+ * Couleur tirée d'une dominante pour un seuil donné, et couleur du texte qui va dessus.
+ * Deux tons sortent de la même teinte (Phase 7.9) : l'affiche d'une page à `MINIMUM_AFFICHE`,
+ * la tuile du mur à `MINIMUM_AFFICHE_PETIT_TEXTE`, parce qu'elle porte un petit texte. Et deux
+ * traitements (Phase 7.10) : éclaircir vers l'encre, ou assombrir vers le papier.
  */
 export function couleurAffiche(dominante?: string, minimum: number = MINIMUM_AFFICHE): Affiche {
-  if (!dominante) return { couleur: tokens.poster, rapport: contraste(tokens.ink, tokens.poster), origine: 'dominante' }
-  const rapportBrut = contraste(tokens.ink, dominante)
-  if (rapportBrut >= minimum) return { couleur: dominante, rapport: rapportBrut, origine: 'dominante' }
+  if (!dominante) return { couleur: tokens.poster, encre: tokens.ink, rapport: contraste(tokens.ink, tokens.poster), origine: 'dominante' }
+  const sombre = luminance(dominante) < LUMINANCE_BASCULE
+  const encre = sombre ? tokens.poster : tokens.ink
+  const rapportBrut = contraste(encre, dominante)
+  if (rapportBrut >= minimum) return { couleur: dominante, encre, rapport: rapportBrut, origine: 'dominante' }
   const [t, s, l] = versHsl(dominante)
   const saturation = Math.min(s, SATURATION_MAX)
-  // Le contraste avec l'encre croît avec la clarté : on monte par pas de 1 % jusqu'au premier qui tient.
-  for (let clarte = l; clarte <= CLARTE_MAX + 1e-9; clarte += 0.01) {
-    const essai = versHex(t, saturation, Math.min(clarte, CLARTE_MAX))
-    const rapport = contraste(tokens.ink, essai)
-    if (rapport >= minimum) return { couleur: essai, rapport, origine: 'eclaircie' }
+  // Le contraste croît en s'éloignant du texte : on s'en éloigne par pas de 1 % de clarté.
+  const pas = sombre ? -0.01 : 0.01
+  const butee = sombre ? CLARTE_MIN : CLARTE_MAX
+  for (let clarte = l; sombre ? clarte >= butee - 1e-9 : clarte <= butee + 1e-9; clarte += pas) {
+    const essai = versHex(t, saturation, sombre ? Math.max(clarte, butee) : Math.min(clarte, butee))
+    const rapport = contraste(encre, essai)
+    if (rapport >= minimum) return { couleur: essai, encre, rapport, origine: sombre ? 'assombrie' : 'eclaircie' }
   }
-  const proche = [...REPLIS].filter((c) => contraste(tokens.ink, c) >= minimum).sort((a, b) => distance(a, dominante) - distance(b, dominante))[0] ?? tokens.poster
-  return { couleur: proche, rapport: contraste(tokens.ink, proche), origine: 'palette' }
+  const replis = sombre ? REPLIS_SOMBRES : REPLIS_CLAIRS
+  const proche = [...replis].filter((c) => contraste(encre, c) >= minimum).sort((a, b) => distance(a, dominante) - distance(b, dominante))[0] ?? (sombre ? tokens.ink : tokens.poster)
+  return { couleur: proche, encre, rapport: contraste(encre, proche), origine: 'palette' }
 }

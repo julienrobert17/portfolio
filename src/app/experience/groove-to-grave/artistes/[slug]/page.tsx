@@ -71,7 +71,7 @@ export default async function ArtistePage({ params }: Props) {
   return (
     <article className="g2g-entete-page g2g-artiste">
       <p className="g2g-meta">{meta}</p>
-      <TitrePage texte={a.name} couleur={affiche.couleur}>
+      <TitrePage texte={a.name} couleur={affiche.couleur} encre={affiche.encre}>
         {a.name}
       </TitrePage>
       {sorties.length ? (

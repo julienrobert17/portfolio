@@ -11,10 +11,10 @@
  */
 import { readFileSync } from 'node:fs'
 import { dominanteDeLArtiste, tonsDeLArtiste } from './lib/artiste'
-import { MINIMUM_AFFICHE, MINIMUM_AFFICHE_PETIT_TEXTE } from './lib/couleur-affiche'
+import { LUMINANCE_BASCULE, MINIMUM_AFFICHE, MINIMUM_AFFICHE_PETIT_TEXTE } from './lib/couleur-affiche'
 import { adapterArtistes, adapterSorties } from './sanity/adaptateur'
 import type { REQUETE_ARTISTES_RESULT, REQUETE_SORTIES_RESULT } from './sanity/types.generated'
-import { MELANGE_LAMBEAU, MINIMUM_RED_INK_WALL, PAIRES, contraste, couleurs, melanger } from './tokens'
+import { MELANGE_LAMBEAU, MINIMUM_RED_INK_WALL, PAIRES, contraste, couleurs, luminance, melanger } from './tokens'
 
 let echecs = 0
 if (MELANGE_LAMBEAU > 0.35) {
@@ -50,20 +50,28 @@ const artistes = adapterArtistes(instantane.artistes)
 // énorme, 4,5:1) et la tuile du mur (nom plus ligne de rôle en 13 px, donc 7:1). Le seuil de
 // l'affiche ne vaut que pour le grand texte : si un petit texte s'y posait, c'est 7:1 qu'il
 // faudrait, et le contrôle de rendu de g2g-verif le fait échouer à cet instant-là.
-const compte = { dominante: 0, eclaircie: 0, palette: 0 }
-process.stdout.write(`\n    teintes d'artistes, instantané du ${instantane.priseLe.slice(0, 10)} : affiche à ${MINIMUM_AFFICHE}:1, tuile du mur à ${MINIMUM_AFFICHE_PETIT_TEXTE}:1\n`)
+const compte: Record<string, number> = { dominante: 0, eclaircie: 0, assombrie: 0, palette: 0 }
+let sombres = 0
+process.stdout.write(
+  `\n    teintes d'artistes, instantané du ${instantane.priseLe.slice(0, 10)} : affiche à ${MINIMUM_AFFICHE}:1, tuile du mur à ${MINIMUM_AFFICHE_PETIT_TEXTE}:1, bascule de traitement à ${LUMINANCE_BASCULE.toFixed(3)} de luminance\n`,
+)
 for (const a of artistes) {
   const dominante = dominanteDeLArtiste(a, sorties)
   const { affiche, tuile } = tonsDeLArtiste(a, sorties)
+  const lum = dominante ? luminance(dominante) : luminance(couleurs.poster)
   const ok = affiche.rapport >= MINIMUM_AFFICHE && tuile.rapport >= MINIMUM_AFFICHE_PETIT_TEXTE
   if (!ok) echecs++
-  compte[affiche.origine]++
+  compte[tuile.origine] = (compte[tuile.origine] ?? 0) + 1
+  if (lum < LUMINANCE_BASCULE) sombres++
+  const texte = (t: typeof tuile) => (t.encre === couleurs.ink ? 'encre' : 'papier')
   process.stdout.write(
-    `${ok ? 'ok ' : 'KO '} ${a.slug.padEnd(16)} ${(dominante ?? 'sans pochette').padEnd(13)} → affiche ${affiche.couleur} ${affiche.rapport.toFixed(2)}:1 (${affiche.origine}) · tuile ${tuile.couleur} ${tuile.rapport.toFixed(2)}:1 (${tuile.origine})\n`,
+    `${ok ? 'ok ' : 'KO '} ${a.slug.padEnd(16)} ${(dominante ?? 'sans pochette').padEnd(13)} lum ${lum.toFixed(3)} ${lum < LUMINANCE_BASCULE ? 'sombre ' : 'claire '} → affiche ${affiche.couleur} ${texte(affiche)} ${affiche.rapport.toFixed(2)}:1 (${affiche.origine}) · tuile ${tuile.couleur} ${texte(tuile)} ${tuile.rapport.toFixed(2)}:1 (${tuile.origine})\n`,
   )
 }
 if (echecs) {
   process.stderr.write(`${echecs} paire(s) sous le minimum\n`)
   process.exit(1)
 }
-process.stdout.write(`${PAIRES.length} paires vérifiées, ${artistes.length} artistes en deux tons : ${compte.dominante} dominantes telles quelles sur l'affiche, ${compte.eclaircie} éclaircies, ${compte.palette} de palette\n`)
+process.stdout.write(
+  `${PAIRES.length} paires vérifiées, ${artistes.length} artistes en deux tons : ${sombres} dominantes sombres (texte papier) et ${artistes.length - sombres} claires (texte encre) ; tuiles : ${compte.dominante} telles quelles, ${compte.eclaircie} éclaircies, ${compte.assombrie} assombries, ${compte.palette} de palette\n`,
+)

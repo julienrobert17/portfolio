@@ -29,7 +29,13 @@ export default async function ArtistesPage() {
               href={routes.artiste(a.slug)}
               className="g2g-affiche g2g-affiche-lien"
               data-collage=""
-              style={{ '--rot-base': `${rotation(a.slug, 4)}deg`, '--papier-affiche': tonsDeLArtiste(a, sorties).tuile.couleur } as React.CSSProperties}
+              style={
+                {
+                  '--rot-base': `${rotation(a.slug, 4)}deg`,
+                  '--papier-affiche': tonsDeLArtiste(a, sorties).tuile.couleur,
+                  '--encre-affiche': tonsDeLArtiste(a, sorties).tuile.encre,
+                } as React.CSSProperties
+              }
             >
               {a.name}
               <small>{a.role ?? (a.city ? a.city : `${a.releases.length} ${a.releases.length > 1 ? 'sorties' : 'sortie'}`)}</small>
