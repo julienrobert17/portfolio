@@ -14,7 +14,7 @@
 import { execFileSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CACHE, RACINE, dossier } from './g2g-lib'
+import { CACHE, SORTIES, dossier } from './g2g-lib'
 
 const arg = (nom: string, defaut: string) => {
   const i = process.argv.indexOf(nom)
@@ -36,7 +36,7 @@ const FORMATS_TOUS = ['mobile', 'desktop'] as const
 const formats = arg('--formats', '')
 const FORMATS = formats ? FORMATS_TOUS.filter((f) => formats.split(',').includes(f)) : FORMATS_TOUS
 const AXES = ['performance', 'accessibility', 'best-practices', 'seo'] as const
-const SORTIE = dossier(join(RACINE, 'docs/groove-to-grave/lighthouse', arg('--sortie', 'phase-6')))
+const SORTIE = dossier(join(SORTIES, 'lighthouse', arg('--sortie', 'phase-6')))
 
 interface Resultat {
   json: string

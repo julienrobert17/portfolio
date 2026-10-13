@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MASQUER_BROUILLONS } from '../lib/brouillons'
 import { chargerContenu } from '../sanity/contenu'
 import { routes } from '../lib/routes'
 import BoutonRembobiner from '../ui/bouton-rembobiner'
@@ -22,7 +23,8 @@ export default async function FinDeBande() {
           <h2 className="g2g-affiche g2g-titre-page">Fin de bande</h2>
           <p>{textes.credits.body}</p>
           <p>
-            {textes.droits.body} Textes marqués « brouillon » en attente de validation par le label. <Link href={routes.sources}>Sources et crédits</Link>.
+            {textes.droits.body} {MASQUER_BROUILLONS ? null : 'Textes marqués « brouillon » en attente de validation par le label.'}{' '}
+            <Link href={routes.sources}>Sources et crédits</Link>.
           </p>
           <ul className="g2g-fin__liens" aria-label="Le label en ligne">
             {label.reseaux.map((l) => (

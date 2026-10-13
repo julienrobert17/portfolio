@@ -51,7 +51,6 @@ export default async function SortiePage({ params }: Props) {
   const voisins = s.kind === 'compilation' ? [serie[0], serie[1], ...compilations.filter((x) => x.ref !== s.ref).slice(0, 1)] : [serie[i - 1], serie[i + 1], compilations[0]]
   const liste = voisins.filter((v) => v !== undefined)
   const statut = STATUTS[s.status]
-  const aVerifier = s.aVerifier ?? []
   const sticker = s.status === 'epuise' ? { texte: 'épuisé', classe: 'g2g-sticker' } : s.noRepress ? { texte: 'no repress', classe: 'g2g-sticker g2g-sticker--vert' } : null
   return (
     <article>
@@ -82,7 +81,7 @@ export default async function SortiePage({ params }: Props) {
             <figure className="g2g-pochette">
               <Photo image={s.pochette} alt={`Pochette de ${s.title} par ${s.artistName}`} sizes="(max-width: 860px) 100vw, 560px" priority />
               <figcaption>
-                <span>Artwork : {s.credits.artwork ?? 'à vérifier'}. Œuvre affichée intacte.</span>
+                <span>{s.credits.artwork ? `Artwork : ${s.credits.artwork}. ` : ''}Œuvre affichée intacte.</span>
               </figcaption>
             </figure>
           ) : (
@@ -145,7 +144,6 @@ export default async function SortiePage({ params }: Props) {
                   <dt>Mastering</dt>
                   <dd>
                     {s.credits.mastering}
-                    {aVerifier.some((a) => a.startsWith('credits.mastering')) ? <span className="g2g-brouillon">à vérifier</span> : null}
                   </dd>
                 </>
               ) : null}

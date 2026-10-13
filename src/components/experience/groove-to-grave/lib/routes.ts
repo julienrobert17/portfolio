@@ -8,6 +8,8 @@ export const routes = {
   artistes: `${BASE}/artistes`,
   artiste: (slug: string) => `${BASE}/artistes/${slug}`,
   soirees: `${BASE}/soirees`,
+  /** Ancre d'une soirée dans la page soirées : la date est son identité (Phase 7.8). */
+  soiree: (date: string) => `${BASE}/soirees#soiree-${date}`,
   label: `${BASE}/label`,
   contact: `${BASE}/contact`,
   sources: `${BASE}/sources`,

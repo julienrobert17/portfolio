@@ -1,14 +1,15 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import { sansNoteDeChantier } from './communs'
 
 export const artiste = defineType({
   name: 'artiste',
   title: 'Artiste',
   type: 'document',
   fields: [
-    defineField({ name: 'nom', title: 'Nom d’artiste', type: 'string', description: 'Le nom de scène, jamais un nom civil.', validation: (r) => r.required() }),
+    defineField({ name: 'nom', title: 'Nom d’artiste', type: 'string', description: 'Le nom de scène, jamais un nom civil.', validation: (r) => r.custom(sansNoteDeChantier).required() }),
     defineField({ name: 'slug', title: 'Adresse de la page', type: 'slug', options: { source: 'nom' }, validation: (r) => r.required() }),
-    defineField({ name: 'ville', title: 'Ville', type: 'string', description: 'Seulement si l’artiste la communique.' }),
-    defineField({ name: 'role', title: 'Rôle dans le collectif', type: 'string', description: 'Pour les membres du crew : A&R, mastering, visuels…' }),
+    defineField({ name: 'ville', title: 'Ville', type: 'string', description: 'Seulement si l’artiste la communique.', validation: (r) => r.custom(sansNoteDeChantier) }),
+    defineField({ name: 'role', title: 'Rôle dans le collectif', type: 'string', description: 'Pour les membres du crew : A&R, mastering, visuels…', validation: (r) => r.custom(sansNoteDeChantier) }),
     defineField({ name: 'portrait', title: 'Portrait', type: 'imageCreditee', description: 'Facultatif.' }),
     defineField({ name: 'traitement', title: 'Traitement automatique', type: 'traitement' }),
     defineField({ name: 'portraitOptimise', title: 'Portrait optimisé', type: 'imagesDerivees' }),

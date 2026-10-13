@@ -78,10 +78,12 @@ export default async function AccueilPage({ searchParams }: Props) {
         <HerosSoiree prochaine={prochaine} lienToutes />
       </section>
       <section className="g2g-section g2g-pile" aria-label="Le label en une phrase">
-        <p className="g2g-marqueur g2g-titre-section" style={{ transform: 'rotate(-1.5deg)', display: 'inline-block', maxWidth: 'none' }}>
-          {textes.phrase.body}
-          <span className="g2g-brouillon">brouillon</span>
-        </p>
+        {textes.phrase.body ? (
+          <p className="g2g-marqueur g2g-titre-section" style={{ transform: 'rotate(-1.5deg)', display: 'inline-block', maxWidth: 'none' }}>
+            {textes.phrase.body}
+            {textes.phrase.draft ? <span className="g2g-brouillon">brouillon</span> : null}
+          </p>
+        ) : null}
         <p>
           {label.presentation.body} <Link href={routes.label}>Le label</Link>.
         </p>

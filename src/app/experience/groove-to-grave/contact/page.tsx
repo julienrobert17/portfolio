@@ -23,7 +23,7 @@ interface Props {
  */
 export default async function ContactPage({ searchParams }: Props) {
   const { newsletter } = await searchParams
-  const { label, textes } = await chargerContenu()
+  const { label } = await chargerContenu()
   const instagram = label.reseaux.find((r) => r.label === 'Instagram') ?? label.reseaux[0]
   return (
     <>
@@ -35,10 +35,15 @@ export default async function ContactPage({ searchParams }: Props) {
           <CassetteVierge />
           <div className="g2g-pile">
             <h2 className="g2g-affiche g2g-titre-section">Envoie ta tape</h2>
-            <p>
-              {textes.demo.body}
-              <span className="g2g-brouillon">brouillon</span>
-            </p>
+            {/* Même règle que la page label (Phase 7.7) : l'adresse vient du champ, et sans
+                champ le site dit l'état réel au lieu de servir notre brouillon. */}
+            {label.contactDemo ? (
+              <p>
+                Envoyez votre lien d’écoute à <a href={`mailto:${label.contactDemo}`}>{label.contactDemo}</a>.
+              </p>
+            ) : (
+              <p>Le label n’a pas publié d’adresse pour les démos : le lien passe par Instagram.</p>
+            )}
             <ul className="g2g-liens" style={{ marginTop: 0 }}>
               <li>
                 <a href={instagram.url} rel="noopener" className="g2g-bouton--principal">

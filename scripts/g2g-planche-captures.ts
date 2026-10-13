@@ -5,13 +5,20 @@
  * (`npm run start` ou `npm run dev`) sur l'URL passée en option.
  *
  *   npx tsx scripts/g2g-planche-captures.ts --phase 2 [--url http://localhost:3000]
+ *
+ * Planche-contact d'une liste de pages (Phase 7.7) : `--pages /artistes/atay,/artistes/julius`
+ * capture ces pages-là (titre = le chemin) au lieu de la liste habituelle, et `--vignette 300`
+ * réduit chaque capture à cette largeur pour les faire tenir en grille dans une seule image.
+ *   npx tsx scripts/g2g-planche-captures.ts --phase 7.7-artistes --pages "$SLUGS" --vignette 300
+ * `--fenetre` capture le haut de page seulement (les en-têtes, pour juger les couleurs d'un coup).
+ * Tout est écrit **hors du dépôt**, dans `~/Desktop/g2g-sorties/planches` (`G2G_SORTIES`).
  */
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import sharp from 'sharp'
 import { couleurs } from '../src/components/experience/groove-to-grave/tokens'
 import { Devtools } from './g2g-devtools'
-import { CACHE, RACINE, dossier } from './g2g-lib'
+import { CACHE, RACINE, SORTIES, dossier } from './g2g-lib'
 
 const DATE = new Date().toISOString().slice(0, 10)
 const arg = (nom: string, defaut: string) => {
@@ -21,6 +28,10 @@ const arg = (nom: string, defaut: string) => {
 const PHASE = arg('--phase', '2')
 const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
+const LISTE = arg('--pages', '')
+const VIGNETTE = Number(arg('--vignette', '0'))
+/** `--fenetre` : capture la fenêtre (le haut de page) au lieu de la page entière. */
+const FENETRE = process.argv.includes('--fenetre')
 
 interface Etat {
   chemin: string
@@ -122,11 +133,12 @@ async function main(): Promise<void> {
   dossier(join(CACHE, 'captures'))
   const navigateur = new Captures()
   await navigateur.demarrer()
-  const PLANCHES = dossier(join(RACINE, 'docs/groove-to-grave/planches'))
+  const PLANCHES = dossier(join(SORTIES, 'planches'))
   const POLICE = 'Helvetica Neue, Helvetica, Arial, sans-serif'
   for (const f of FORMATS) {
     const captures: { titre: string; buf: Buffer; w: number; h: number }[] = []
-    const liste = (Number(PHASE) >= 3 ? [...PAGES, ...ETATS_LECTEUR] : PAGES).filter((p) => !p.format || p.format === f.largeur)
+    const demandees: Etat[] = LISTE ? LISTE.split(',').map((c) => ({ chemin: c.trim(), titre: c.trim().replace(/^\//, ''), fenetre: FENETRE })) : Number(PHASE) >= 3 ? [...PAGES, ...ETATS_LECTEUR] : PAGES
+    const liste = demandees.filter((p) => !p.format || p.format === f.largeur)
     // Dossier par format : une image par page et par état, coupée à deux hauteurs d'écran au plus, JPEG 82.
     const dossierFormat = dossier(join(PLANCHES, `phase-${PHASE}-${f.largeur}`))
     const hauteurEcran = (f.largeur < 600 ? 844 : 900) * f.echelle
@@ -140,14 +152,16 @@ async function main(): Promise<void> {
       await sharp(buf).extract({ left: 0, top: 0, width: meta.width ?? 0, height: hauteurCoupee }).jpeg({ quality: 82, mozjpeg: true }).toFile(join(dossierFormat, nom))
       // Capture brute gardée hors dépôt, utile pour la revue page par page.
       writeFileSync(join(CACHE, 'captures', `p${PHASE}-${f.largeur}-${p.titre.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}.png`), buf)
-      const m = await sharp(buf).metadata()
-      captures.push({ titre: p.titre, buf, w: m.width ?? 0, h: m.height ?? 0 })
+      // Planche-contact : chaque capture est réduite à la largeur de vignette demandée.
+      const vignette = VIGNETTE ? await sharp(buf).resize({ width: VIGNETTE }).png().toBuffer() : buf
+      const m = await sharp(vignette).metadata()
+      captures.push({ titre: p.titre, buf: vignette, w: m.width ?? 0, h: m.height ?? 0 })
       process.stdout.write(`  ${f.largeur} · ${nom} : ${m.width}×${m.height}\n`)
     }
     // Mise en page : à 1440, une capture par ligne ; à 390 (780 px réels), trois par ligne.
     const MARGE = 60
-    const colonnes = f.largeur === 390 ? 3 : 1
-    const largeurCapture = f.largeur * f.echelle
+    const colonnes = VIGNETTE ? Math.ceil(Math.sqrt(captures.length)) : f.largeur === 390 ? 3 : 1
+    const largeurCapture = VIGNETTE || f.largeur * f.echelle
     const LARGEUR = MARGE * 2 + colonnes * largeurCapture + (colonnes - 1) * 40
     const LEGENDE = 70
     const lignes: { y: number; h: number }[] = []

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MARQUE } from '@/components/experience/groove-to-grave/lib/marque'
 import { chargerContenu, getArtiste } from '@/components/experience/groove-to-grave/sanity/contenu'
+import { ligneSoiree } from '@/components/experience/groove-to-grave/lib/soiree'
 import { dateLongue } from '@/components/experience/groove-to-grave/lib/format'
 import { routes } from '@/components/experience/groove-to-grave/lib/routes'
 import TitrePage from '@/components/experience/groove-to-grave/ui/titre-page'
@@ -16,8 +17,8 @@ export default async function LabelPage() {
   const { sorties, soirees, artistes, label, textes } = await chargerContenu()
   const crew = label.crew.map((s) => getArtiste(artistes, s)).filter((a) => a !== undefined)
   const chrono = [
-    ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref) })),
-    ...soirees.map((s) => ({ date: s.date, texte: `Soirée${s.name ? ` ${s.name}` : ''}, ${s.venue}${s.status === 'annulee' ? ', annulée' : ''}`, href: routes.soirees })),
+    ...sorties.map((s) => ({ date: s.releaseDate, texte: `${s.catalog} · ${s.artistName}, ${s.title} (${s.format})`, href: routes.sortie(s.ref), lieu: undefined })),
+    ...soirees.map((s) => ({ date: s.date, texte: ligneSoiree(s), href: routes.soiree(s.date), lieu: s.venue })),
   ].sort((a, b) => b.date.localeCompare(a.date))
   return (
     <>
@@ -42,19 +43,22 @@ export default async function LabelPage() {
           ))}
         </ul>
       </section>
-      <section className="g2g-section" aria-labelledby="pourquoi">
-        <h2 id="pourquoi" className="g2g-affiche g2g-titre-section">
-          Pourquoi <span className="g2g-brouillon">brouillon</span>
-        </h2>
-        <p>{textes.pourquoi.body}</p>
-      </section>
+      {/* Section entière, titre compris : sans le texte, elle n'a plus de raison d'être (bloc 7.6). */}
+      {textes.pourquoi.body ? (
+        <section className="g2g-section" aria-labelledby="pourquoi">
+          <h2 id="pourquoi" className="g2g-affiche g2g-titre-section">
+            Pourquoi {textes.pourquoi.draft ? <span className="g2g-brouillon">brouillon</span> : null}
+          </h2>
+          <p>{textes.pourquoi.body}</p>
+        </section>
+      ) : null}
       <section className="g2g-section" aria-labelledby="chrono">
         <h2 id="chrono" className="g2g-affiche g2g-titre-section">
           Chronologie
         </h2>
         <ol className="g2g-chrono">
           {chrono.map((c, i) => (
-            <li key={`${c.date}-${i}`}>
+            <li key={`${c.date}-${i}`} data-soiree={c.lieu === undefined ? undefined : c.date} data-lieu={c.lieu}>
               <time dateTime={c.date}>{dateLongue(c.date)}</time>
               <Link href={c.href}>{c.texte}</Link>
             </li>
@@ -63,17 +67,23 @@ export default async function LabelPage() {
       </section>
       <section className="g2g-section" aria-labelledby="demo">
         <h2 id="demo" className="g2g-affiche g2g-titre-section">
-          Proposer une démo <span className="g2g-brouillon">brouillon</span>
+          Proposer une démo
         </h2>
-        <p>{textes.demo.body}</p>
+        {/* Tant que le label n'a pas publié d'adresse de démo, le site dit l'état réel plutôt que
+            de promettre une action qu'il ne sait pas rendre ; le jour où le champ est rempli,
+            c'est l'adresse qui s'affiche (Phase 7.7). */}
+        {label.contactDemo ? (
+          <p>
+            Envoyez votre lien d’écoute à <a href={`mailto:${label.contactDemo}`}>{label.contactDemo}</a>.
+          </p>
+        ) : (
+          <p>Le label n’a pas publié d’adresse pour les démos. Le contact du site est le seul chemin ouvert pour l’instant.</p>
+        )}
         <ul className="g2g-liens">
           <li>
             <Link href={routes.contact} className="g2g-bouton--principal">
               Contact
             </Link>
-          </li>
-          <li>
-            <Link href={routes.sources}>Sources et crédits</Link>
           </li>
         </ul>
       </section>

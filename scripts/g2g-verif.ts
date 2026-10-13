@@ -12,6 +12,7 @@
  *     tuile depuis la home du portfolio, lien interne entre deux pages, retour puis avance du navigateur ;
  *     pour chacun : lecteur monté, AudioContext en `running` au premier vrai clic, position de l'extrait qui
  *     avance, spectre qui change entre deux images, aucune erreur de console ;
+ *   - aucun creux de mise en page sur chaque page : titre orphelin, section vide, grille trouée, vide de fin ;
  *   - aucune erreur de console, exception ni requête en échec sur chaque page ;
  *   - extrait indisponible (requêtes audio coupées) : le lecteur le dit et propose Bandcamp.
  * S'exécute contre un serveur local ou contre l'URL de production (`--url https://…`) : à lancer contre la
@@ -19,6 +20,8 @@
  *
  *   npx tsx scripts/g2g-verif.ts [--url http://localhost:3000 | https://portfolio-eight-sable-66.vercel.app]
  */
+import { NOTES_DE_CHANTIER } from '../src/components/experience/groove-to-grave/lib/registre'
+import { SCRIPT_CREUX, VIDE_DE_FIN_MAX, type Creux } from './g2g-creux'
 import { Devtools } from './g2g-devtools'
 
 const arg = (nom: string, defaut: string) => {
@@ -27,7 +30,7 @@ const arg = (nom: string, defaut: string) => {
 }
 const URL = arg('--url', 'http://localhost:3000').replace(/\/$/, '')
 const BASE = '/experience/groove-to-grave'
-const PAGES = ['', '/sorties', '/sorties/gtgr05', '/sorties/gtgrva02', '/artistes', '/artistes/kitchen-plug', '/artistes/lungo', '/soirees', '/label', '/contact', '/sources']
+const PAGES = ['', '/sorties', '/sorties/gtgr05', '/sorties/gtgrva02', '/artistes', '/artistes/kitchen-plug', '/artistes/lungo', '/artistes/julius', '/soirees', '/label', '/contact', '/sources']
 const FORMATS = [
   { largeur: 1440, hauteur: 900, echelle: 1 },
   { largeur: 390, hauteur: 844, echelle: 2 },
@@ -135,6 +138,45 @@ async function allerAuxSorties(nav: Devtools, s: string): Promise<void> {
 }
 
 /** Dans la page : quadrilatères des cartes, stickers, scotch et cibles, et test de séparation des axes. */
+/**
+ * Lieu répété dans un bloc de soirée (Phase 7.9) : chaque bloc rendu porte sa date et son lieu,
+ * et le lieu normalisé ne doit apparaître qu'une fois dans le texte du bloc — sinon le titre et
+ * la ligne de lieu disent deux fois la même chose (cas « La Péniche Marcounet invite… » suivi de
+ * « PÉNICHE MARCOUNET »).
+ */
+const SCRIPT_LIEU_REPETE = `(() => {
+  const normaliser = (t) => t.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const mauvais = []
+  for (const bloc of document.querySelectorAll('[data-soiree][data-lieu]')) {
+    const lieu = normaliser(bloc.getAttribute('data-lieu') || '')
+    if (lieu.length < 3) continue
+    const texte = normaliser(bloc.innerText || '')
+    let n = 0
+    let i = texte.indexOf(lieu)
+    while (i !== -1) { n++; i = texte.indexOf(lieu, i + lieu.length) }
+    if (n > 1) mauvais.push(bloc.getAttribute('data-soiree') + ' : « ' + bloc.getAttribute('data-lieu') + ' » ' + n + ' fois')
+  }
+  return mauvais
+})()`
+
+/** Textes posés sur le papier d'affiche : taille et graisse, pour tenir le seuil de 4,5:1. */
+const SCRIPT_TEXTE_AFFICHE = `(() => {
+  const mauvais = []
+  for (const bande of document.querySelectorAll('.g2g-bande-titre')) {
+    const marche = document.createTreeWalker(bande, NodeFilter.SHOW_TEXT)
+    let n
+    while ((n = marche.nextNode())) {
+      if (!n.textContent.trim()) continue
+      const el = n.parentElement
+      const st = getComputedStyle(el)
+      const taille = parseFloat(st.fontSize)
+      const graisse = parseInt(st.fontWeight, 10) || 400
+      if (taille < 24 || graisse < 600) mauvais.push(el.tagName + ' ' + Math.round(taille) + 'px/' + graisse + ' « ' + n.textContent.trim().slice(0, 24) + ' »')
+    }
+  }
+  return mauvais
+})()`
+
 const SCRIPT_CHEVAUCHEMENTS = `(() => {
   const quad = (el) => {
     const r = el.getBoundingClientRect();
@@ -200,6 +242,33 @@ async function verifierPage(nav: Devtools, f: (typeof FORMATS)[number], chemin: 
   // Chevauchements.
   const chev = await nav.evaluer<{ cartes: number; decors: number; problemes: string[] }>(s, SCRIPT_CHEVAUCHEMENTS)
   noter(f.largeur, chemin, `chevauchements (${chev.cartes} cartes, ${chev.decors} décors)`, chev.problemes.length === 0, chev.problemes.join(' ; '))
+  // Aucun creux de mise en page : titre orphelin, section vide, grille trouée, vide de fin
+  // (blocs 7.6 et 7.7). Le détecteur est partagé avec les scripts de planches.
+  await nav.evaluer(s, `window.scrollTo(0, 0)`)
+  const creux = await nav.evaluer<Creux>(s, SCRIPT_CREUX)
+  const trop = creux.videDeFin > VIDE_DE_FIN_MAX(f.hauteur)
+  noter(
+    f.largeur,
+    chemin,
+    'aucun creux : titre orphelin, section vide, grille trouée, vide de fin',
+    creux.titres.length === 0 && creux.sections.length === 0 && creux.cellules.length === 0 && !trop,
+    [...creux.titres, ...creux.sections, ...creux.cellules, trop ? `vide de fin ${creux.videDeFin} px` : ''].filter(Boolean).join(' ; '),
+  )
+  // Une soirée ne dit jamais son lieu deux fois dans le même bloc (Phase 7.9).
+  const repetes = await nav.evaluer<string[]>(s, SCRIPT_LIEU_REPETE)
+  noter(f.largeur, chemin, 'aucun lieu de soirée répété dans son bloc', repetes.length === 0, repetes.slice(0, 3).join(' ; '))
+  // Seuil du papier d'affiche (Phase 7.8) : 4,5:1 ne vaut que pour le nom en grand et en gras.
+  // Si un petit texte se posait sur le papier échantillonné, le seuil deviendrait 7:1 : le
+  // contrôle échoue à cet instant-là, sans qu'il faille y penser.
+  const petits = await nav.evaluer<string[]>(s, SCRIPT_TEXTE_AFFICHE)
+  noter(f.largeur, chemin, 'papier d’affiche : rien que du grand texte gras (sinon le seuil passe à 7:1)', petits.length === 0, petits.slice(0, 3).join(' ; '))
+  // Registre public (bloc 7.7) : aucune note de chantier dans le texte rendu, d'où qu'elle vienne.
+  const texte = await nav.evaluer<string>(s, `document.body.innerText`)
+  const notes = texte
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => NOTES_DE_CHANTIER.test(l))
+  noter(f.largeur, chemin, 'aucune note de chantier dans le texte rendu', notes.length === 0, notes.slice(0, 3).join(' ; '))
   const erreurs = erreursDe(s)
   noter(f.largeur, chemin, 'aucune erreur de console ni requête en échec', erreurs.length === 0, erreurs.slice(0, 3).join(' ; '))
   await nav.envoyer('Target.closeTarget', { targetId })

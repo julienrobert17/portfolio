@@ -1,6 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { ApercuCassette } from '../composants/apercu-cassette'
-import { GENRES } from './communs'
+import { SaisieDuree } from '../composants/duree'
+import { GENRES, sansNoteDeChantier } from './communs'
 
 /** Vrai si la date de sortie du document est passée (ou aujourd'hui). */
 function estParue(document: { dateSortie?: string } | undefined): boolean {
@@ -15,9 +16,16 @@ export const piste = defineType({
   type: 'object',
   fields: [
     defineField({ name: 'position', title: 'Position', type: 'string', description: 'Telle qu’imprimée : A1, B2… pour un vinyle, 1 à 8 pour une compilation.', validation: (r) => r.required() }),
-    defineField({ name: 'titre', title: 'Titre', type: 'string', validation: (r) => r.required() }),
+    defineField({ name: 'titre', title: 'Titre', type: 'string', validation: (r) => r.custom(sansNoteDeChantier).required() }),
     defineField({ name: 'artiste', title: 'Artiste de la piste', type: 'string', description: 'Seulement pour une compilation (nom d’artiste, jamais un nom civil).' }),
-    defineField({ name: 'duree', title: 'Durée (secondes)', type: 'number', description: 'Durée du morceau complet, en secondes.', validation: (r) => r.required().integer().positive() }),
+    defineField({
+      name: 'duree',
+      title: 'Durée',
+      type: 'number',
+      description: 'Comme sur l’étiquette : 3:42. Vous pouvez aussi écrire le nombre de secondes.',
+      components: { input: SaisieDuree },
+      validation: (r) => r.required().integer().positive().error('La durée est obligatoire : écrivez-la comme sur l’étiquette (3:42) ou en secondes (222).'),
+    }),
     defineField({ name: 'bonusNumerique', title: 'Bonus numérique', type: 'boolean', description: 'Absent du vinyle.', initialValue: false }),
     defineField({
       name: 'extraitBrut',
@@ -58,7 +66,7 @@ export const sortie = defineType({
   fields: [
     defineField({ name: 'catalogue', title: 'Référence de catalogue', type: 'string', description: 'Telle qu’imprimée : GTGR05, GTGRVA02.', group: 'principal', validation: (r) => r.required().regex(/^GTGR(VA)?\d{2}$/, { name: 'référence GTGR' }).error('Référence au format GTGR05 ou GTGRVA02.') }),
     defineField({ name: 'slug', title: 'Adresse de la page', type: 'slug', description: 'Généré depuis la référence (gtgr05). Ne change pas après publication.', group: 'principal', options: { source: 'catalogue', slugify: (s: string) => s.toLowerCase() }, validation: (r) => r.required() }),
-    defineField({ name: 'titre', title: 'Titre', type: 'string', group: 'principal', validation: (r) => r.required() }),
+    defineField({ name: 'titre', title: 'Titre', type: 'string', group: 'principal', validation: (r) => r.custom(sansNoteDeChantier).required() }),
     defineField({
       name: 'genre',
       title: 'Type de sortie',
@@ -99,8 +107,8 @@ export const sortie = defineType({
       type: 'object',
       group: 'textes',
       fields: [
-        defineField({ name: 'artwork', title: 'Artwork', type: 'string', validation: (r) => r.required().error('Le crédit de l’artwork est obligatoire.') }),
-        defineField({ name: 'mastering', title: 'Mastering', type: 'string' }),
+        defineField({ name: 'artwork', title: 'Artwork', type: 'string', validation: (r) => [r.required().error('Le crédit de l’artwork est obligatoire.'), r.custom(sansNoteDeChantier)] }),
+        defineField({ name: 'mastering', title: 'Mastering', type: 'string', validation: (r) => r.custom(sansNoteDeChantier) }),
         defineField({ name: 'distribution', title: 'Distribution', type: 'string' }),
         defineField({ name: 'ar', title: 'A&R', type: 'string' }),
       ],

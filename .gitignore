@@ -50,3 +50,7 @@ studio/.env
 studio/.env.local
 .env.local
 studio/schema.json
+
+# Sorties de revue hors dépôt (Phase 7.8) : si un script les écrit encore ici, git les ignore.
+docs/groove-to-grave/planches/
+docs/groove-to-grave/lighthouse/

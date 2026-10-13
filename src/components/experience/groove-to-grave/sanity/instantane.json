@@ -1,5 +1,5 @@
 {
-  "priseLe": "2026-10-12T09:10:31.805Z",
+  "priseLe": "2026-10-13T08:12:26.389Z",
   "sorties": [
     {
       "_id": "sortie-gtgrva02",
@@ -1882,7 +1882,7 @@
       "flyer": null,
       "flyerOptimise": null,
       "horaires": null,
-      "lieu": "Lieu à vérifier",
+      "lieu": null,
       "lineup": [
         "Emi Ömar b2b Gregs",
         "Alyhas",

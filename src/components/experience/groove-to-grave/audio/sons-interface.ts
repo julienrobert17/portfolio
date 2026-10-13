@@ -2,7 +2,7 @@ import { dbVersGain } from './presets'
 
 /**
  * Sons d'interface synthétisés en Web Audio, à partir des recettes de la maquette, poids nul.
- * Tous passent par le gain séparé `sortie`. Niveaux calés par mesure (scripts/g2g-mesures-audio.ts,
+ * Tous passent par le gain séparé `sortie`. Niveaux calés par mesure (brief §13.1,
  * bloc 3.1) : clac 10 dB sous la musique, avance rapide et rembobinage 12 dB sous. Pas de son
  * au survol ni sur les presets.
  */

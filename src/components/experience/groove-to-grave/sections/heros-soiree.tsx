@@ -3,7 +3,8 @@ import { chargerContenu } from '../sanity/contenu'
 import type { Soiree } from '../content/types'
 import { dateLongue } from '../lib/format'
 import { routes } from '../lib/routes'
-import { SupportFlyer, nomSoiree } from '../ui/flyer'
+import { composerSoiree } from '../lib/soiree'
+import { SupportFlyer } from '../ui/flyer'
 
 interface HerosProps {
   prochaine: Soiree | undefined
@@ -20,7 +21,7 @@ export default async function HerosSoiree({ prochaine, lienToutes }: HerosProps)
   if (!prochaine) {
     return (
       <div className="g2g-vide">
-        <p className="g2g-marqueur">{textes.soireesVide.body}</p>
+        {textes.soireesVide.body ? <p className="g2g-marqueur">{textes.soireesVide.body}</p> : null}
         <p>Aucune date n’est annoncée publiquement pour l’instant. Les prochaines sorties et soirées passent d’abord par Instagram et la newsletter.</p>
         <ul className="g2g-liens">
           <li>
@@ -44,11 +45,11 @@ export default async function HerosSoiree({ prochaine, lienToutes }: HerosProps)
           <time dateTime={prochaine.date}>{dateLongue(prochaine.date)}</time>
         </p>
         <p>
-          <strong>{nomSoiree(prochaine)}</strong>
+          <strong>{composerSoiree(prochaine).titre}</strong>
           {prochaine.hours ? `, ${prochaine.hours}` : ''}
         </p>
         <p>
-          {prochaine.venue}
+          {composerSoiree(prochaine).lieu}
           {prochaine.address ? `, ${prochaine.address}` : ''}
         </p>
         {prochaine.lineup.length ? <p>{prochaine.lineup.join(' · ')}</p> : null}

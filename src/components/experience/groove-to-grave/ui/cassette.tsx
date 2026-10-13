@@ -102,7 +102,7 @@ export default function Cassette({ sortie, amplitude = 4 }: CassetteProps) {
 export function CassetteVierge() {
   return (
     <div className="g2g-cassette" style={{ '--rot-base': '-3deg', maxWidth: 360 } as React.CSSProperties}>
-      <CassetteSvg coque={tokens.poster} etiquette={tokens.poster} bande={tokens.red} texteBande={tokens.ink} reference="DÉMO" face="?" ligne1="envoie ta tape" ligne2="lien d'écoute privé, pas de fichier" />
+      <CassetteSvg coque={tokens.poster} etiquette={tokens.poster} bande={tokens.red} texteBande={tokens.ink} reference="DÉMO" face="A" ligne1="envoie ta tape" ligne2="lien d'écoute privé, pas de fichier" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import { sansNoteDeChantier } from './communs'
 
 /** Textes du label : un seul document (`textes`), édité depuis la section « Textes du label ». */
 export const textes = defineType({
@@ -23,8 +24,8 @@ export const reglages = defineType({
   title: 'Réglages',
   type: 'document',
   fields: [
-    defineField({ name: 'nom', title: 'Nom du label', type: 'string', initialValue: 'Groove To Grave Records', validation: (r) => r.required() }),
-    defineField({ name: 'ville', title: 'Ville', type: 'string', initialValue: 'Paris' }),
+    defineField({ name: 'nom', title: 'Nom du label', type: 'string', initialValue: 'Groove To Grave Records', validation: (r) => r.custom(sansNoteDeChantier).required() }),
+    defineField({ name: 'ville', title: 'Ville', type: 'string', initialValue: 'Paris', validation: (r) => r.custom(sansNoteDeChantier) }),
     defineField({ name: 'depuis', title: 'Depuis (année)', type: 'number' }),
     defineField({ name: 'distribution', title: 'Distribution', type: 'string' }),
     defineField({ name: 'contact', title: 'Adresse e-mail de contact', type: 'string', description: 'Affichée sur la page contact. Vide : le site renvoie vers Instagram.', validation: (r) => r.email() }),
