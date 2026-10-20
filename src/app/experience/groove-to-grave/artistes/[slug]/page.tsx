@@ -22,7 +22,14 @@ export async function generateStaticParams() {
   return artistes.map((a) => ({ slug: a.slug }))
 }
 
-export const dynamicParams = false
+/**
+ * Les paramètres hors du build sont rendus à la demande (correction du 20 octobre 2026). Avec
+ * `dynamicParams = false`, une artiste publiée après le dernier déploiement renvoyait 404 jusqu'au
+ * déploiement suivant — sa tuile apparaissait pourtant sur le mur, que la revalidation met à jour.
+ * `generateStaticParams` prérend ce qui existe au build, le reste est rendu au premier appel et
+ * mis en cache ; un identifiant qui n'existe vraiment pas passe par `notFound()` comme avant.
+ */
+export const dynamicParams = true
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
